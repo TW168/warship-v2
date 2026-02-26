@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+
+  <!-- Page header -->
+  <h1 class="page-header h3">
+    <i class="bi bi-cloud-sun me-2" aria-hidden="true"></i>Weather Overview
+  </h1>
+
+  <!-- Two forecast images side by side -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-6">
+      <div class="card shadow-sm h-100">
+        <img
+          src="/static/assets/MaxT1_conus.png"
+          class="card-img-top"
+          alt="MaxT1 CONUS temperature forecast map"
+          style="object-fit: cover; max-height: 420px;"
+        />
+        <div class="card-body py-2 px-3">
+          <p class="card-text text-muted small mb-0">
+            <i class="bi bi-thermometer-high me-1"></i>MaxT1 — CONUS Temperature Forecast
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card shadow-sm h-100">
+        <img
+          src="/static/assets/national_forecast.jpg"
+          class="card-img-top"
+          alt="National weather forecast map"
+          style="object-fit: cover; max-height: 420px;"
+        />
+        <div class="card-body py-2 px-3">
+          <p class="card-text text-muted small mb-0">
+            <i class="bi bi-globe-americas me-1"></i>National Forecast
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick navigation cards -->
+  <h2 class="h5 text-muted mb-3">Quick Access</h2>
+  <div class="row g-3">
+
+    <div class="col-sm-6 col-lg-3">
+      <a href="/warehouse" class="text-decoration-none">
+        <div class="card shadow-sm h-100 card-hover">
+          <div class="card-body text-center py-4">
+            <i class="bi bi-building display-5 text-primary mb-2 d-block" aria-hidden="true"></i>
+            <h3 class="h6 fw-semibold mb-1">Warehouse</h3>
+            <p class="text-muted small mb-0">Inventory &amp; storage management</p>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <div class="col-sm-6 col-lg-3">
+      <a href="/shipping" class="text-decoration-none">
+        <div class="card shadow-sm h-100 card-hover">
+          <div class="card-body text-center py-4">
+            <i class="bi bi-truck display-5 text-primary mb-2 d-block" aria-hidden="true"></i>
+            <h3 class="h6 fw-semibold mb-1">Shipping</h3>
+            <p class="text-muted small mb-0">Orders &amp; logistics tracking</p>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <div class="col-sm-6 col-lg-3">
+      <a href="/tsr-prep" class="text-decoration-none">
+        <div class="card shadow-sm h-100 card-hover">
+          <div class="card-body text-center py-4">
+            <i class="bi bi-clipboard-check display-5 text-primary mb-2 d-block" aria-hidden="true"></i>
+            <h3 class="h6 fw-semibold mb-1">TSR Prep</h3>
+            <p class="text-muted small mb-0">Technical support preparation</p>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <div class="col-sm-6 col-lg-3">
+      <a href="/maintenance/input" class="text-decoration-none">
+        <div class="card shadow-sm h-100 card-hover">
+          <div class="card-body text-center py-4">
+            <i class="bi bi-tools display-5 text-primary mb-2 d-block" aria-hidden="true"></i>
+            <h3 class="h6 fw-semibold mb-1">Maintenance</h3>
+            <p class="text-muted small mb-0">Data entry &amp; system docs</p>
+          </div>
+        </div>
+      </a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+  /* Hover lift effect for quick-access cards */
+  .card-hover {
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .card-hover:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.1) !important;
+  }
+</style>
+{% endblock %}

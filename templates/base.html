@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Warship{% endblock %} — Warehouse & Shipping</title>
+
+  <!-- Google Fonts: Open Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+
+  <!-- Warship custom styles -->
+  <link href="/static/css/custom.css" rel="stylesheet" />
+
+  {% block head %}{% endblock %}
+</head>
+
+<body>
+
+  <!-- ── Top Navbar ─────────────────────────────────────────── -->
+  <nav class="navbar navbar-expand-lg navbar-warship shadow-sm" aria-label="Main navigation">
+    <div class="container-fluid">
+
+      <!-- Brand -->
+      <a class="navbar-brand fw-bold fs-5" href="/">
+        <i class="bi bi-box-seam me-2" aria-hidden="true"></i>Warship
+      </a>
+
+      <!-- Mobile toggle -->
+      <button class="navbar-toggler border-0" type="button"
+              data-bs-toggle="collapse" data-bs-target="#navbarMain"
+              aria-controls="navbarMain" aria-expanded="false"
+              aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <!-- Nav links -->
+      <div class="collapse navbar-collapse" id="navbarMain">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+          <!-- Home (with Press sub-page dropdown) -->
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle {% if active_page in ['home', 'press'] %}active{% endif %}"
+               href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="bi bi-house me-1" aria-hidden="true"></i>Home
+            </a>
+            <ul class="dropdown-menu">
+              <li>
+                <a class="dropdown-item {% if active_page == 'home' %}active{% endif %}" href="/">
+                  <i class="bi bi-house-door me-2" aria-hidden="true"></i>Home
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item {% if active_page == 'press' %}active{% endif %}" href="/press">
+                  <i class="bi bi-newspaper me-2" aria-hidden="true"></i>Press
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- Warehouse -->
+          <li class="nav-item">
+            <a class="nav-link {% if active_page == 'warehouse' %}active{% endif %}" href="/warehouse">
+              <i class="bi bi-building me-1" aria-hidden="true"></i>Warehouse
+            </a>
+          </li>
+
+          <!-- Shipping -->
+          <li class="nav-item">
+            <a class="nav-link {% if active_page == 'shipping' %}active{% endif %}" href="/shipping">
+              <i class="bi bi-truck me-1" aria-hidden="true"></i>Shipping
+            </a>
+          </li>
+
+          <!-- TSR Prep -->
+          <li class="nav-item">
+            <a class="nav-link {% if active_page == 'tsr_prep' %}active{% endif %}" href="/tsr-prep">
+              <i class="bi bi-clipboard-check me-1" aria-hidden="true"></i>TSR Prep
+            </a>
+          </li>
+
+          <!-- Maintenance (dropdown) -->
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle {% if active_page == 'maintenance' %}active{% endif %}"
+               href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="bi bi-tools me-1" aria-hidden="true"></i>Maintenance
+            </a>
+            <ul class="dropdown-menu">
+              <li>
+                <a class="dropdown-item {% if active_page == 'maintenance_input' %}active{% endif %}"
+                   href="/maintenance/input">
+                  <i class="bi bi-pencil-square me-2" aria-hidden="true"></i>Input
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item {% if active_page == 'maintenance_arch' %}active{% endif %}"
+                   href="/maintenance/architectural">
+                  <i class="bi bi-diagram-3 me-2" aria-hidden="true"></i>Software Architectural
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- About -->
+          <li class="nav-item">
+            <a class="nav-link {% if active_page == 'about' %}active{% endif %}" href="/about">
+              <i class="bi bi-info-circle me-1" aria-hidden="true"></i>About
+            </a>
+          </li>
+
+        </ul>
+
+        <!-- Right-side status badge -->
+        <span class="badge text-bg-light text-secondary ms-auto">
+          <i class="bi bi-circle-fill text-success me-1" style="font-size: 0.6rem;" aria-hidden="true"></i>
+          v0.1.0
+        </span>
+      </div>
+
+    </div>
+  </nav>
+  <!-- ── /Navbar ─────────────────────────────────────────────── -->
+
+  <!-- ── Main content ───────────────────────────────────────── -->
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+  <!-- ── /Main content ──────────────────────────────────────── -->
+
+  <!-- ── Footer ─────────────────────────────────────────────── -->
+  <footer class="mt-auto py-3 bg-white">
+    <div class="container-fluid px-4">
+      <span class="text-muted">
+        &copy; {{ 2025 }} Warship &mdash; Warehouse &amp; Shipping Management System
+      </span>
+    </div>
+  </footer>
+  <!-- ── /Footer ─────────────────────────────────────────────── -->
+
+  <!-- ── Toast container (bottom-right) ───────────────────────
+       Usage: call showToast('message', 'success'|'danger'|'info') from JS -->
+  <div class="toast-container" aria-live="polite" aria-atomic="true">
+    <div id="appToast" class="toast align-items-center border-0" role="alert">
+      <div class="d-flex">
+        <div class="toast-body" id="toastMessage"></div>
+        <button type="button" class="btn-close btn-close me-2 m-auto"
+                data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap 5 JS (includes Popper) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- HTMX — for partial page updates without full reloads -->
+  <script src="https://unpkg.com/htmx.org@2.0.4/dist/htmx.min.js"></script>
+
+  <!-- Global toast helper -->
+  <script>
+    /**
+     * showToast — display a Bootstrap Toast notification.
+     * @param {string} message  Text to display.
+     * @param {string} type     Bootstrap color: 'success', 'danger', 'info', 'warning'.
+     */
+    function showToast(message, type = 'info') {
+      const toastEl = document.getElementById('appToast');
+      const toastMsg = document.getElementById('toastMessage');
+      // Set color class on the toast element
+      toastEl.className = `toast align-items-center border-0 text-bg-${type}`;
+      toastMsg.textContent = message;
+      bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 4000 }).show();
+    }
+  </script>
+
+  {% block scripts %}{% endblock %}
+
+</body>
+</html>

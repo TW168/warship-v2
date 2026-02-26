@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+> **Status: Active development** — initial scaffold complete, DB not yet wired to pages.
+
 > **Living document.** This app is actively developed. Every time a new route, model, UI pattern, or architectural decision is added, update the relevant section of this file before finishing the task.
 
 ---
@@ -24,7 +26,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 uv sync
 
 # Run the development server (uses .venv automatically)
-uv run fastapi dev main.py
+uv run fastapi dev main.py --port 8088
 
 # Add a package
 uv add <package>
@@ -168,13 +170,13 @@ WORKDIR /app
 COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev
 COPY . .
-CMD ["uv", "run", "fastapi", "run", "main.py", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uv", "run", "fastapi", "run", "main.py", "--host", "0.0.0.0", "--port", "8088"]
 ```
 
 ### Dokploy
 - Connect the GitHub repo in Dokploy → auto-deploys on push to `main`
 - Set build type to **Dockerfile**
-- Expose port **8000**
+- Expose port **8088**
 - No extra env vars needed (DB credentials are hardcoded)
 
 ### GitHub

@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}About{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+
+  <h1 class="page-header h3">
+    <i class="bi bi-info-circle me-2" aria-hidden="true"></i>About Warship
+  </h1>
+
+  <div class="row g-4">
+
+    <div class="col-lg-8">
+
+      <!-- About card -->
+      <div class="card shadow-sm mb-4">
+        <div class="card-body">
+          <h2 class="h5 fw-bold mb-3">What is Warship?</h2>
+          <p>
+            <strong>Warship</strong> (Warehouse and Shipping Management System) is a professional
+            internal tool for managing warehouse inventory, shipping logistics, and technical
+            support requests in a unified interface.
+          </p>
+          <p class="mb-0">
+            Built on a modern Python stack — FastAPI, SQLAlchemy, and Bootstrap 5 — Warship is
+            designed for reliability, speed, and ease of use across desktop and mobile devices.
+          </p>
+        </div>
+      </div>
+
+      <!-- Tech stack -->
+      <div class="card shadow-sm">
+        <div class="card-header fw-semibold">
+          <i class="bi bi-stack me-2"></i>Technology Stack
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm table-striped mb-0">
+            <thead>
+              <tr>
+                <th scope="col">Layer</th>
+                <th scope="col">Technology</th>
+                <th scope="col">Purpose</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Backend</td>
+                <td><span class="badge text-bg-primary">FastAPI</span></td>
+                <td>REST API and HTML template serving</td>
+              </tr>
+              <tr>
+                <td>ORM</td>
+                <td><span class="badge text-bg-secondary">SQLAlchemy</span></td>
+                <td>Database access and query building</td>
+              </tr>
+              <tr>
+                <td>Database</td>
+                <td><span class="badge text-bg-secondary">MySQL</span></td>
+                <td>Persistent data storage</td>
+              </tr>
+              <tr>
+                <td>Frontend</td>
+                <td><span class="badge text-bg-info">Bootstrap 5</span></td>
+                <td>Responsive UI components</td>
+              </tr>
+              <tr>
+                <td>Interactivity</td>
+                <td><span class="badge text-bg-success">HTMX</span></td>
+                <td>Partial page updates without full reloads</td>
+              </tr>
+              <tr>
+                <td>Templates</td>
+                <td><span class="badge text-bg-secondary">Jinja2</span></td>
+                <td>Server-side HTML rendering</td>
+              </tr>
+              <tr>
+                <td>Packaging</td>
+                <td><span class="badge text-bg-dark">uv</span></td>
+                <td>Python dependency management</td>
+              </tr>
+              <tr>
+                <td>Deployment</td>
+                <td><span class="badge text-bg-dark">Dokploy</span></td>
+                <td>Container hosting via GitHub auto-deploy</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Sidebar version info -->
+    <div class="col-lg-4">
+      <div class="card shadow-sm mb-3">
+        <div class="card-header fw-semibold">
+          <i class="bi bi-tag me-2"></i>Version Info
+        </div>
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item d-flex justify-content-between">
+            <span class="text-muted small">Version</span>
+            <span class="badge text-bg-primary">0.1.0</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between">
+            <span class="text-muted small">Status</span>
+            <span class="badge text-bg-warning text-dark">In Development</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between">
+            <span class="text-muted small">Python</span>
+            <span class="text-muted small">3.12+</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="card shadow-sm">
+        <div class="card-header fw-semibold">
+          <i class="bi bi-link-45deg me-2"></i>Resources
+        </div>
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item">
+            <a href="/docs" class="text-decoration-none" target="_blank" rel="noopener">
+              <i class="bi bi-file-earmark-code me-2 text-primary"></i>API Docs (Swagger)
+            </a>
+          </li>
+          <li class="list-group-item">
+            <a href="/redoc" class="text-decoration-none" target="_blank" rel="noopener">
+              <i class="bi bi-file-earmark-text me-2 text-primary"></i>API Docs (ReDoc)
+            </a>
+          </li>
+          <li class="list-group-item">
+            <a href="/maintenance/architectural" class="text-decoration-none">
+              <i class="bi bi-diagram-3 me-2 text-primary"></i>Software Architecture
+            </a>
+          </li>
+          <li class="list-group-item">
+            <a href="/health" class="text-decoration-none" target="_blank" rel="noopener">
+              <i class="bi bi-activity me-2 text-primary"></i>Health Check
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

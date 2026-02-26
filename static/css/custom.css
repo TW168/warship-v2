@@ -1,0 +1,150 @@
+/*
+ * custom.css — Warship global styles
+ * Supplements Bootstrap 5; IBM Blue (#154e9a) primary theme.
+ */
+
+/* ── Typography ─────────────────────────────────────────────── */
+body {
+  font-family: "Open Sans", sans-serif;
+  background-color: #f8f9fa;
+  color: #212529;
+}
+
+/* ── Navbar ──────────────────────────────────────────────────── */
+.navbar-warship {
+  background-color: #154e9a;
+}
+
+.navbar-warship .navbar-brand,
+.navbar-warship .nav-link {
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
+.navbar-warship .nav-link:hover,
+.navbar-warship .nav-link:focus {
+  color: #ffffff !important;
+}
+
+.navbar-warship .nav-link.active {
+  color: #ffffff !important;
+  font-weight: 600;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.8);
+}
+
+.navbar-warship .dropdown-item.active,
+.navbar-warship .dropdown-item:active {
+  background-color: #154e9a;
+  color: #ffffff;
+}
+
+/* ── Page layout ─────────────────────────────────────────────── */
+.page-header {
+  border-bottom: 2px solid #154e9a;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+  color: #154e9a;
+}
+
+/* ── Cards ───────────────────────────────────────────────────── */
+.card {
+  border: none;
+}
+
+/* ── Tables ──────────────────────────────────────────────────── */
+.table thead th {
+  background-color: #154e9a;
+  color: #ffffff;
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+/* ── Buttons ─────────────────────────────────────────────────── */
+.btn-primary {
+  background-color: #154e9a;
+  border-color: #154e9a;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  background-color: #0f3a73;
+  border-color: #0f3a73;
+}
+
+.btn-outline-primary {
+  color: #154e9a;
+  border-color: #154e9a;
+}
+
+.btn-outline-primary:hover {
+  background-color: #154e9a;
+  border-color: #154e9a;
+}
+
+/* ── Architectural page TOC sidebar ─────────────────────────── */
+#toc-sidebar {
+  font-size: 0.875rem;
+  border-right: 1px solid #dee2e6;
+  padding-right: 1rem;
+}
+
+#toc-sidebar .nav-link {
+  color: #495057;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
+
+#toc-sidebar .nav-link:hover {
+  color: #154e9a;
+  background-color: #e9f0fb;
+}
+
+#toc-sidebar .nav-link.active {
+  color: #154e9a;
+  font-weight: 600;
+  background-color: #dce8f8;
+}
+
+#toc-sidebar .toc-h3 {
+  padding-left: 1.25rem;
+}
+
+#toc-sidebar .toc-h4 {
+  padding-left: 2rem;
+}
+
+/* ── Architectural page content ─────────────────────────────── */
+#arch-content h2 {
+  color: #154e9a;
+  border-bottom: 1px solid #dee2e6;
+  padding-bottom: 0.4rem;
+  margin-top: 2rem;
+}
+
+#arch-content h3 {
+  color: #1a5fb4;
+  margin-top: 1.5rem;
+}
+
+#arch-content pre {
+  background-color: #f6f8fa;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  padding: 1rem;
+}
+
+/* ── Toast container ─────────────────────────────────────────── */
+.toast-container {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 1100;
+}
+
+/* ── Footer ──────────────────────────────────────────────────── */
+footer {
+  border-top: 1px solid #dee2e6;
+  color: #6c757d;
+  font-size: 0.85rem;
+}

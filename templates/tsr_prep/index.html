@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}TSR Prep{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="page-header h3 mb-0">
+      <i class="bi bi-clipboard-check me-2" aria-hidden="true"></i>TSR Prep
+    </h1>
+    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#newTsrModal">
+      <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>New TSR
+    </button>
+  </div>
+
+  <!-- Summary stats -->
+  <div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+      <div class="card shadow-sm">
+        <div class="card-body d-flex align-items-center gap-3">
+          <div class="rounded-3 p-3 bg-primary bg-opacity-10">
+            <i class="bi bi-clipboard-data fs-3 text-primary" aria-hidden="true"></i>
+          </div>
+          <div>
+            <div class="text-muted small">Total TSRs</div>
+            <div class="fw-bold fs-4">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <div class="card shadow-sm">
+        <div class="card-body d-flex align-items-center gap-3">
+          <div class="rounded-3 p-3 bg-warning bg-opacity-10">
+            <i class="bi bi-hourglass fs-3 text-warning" aria-hidden="true"></i>
+          </div>
+          <div>
+            <div class="text-muted small">Pending</div>
+            <div class="fw-bold fs-4">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <div class="card shadow-sm">
+        <div class="card-body d-flex align-items-center gap-3">
+          <div class="rounded-3 p-3 bg-info bg-opacity-10">
+            <i class="bi bi-arrow-repeat fs-3 text-info" aria-hidden="true"></i>
+          </div>
+          <div>
+            <div class="text-muted small">In Progress</div>
+            <div class="fw-bold fs-4">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <div class="card shadow-sm">
+        <div class="card-body d-flex align-items-center gap-3">
+          <div class="rounded-3 p-3 bg-success bg-opacity-10">
+            <i class="bi bi-check-circle fs-3 text-success" aria-hidden="true"></i>
+          </div>
+          <div>
+            <div class="text-muted small">Completed</div>
+            <div class="fw-bold fs-4">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TSR table -->
+  <div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span class="fw-semibold"><i class="bi bi-table me-2"></i>Technical Support Requests</span>
+      <input type="search" class="form-control form-control-sm w-auto"
+             placeholder="Search TSRs…" aria-label="Search TSRs" />
+    </div>
+    <div class="table-responsive">
+      <table class="table table-striped table-hover table-sm mb-0">
+        <thead>
+          <tr>
+            <th scope="col">TSR #</th>
+            <th scope="col">Title</th>
+            <th scope="col">Priority</th>
+            <th scope="col">Assigned To</th>
+            <th scope="col">Created</th>
+            <th scope="col">Status</th>
+            <th scope="col" class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="7" class="text-center text-muted py-5">
+              <i class="bi bi-clipboard display-6 d-block mb-2" aria-hidden="true"></i>
+              No TSRs yet. Connect the database to populate this table.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- New TSR Modal -->
+<div class="modal fade" id="newTsrModal" tabindex="-1" aria-labelledby="newTsrModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: #154e9a; color: white;">
+        <h2 class="modal-title h5" id="newTsrModalLabel">
+          <i class="bi bi-clipboard-plus me-2"></i>New TSR
+        </h2>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <div class="mb-3">
+            <label for="tsrTitle" class="form-label fw-semibold">Title <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="tsrTitle" placeholder="Brief description of the request" required />
+          </div>
+          <div class="mb-3">
+            <label for="tsrDesc" class="form-label fw-semibold">Description</label>
+            <textarea class="form-control" id="tsrDesc" rows="3" placeholder="Detailed description…"></textarea>
+          </div>
+          <div class="row g-3">
+            <div class="col">
+              <label for="tsrPriority" class="form-label fw-semibold">Priority</label>
+              <select class="form-select" id="tsrPriority">
+                <option value="low">Low</option>
+                <option value="medium" selected>Medium</option>
+                <option value="high">High</option>
+                <option value="critical">Critical</option>
+              </select>
+            </div>
+            <div class="col">
+              <label for="tsrAssignee" class="form-label fw-semibold">Assigned To</label>
+              <input type="text" class="form-control" id="tsrAssignee" placeholder="Name or team" />
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary btn-sm"
+                onclick="bootstrap.Modal.getInstance(document.getElementById('newTsrModal')).hide(); showToast('TSR created!', 'success')">
+          <i class="bi bi-save me-1"></i>Submit TSR
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

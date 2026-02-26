@@ -23,14 +23,14 @@ uv sync
 ### 2. Run the development server
 
 ```bash
-uv run fastapi dev main.py
+uv run fastapi dev main.py --port 8088
 ```
 
-The app will be available at **http://localhost:8000**
+The app will be available at **http://localhost:8088**
 
-API docs (Swagger UI): **http://localhost:8000/docs**
+API docs (Swagger UI): **http://localhost:8088/docs**
 
-Health check: **http://localhost:8000/health**
+Health check: **http://localhost:8088/health**
 
 ---
 
@@ -55,3 +55,5 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 # Windows
 powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
+## Run
+uv run fastapi dev main.py

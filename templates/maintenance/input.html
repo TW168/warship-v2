@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% block title %}Maintenance — Input{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item text-muted">Maintenance</li>
+      <li class="breadcrumb-item active" aria-current="page">Input</li>
+    </ol>
+  </nav>
+
+  <h1 class="page-header h3">
+    <i class="bi bi-pencil-square me-2" aria-hidden="true"></i>Maintenance Input
+  </h1>
+
+  <div class="row g-4">
+
+    <!-- Data entry form -->
+    <div class="col-lg-7">
+      <div class="card shadow-sm">
+        <div class="card-header fw-semibold">
+          <i class="bi bi-plus-circle me-2"></i>Add Maintenance Record
+        </div>
+        <div class="card-body">
+          <form id="maintenanceForm"
+                hx-post="/api/maintenance/records"
+                hx-swap="none"
+                hx-on::after-request="handleFormResponse(event)">
+
+            <div class="row g-3 mb-3">
+              <div class="col-sm-6">
+                <label for="recordType" class="form-label fw-semibold">Record Type <span class="text-danger">*</span></label>
+                <select class="form-select" id="recordType" name="record_type" required>
+                  <option value="">Select type…</option>
+                  <option value="warehouse">Warehouse</option>
+                  <option value="shipping">Shipping</option>
+                  <option value="equipment">Equipment</option>
+                  <option value="software">Software</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div class="col-sm-6">
+                <label for="recordDate" class="form-label fw-semibold">Date <span class="text-danger">*</span></label>
+                <input type="date" class="form-control" id="recordDate" name="record_date" required />
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="recordTitle" class="form-label fw-semibold">Title <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="recordTitle" name="title"
+                     placeholder="Short description of the maintenance item" required />
+            </div>
+
+            <div class="mb-3">
+              <label for="recordNotes" class="form-label fw-semibold">Notes</label>
+              <textarea class="form-control" id="recordNotes" name="notes"
+                        rows="4" placeholder="Detailed notes, steps taken, or observations…"></textarea>
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-sm-6">
+                <label for="recordStatus" class="form-label fw-semibold">Status</label>
+                <select class="form-select" id="recordStatus" name="status">
+                  <option value="open">Open</option>
+                  <option value="in_progress">In Progress</option>
+                  <option value="resolved">Resolved</option>
+                  <option value="closed">Closed</option>
+                </select>
+              </div>
+              <div class="col-sm-6">
+                <label for="recordTechnician" class="form-label fw-semibold">Technician</label>
+                <input type="text" class="form-control" id="recordTechnician" name="technician"
+                       placeholder="Name of responsible person" />
+              </div>
+            </div>
+
+            <div class="d-flex gap-2 justify-content-end">
+              <button type="reset" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
+              </button>
+              <button type="submit" class="btn btn-primary btn-sm">
+                <span class="spinner-border spinner-border-sm me-1 d-none" id="formSpinner" aria-hidden="true"></span>
+                <i class="bi bi-save me-1" id="submitIcon"></i>Save Record
+              </button>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar info -->
+    <div class="col-lg-5">
+      <div class="card shadow-sm mb-3">
+        <div class="card-header fw-semibold">
+          <i class="bi bi-info-circle me-2"></i>Guidelines
+        </div>
+        <div class="card-body">
+          <ul class="list-unstyled mb-0 small text-muted">
+            <li class="mb-2">
+              <i class="bi bi-check2 text-success me-2"></i>
+              Select the correct record type before saving.
+            </li>
+            <li class="mb-2">
+              <i class="bi bi-check2 text-success me-2"></i>
+              Use the Notes field for detailed step-by-step information.
+            </li>
+            <li class="mb-2">
+              <i class="bi bi-check2 text-success me-2"></i>
+              Set status to <strong>Resolved</strong> once the issue is fixed.
+            </li>
+            <li>
+              <i class="bi bi-check2 text-success me-2"></i>
+              All records are timestamped automatically on save.
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card shadow-sm">
+        <div class="card-header fw-semibold">
+          <i class="bi bi-clock-history me-2"></i>Recent Records
+        </div>
+        <div class="card-body text-center text-muted py-4">
+          <i class="bi bi-inbox d-block display-6 mb-2" aria-hidden="true"></i>
+          <p class="small mb-0">No recent records. Connect the database to populate this list.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  /**
+   * handleFormResponse — called by HTMX after the form POST completes.
+   * Shows a toast based on success/failure and resets the form.
+   */
+  function handleFormResponse(event) {
+    const spinner = document.getElementById('formSpinner');
+    const icon = document.getElementById('submitIcon');
+    spinner.classList.add('d-none');
+    icon.classList.remove('d-none');
+
+    if (event.detail.successful) {
+      showToast('Maintenance record saved successfully!', 'success');
+      document.getElementById('maintenanceForm').reset();
+    } else {
+      showToast('Failed to save record. Please try again.', 'danger');
+    }
+  }
+
+  // Show spinner while HTMX request is in flight
+  document.getElementById('maintenanceForm').addEventListener('htmx:beforeRequest', function () {
+    document.getElementById('formSpinner').classList.remove('d-none');
+    document.getElementById('submitIcon').classList.add('d-none');
+  });
+</script>
+{% endblock %}
