@@ -1,0 +1,51 @@
+GitHub Setup Commands — Warship v2
+====================================
+
+Run these commands in order from the project root (/home/tony/cfp/warship-v2).
+
+STEP 1 — Initialize local git repo
+------------------------------------
+git init
+git add .
+git commit -m "Initial commit"
+
+
+STEP 2 — Create repo on GitHub (choose one method)
+----------------------------------------------------
+
+Option A: GitHub CLI (gh) — fastest
+  Install: https://cli.github.com
+  Then run:
+    gh auth login
+    gh repo create warship-v2 --private --source=. --remote=origin --push
+
+Option B: VSCode
+  1. Open Source Control panel (Ctrl+Shift+G)
+  2. Click "Publish to GitHub"
+  3. Choose "Publish to GitHub Private Repository"
+  4. VSCode will create the repo and push automatically
+
+
+STEP 3 — Push future changes
+------------------------------
+git add .
+git commit -m "your message"
+git push
+
+Or with VSCode:
+  Ctrl+Shift+G → stage changes → write message → Commit → Sync
+
+
+STEP 4 — Verify Dokploy webhook (after repo exists)
+------------------------------------------------------
+In Dokploy:
+  1. Go to your app → Settings → Source
+  2. Connect GitHub repo: warship-v2
+  3. Branch: main
+  Every push to main will trigger an auto-deploy.
+
+
+NOTES
+------
+- .gitignore should exclude: __pycache__/, .venv/, *.pyc, uv.lock (optional — commit it for reproducible builds)
+- Recommended to commit uv.lock so Dokploy builds the exact same environment
