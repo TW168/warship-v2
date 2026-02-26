@@ -45,16 +45,16 @@
       <div class="collapse navbar-collapse" id="navbarMain">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
 
-          <!-- Home (with Press sub-page dropdown) -->
+          <!-- Release (with sub-page dropdown) -->
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle {% if active_page in ['home', 'press'] %}active{% endif %}"
+            <a class="nav-link dropdown-toggle {% if active_page in ['meeting_report', 'press'] %}active{% endif %}"
                href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-              <i class="bi bi-house me-1" aria-hidden="true"></i>Home
+              <i class="bi bi-house me-1" aria-hidden="true"></i>Release
             </a>
             <ul class="dropdown-menu">
               <li>
-                <a class="dropdown-item {% if active_page == 'home' %}active{% endif %}" href="/">
-                  <i class="bi bi-house-door me-2" aria-hidden="true"></i>Home
+                <a class="dropdown-item {% if active_page == 'meeting_report' %}active{% endif %}" href="/meeting-report">
+                  <i class="bi bi-journal-text me-2" aria-hidden="true"></i>Meeting Report
                 </a>
               </li>
               <li>

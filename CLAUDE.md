@@ -111,6 +111,8 @@ The `connect_to_database()` function returns a SQLAlchemy `Engine`.
 | Page | Route | Notes |
 |------|-------|-------|
 | Home | `GET /` | Opens with `MaxT1_conus.png` and `national_forecast.jpg` side by side |
+| Meeting Report | `GET /meeting-report` | Sub-page of Home; filter form (site, product_group, date) |
+| Meeting Report Results | `GET /api/meeting-report/results` | HTMX partial — runs aggregated shipping query, returns cards |
 | Press | `GET /press` | Sub-page of Home |
 | Warehouse | `GET /warehouse` | |
 | Shipping | `GET /shipping` | |

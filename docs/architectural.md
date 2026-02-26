@@ -167,7 +167,7 @@ warship-v2/
 ├── routers/                 # One APIRouter per domain
 │   ├── __init__.py
 │   ├── health.py            # GET /health
-│   ├── home.py              # GET /  GET /press
+│   ├── home.py              # GET /  GET /meeting-report  GET /api/meeting-report/results  GET /press
 │   ├── warehouse.py         # GET /warehouse
 │   ├── shipping.py          # GET /shipping
 │   ├── tsr_prep.py          # GET /tsr-prep
@@ -185,6 +185,7 @@ warship-v2/
 │   ├── base.html            # Navbar, Bootstrap 5, Open Sans, HTMX, Toast
 │   ├── home/
 │   │   ├── index.html
+│   │   ├── meeting_report.html
 │   │   └── press.html
 │   ├── warehouse/index.html
 │   ├── shipping/index.html
@@ -219,6 +220,8 @@ warship-v2/
 | Method | Path | Template | Description |
 |--------|------|----------|-------------|
 | GET | `/` | `home/index.html` | Home page with forecast images |
+| GET | `/meeting-report` | `home/meeting_report.html` | Meeting report filter form (site, product_group, date) |
+| GET | `/api/meeting-report/results` | `home/meeting_report_results.html` | HTMX partial — aggregated shipping query, returns group cards |
 | GET | `/press` | `home/press.html` | Press releases sub-page |
 | GET | `/warehouse` | `warehouse/index.html` | Warehouse inventory dashboard |
 | GET | `/shipping` | `shipping/index.html` | Shipping management dashboard |

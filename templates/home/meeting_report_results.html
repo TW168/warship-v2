@@ -1,0 +1,153 @@
+{#
+  meeting_report_results.html — HTMX partial injected into #results.
+  Context variables:
+    rows   — list of dicts with keys: Group, Pallets, Weight, Freight, Avg_Freight_per_lb
+    error  — error string or None
+    site, product_group, date — the filter values used for this query
+#}
+
+{% if error %}
+<!-- ── DB error alert ─────────────────────────────────────────── -->
+<div class="alert alert-danger d-flex align-items-center gap-2" role="alert">
+  <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
+  <div>
+    <strong>Database error:</strong> {{ error }}
+  </div>
+</div>
+
+{% elif not rows %}
+<!-- ── Empty state ────────────────────────────────────────────── -->
+<div class="text-center text-muted py-5">
+  <i class="bi bi-inbox display-5 d-block mb-3" aria-hidden="true"></i>
+  <p class="mb-1 fw-semibold">No data found</p>
+  <p class="small mb-0">
+    No records for site <strong>{{ site }}</strong>,
+    product group <strong>{{ product_group }}</strong>
+    on <strong>{{ date }}</strong>.
+  </p>
+</div>
+
+{% else %}
+<!-- ── Report header ──────────────────────────────────────────── -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div class="text-muted small">
+    <i class="bi bi-geo-alt me-1"></i><strong>{{ site }}</strong>
+    &nbsp;·&nbsp;
+    <i class="bi bi-boxes me-1"></i><strong>{{ product_group }}</strong>
+    &nbsp;·&nbsp;
+    <i class="bi bi-calendar3 me-1"></i><strong>{{ date }}</strong>
+  </div>
+  <span class="badge text-bg-primary">{{ rows | length }} group{{ 's' if rows | length != 1 }}</span>
+</div>
+
+<!-- ── Group cards ────────────────────────────────────────────── -->
+{#
+  Group emoji map — matched by group name for visual identification.
+  Falls back to a generic location pin if the name doesn't match.
+#}
+{% set group_icons = {
+  'Houston':    '🤠',
+  'Remington':  '🏭',
+  'Phoenix':    '🌵',
+  'Charlotte':  '🏙️',
+  'Customers':  '👥'
+} %}
+
+<div class="row g-3 mb-4">
+  {% for row in rows %}
+  {% set icon = group_icons.get(row.Group, '📍') %}
+  <div class="col-sm-6 col-xl-4">
+    <div class="card shadow-sm h-100 border-top border-primary border-3">
+
+      <!-- Card header: group name -->
+      <div class="card-header fw-bold fs-6" style="background-color: #f0f5ff;">
+        {{ icon }} {{ row.Group }}
+      </div>
+
+      <!-- Card body: 2×2 stats grid -->
+      <div class="card-body p-0">
+        <div class="row g-0 text-center">
+
+          <!-- Pallets -->
+          <div class="col-6 border-end border-bottom p-3">
+            <div class="text-muted small mb-1">📦 Pallets</div>
+            <div class="fw-bold fs-5">
+              {{ "{:,}".format(row.Pallets | int) if row.Pallets is not none else "—" }}
+            </div>
+          </div>
+
+          <!-- Weight -->
+          <div class="col-6 border-bottom p-3">
+            <div class="text-muted small mb-1">⚖️ Weight</div>
+            <div class="fw-bold fs-5">
+              {% if row.Weight is not none %}
+                {{ "{:,.0f}".format(row.Weight) }}
+                <span class="text-muted fw-normal" style="font-size: 0.7rem;">lbs</span>
+              {% else %}—{% endif %}
+            </div>
+          </div>
+
+          <!-- Freight -->
+          <div class="col-6 border-end p-3">
+            <div class="text-muted small mb-1">💰 Freight</div>
+            <div class="fw-bold fs-5 text-success">
+              {% if row.Freight is not none %}
+                ${{ "{:,.0f}".format(row.Freight) }}
+              {% else %}—{% endif %}
+            </div>
+          </div>
+
+          <!-- Avg Freight per lb -->
+          <div class="col-6 p-3">
+            <div class="text-muted small mb-1">📊 Avg $/lb</div>
+            <div class="fw-bold fs-5">
+              {% if row.Avg_Freight_per_lb is not none %}
+                ${{ "{:.4f}".format(row.Avg_Freight_per_lb) }}
+              {% else %}—{% endif %}
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- ── Totals summary bar ─────────────────────────────────────── -->
+{% set total_pallets = rows | sum(attribute='Pallets') | float %}
+{% set total_weight  = rows | sum(attribute='Weight')  | float %}
+{% set total_freight = rows | sum(attribute='Freight') | float %}
+{% set avg_per_lb    = (total_freight / total_weight)  | float if total_weight > 0 else 0.0 %}
+
+<div class="card shadow-sm border-secondary">
+  <div class="card-header fw-bold bg-secondary text-white">
+    <i class="bi bi-calculator me-2"></i>Totals
+  </div>
+  <div class="card-body">
+    <div class="row text-center g-3">
+      <div class="col-6 col-md-3">
+        <div class="text-muted small mb-1">📦 Pallets</div>
+        <div class="fw-bold fs-5">{{ "{:,}".format(total_pallets | int) }}</div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="text-muted small mb-1">⚖️ Weight</div>
+        <div class="fw-bold fs-5">
+          {{ "{:,.0f}".format(total_weight) }}
+          <span class="text-muted fw-normal" style="font-size: 0.7rem;">lbs</span>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="text-muted small mb-1">💰 Freight</div>
+        <div class="fw-bold fs-5 text-success">${{ "{:,.0f}".format(total_freight) }}</div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="text-muted small mb-1">📊 Avg $/lb</div>
+        <div class="fw-bold fs-5">${{ "{:.4f}".format(avg_per_lb) }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endif %}
