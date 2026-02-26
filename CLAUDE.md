@@ -20,17 +20,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Development Commands
 
 ```bash
-# Install dependencies
+# Create venv and install all dependencies (first time or after pulling)
 uv sync
 
-# Run the development server
+# Run the development server (uses .venv automatically)
 uv run fastapi dev main.py
 
 # Add a package
 uv add <package>
-
-# Add FastAPI with all standard extras (uvicorn, etc.)
-uv add "fastapi[standard]"
 
 # Run a single test
 uv run pytest tests/test_health.py -v
@@ -38,6 +35,9 @@ uv run pytest tests/test_health.py -v
 # Run all tests
 uv run pytest
 ```
+
+> `uv` manages the `.venv` automatically — never activate it manually or use `pip`.
+> In VSCode: **Ctrl+Shift+P → Python: Select Interpreter → choose `.venv`**
 
 ---
 
@@ -48,8 +48,11 @@ warship-v2/
 ├── main.py                  # FastAPI app factory, mounts routers
 ├── database.py              # connect_to_database() engine factory
 ├── pyproject.toml           # uv-managed dependencies and project metadata
-├── uv.lock
+├── uv.lock                  # committed — ensures reproducible builds on Dokploy
+├── .venv/                   # local venv created by uv (gitignored)
+├── .gitignore
 ├── Dockerfile               # for Dokploy deployment
+├── README.md
 ├── .github/
 │   └── workflows/           # CI (optional, Dokploy auto-deploys from GitHub push)
 ├── routers/
@@ -186,10 +189,24 @@ CMD ["uv", "run", "fastapi", "run", "main.py", "--host", "0.0.0.0", "--port", "8
 - Every API endpoint must have a `summary` and `description` in the decorator for Swagger docs.
 - Use `APIRouter` in each router file; never define routes directly on the `app` object.
 
+## Dependencies (current)
+
+Managed via `pyproject.toml` / `uv.lock`:
+
+| Package | Purpose |
+|---------|---------|
+| `fastapi[standard]` | Web framework + uvicorn + extras |
+| `sqlalchemy` | ORM / database engine |
+| `mysql-connector-python` | MySQL driver |
+| `pygments` | Syntax highlighting for Software Architectural page |
+| `markdown` | Markdown → HTML for Software Architectural page |
+
+---
+
 ## Keeping This Document Current
 
 When completing any task, update CLAUDE.md if any of the following changed:
 - A new route was added or removed → update the Pages & Routes table
 - A new UI pattern or component was introduced → add it to UI/UX Standards
-- A new dependency was added → note it in Architecture if it affects structure
+- A new dependency was added → update the Dependencies table
 - A new sub-page or feature area was built → add it to Project Structure

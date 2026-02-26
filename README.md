@@ -1,0 +1,57 @@
+# Warship
+
+Warehouse and Shipping Management System built with FastAPI, Bootstrap 5, and MySQL.
+
+---
+
+## Requirements
+
+- [Python 3.12+](https://www.python.org/downloads/)
+- [uv](https://docs.astral.sh/uv/getting-started/installation/) — Python package manager
+- MySQL server running at `172.17.15.228:3306` with a `warship` database
+
+---
+
+## Getting Started
+
+### 1. Install dependencies
+
+```bash
+uv sync
+```
+
+### 2. Run the development server
+
+```bash
+uv run fastapi dev main.py
+```
+
+The app will be available at **http://localhost:8000**
+
+API docs (Swagger UI): **http://localhost:8000/docs**
+
+Health check: **http://localhost:8000/health**
+
+---
+
+## Run Tests
+
+```bash
+# All tests
+uv run pytest
+
+# Single test file
+uv run pytest tests/test_health.py -v
+```
+
+---
+
+## Install uv (if not installed)
+
+```bash
+# Linux / macOS
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Windows
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
