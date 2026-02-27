@@ -8,6 +8,7 @@ from pydantic import BaseModel
 class HealthResponse(BaseModel):
     """Response schema for GET /health."""
 
-    status: str   # Service status: "ok" or "error"
-    service: str  # Service name
-    version: str  # Semantic version string
+    status: str         # "ok" or "error"
+    service: str        # Service name
+    version: str        # Semantic version string
+    db: str             # "ok" or error message
