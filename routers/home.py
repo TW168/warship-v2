@@ -23,6 +23,18 @@ _engine = connect_to_database()
 
 # Meeting report SQL — groups customers into named locations, aggregates shipping metrics.
 # Uses named parameters (:site, :product_group, :date) for safe parameterized execution.
+_CARRIER_COUNT_SQL = text("""
+    SELECT COUNT(*) AS carrier_count
+    FROM (
+        SELECT DISTINCT BL_Number, Carrier_ID, Truck_Appointment_Date
+        FROM warship.vw_bl_lbs_cnt_carrier_customer
+        WHERE site = :site
+          AND product_group = :product_group
+          AND Truck_Appointment_Date = :date
+          AND Carrier_ID NOT IN ('SAIA-IP', 'CWF-IP')
+    ) AS sub
+""")
+
 _MEETING_REPORT_SQL = text("""
     SELECT
         CASE
@@ -116,6 +128,7 @@ async def meeting_report_results(
     On DB error, the partial displays an error alert instead of crashing the page.
     """
     rows = []
+    carrier_count = 0
     error = None
 
     try:
@@ -135,6 +148,12 @@ async def meeting_report_results(
                 }
                 for row in result.fetchall()
             ]
+
+            carrier_result = conn.execute(
+                _CARRIER_COUNT_SQL,
+                {"site": site, "product_group": product_group, "date": date},
+            )
+            carrier_count = int(carrier_result.scalar() or 0)
     except Exception as exc:
         error = str(exc)
 
@@ -143,6 +162,7 @@ async def meeting_report_results(
         {
             "request": request,
             "rows": rows,
+            "carrier_count": carrier_count,
             "error": error,
             "site": site,
             "product_group": product_group,

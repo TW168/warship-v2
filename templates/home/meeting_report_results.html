@@ -1,8 +1,9 @@
 {#
   meeting_report_results.html — HTMX partial injected into #results.
   Context variables:
-    rows   — list of dicts with keys: Group, Pallets, Weight, Freight, Avg_Freight_per_lb
-    error  — error string or None
+    rows          — list of dicts with keys: Group, Pallets, Weight, Freight, Avg_Freight_per_lb
+    carrier_count — int, distinct Carrier_IDs excluding SAIA-IP and CWF-IP
+    error         — error string or None
     site, product_group, date — the filter values used for this query
 #}
 
@@ -127,22 +128,26 @@
   </div>
   <div class="card-body">
     <div class="row text-center g-3">
-      <div class="col-6 col-md-3">
+      <div class="col">
         <div class="text-muted small mb-1">📦 Pallets</div>
         <div class="fw-bold fs-5">{{ "{:,}".format(total_pallets | int) }}</div>
       </div>
-      <div class="col-6 col-md-3">
+      <div class="col">
         <div class="text-muted small mb-1">⚖️ Weight</div>
         <div class="fw-bold fs-5">
           {{ "{:,.0f}".format(total_weight) }}
           <span class="text-muted fw-normal" style="font-size: 0.7rem;">lbs</span>
         </div>
       </div>
-      <div class="col-6 col-md-3">
+      <div class="col">
+        <div class="text-muted small mb-1">🚛 Carriers <span class="text-muted fw-normal" style="font-size:0.7rem;">(excl. SAIA-IP/CWF-IP)</span></div>
+        <div class="fw-bold fs-5">{{ carrier_count }}</div>
+      </div>
+      <div class="col">
         <div class="text-muted small mb-1">💰 Freight</div>
         <div class="fw-bold fs-5 text-success">${{ "{:,.0f}".format(total_freight) }}</div>
       </div>
-      <div class="col-6 col-md-3">
+      <div class="col">
         <div class="text-muted small mb-1">📊 Avg $/lb</div>
         <div class="fw-bold fs-5">${{ "{:.4f}".format(avg_per_lb) }}</div>
       </div>

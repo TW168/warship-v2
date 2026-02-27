@@ -56,4 +56,8 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 ## Run
-uv run fastapi dev main.py
+uv run fastapi dev main.py --port 8088
+
+## Crontab -e get weather map 6AM daily
+0 6 * * * wget -O /home/tony/cfp/warship-v2/static/assets/MaxT1_conus.png https://graphical.weather.gov/images/conus/Ma>
+0 6 * * * wget -O /home/tony/cfp/warship-v2/static/assets/national_forecast.jpg https://www.wpc.ncep.noaa.gov/noaa/nati>
