@@ -164,7 +164,11 @@ This app targets a professional internal tool audience. Every page must feel pol
 
 ## Deployment
 
-### Dockerfile
+### Current: Direct (no container)
+- App runs directly via `uv run fastapi dev main.py --port 8088 --host 0.0.0.0` on the host machine
+- Dokploy is **not currently used** — may be adopted in the future
+
+### Dockerfile (future / optional)
 ```dockerfile
 FROM python:3.12-slim
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
@@ -175,15 +179,8 @@ COPY . .
 CMD ["uv", "run", "fastapi", "run", "main.py", "--host", "0.0.0.0", "--port", "8088"]
 ```
 
-### Dokploy
-- Connect the GitHub repo in Dokploy → auto-deploys on push to `main`
-- Set build type to **Dockerfile**
-- Expose port **8088**
-- No extra env vars needed (DB credentials are hardcoded)
-
 ### GitHub
 - Default branch: `main`
-- Dokploy webhook triggers on push; no CI workflow file required unless adding tests
 
 ---
 

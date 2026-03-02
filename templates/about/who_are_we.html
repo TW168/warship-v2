@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Who Are We{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/about">About</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Who Are We</li>
+    </ol>
+  </nav>
+
+  <h1 class="page-header h3 mb-4">
+    <i class="bi bi-people me-2" aria-hidden="true"></i>Who Are We
+  </h1>
+
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+
+      <!-- Team photo placeholder -->
+      <div class="card shadow-sm mb-4">
+        <div class="card-body text-center py-5">
+          <div class="d-flex align-items-center justify-content-center bg-light rounded"
+               style="min-height: 320px;">
+            <div class="text-muted">
+              <i class="bi bi-image" style="font-size: 4rem;" aria-hidden="true"></i>
+              <p class="mt-3 mb-0 fw-semibold">Team photo coming soon</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{% block title %}Warship{% endblock %} — Warehouse & Shipping</title>
+  <title>{% block title %}Warship{% endblock %} - Warship</title>
 
   <!-- Google Fonts: Open Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -47,7 +47,7 @@
 
           <!-- Release (with sub-page dropdown) -->
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle {% if active_page in ['meeting_report', 'press'] %}active{% endif %}"
+            <a class="nav-link dropdown-toggle {% if active_page in ['meeting_report', 'briefing'] %}active{% endif %}"
                href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
               <i class="bi bi-house me-1" aria-hidden="true"></i>Release
             </a>
@@ -58,8 +58,8 @@
                 </a>
               </li>
               <li>
-                <a class="dropdown-item {% if active_page == 'press' %}active{% endif %}" href="/press">
-                  <i class="bi bi-newspaper me-2" aria-hidden="true"></i>Press
+                <a class="dropdown-item {% if active_page == 'briefing' %}active{% endif %}" href="/briefing">
+                  <i class="bi bi-file-earmark-text me-2" aria-hidden="true"></i>Briefing
                 </a>
               </li>
             </ul>
@@ -86,33 +86,36 @@
             </a>
           </li>
 
-          <!-- Maintenance (dropdown) -->
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle {% if active_page == 'maintenance' %}active{% endif %}"
-               href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+          <!-- Maintenance -->
+          <li class="nav-item">
+            <a class="nav-link {% if active_page == 'maintenance' %}active{% endif %}" href="/maintenance/input">
               <i class="bi bi-tools me-1" aria-hidden="true"></i>Maintenance
+            </a>
+          </li>
+
+          <!-- About (dropdown) -->
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle {% if active_page in ['about', 'about_arch', 'about_who'] %}active{% endif %}"
+               href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="bi bi-info-circle me-1" aria-hidden="true"></i>About
             </a>
             <ul class="dropdown-menu">
               <li>
-                <a class="dropdown-item {% if active_page == 'maintenance_input' %}active{% endif %}"
-                   href="/maintenance/input">
-                  <i class="bi bi-pencil-square me-2" aria-hidden="true"></i>Input
+                <a class="dropdown-item {% if active_page == 'about' %}active{% endif %}" href="/about">
+                  <i class="bi bi-info-circle me-2" aria-hidden="true"></i>About
                 </a>
               </li>
               <li>
-                <a class="dropdown-item {% if active_page == 'maintenance_arch' %}active{% endif %}"
-                   href="/maintenance/architectural">
-                  <i class="bi bi-diagram-3 me-2" aria-hidden="true"></i>Software Architectural
+                <a class="dropdown-item {% if active_page == 'about_arch' %}active{% endif %}" href="/about/architectural">
+                  <i class="bi bi-diagram-3 me-2" aria-hidden="true"></i>Software Architecture
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item {% if active_page == 'about_who' %}active{% endif %}" href="/about/who-are-we">
+                  <i class="bi bi-people me-2" aria-hidden="true"></i>Who Are We
                 </a>
               </li>
             </ul>
-          </li>
-
-          <!-- About -->
-          <li class="nav-item">
-            <a class="nav-link {% if active_page == 'about' %}active{% endif %}" href="/about">
-              <i class="bi bi-info-circle me-1" aria-hidden="true"></i>About
-            </a>
           </li>
 
         </ul>

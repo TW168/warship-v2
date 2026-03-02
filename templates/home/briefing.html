@@ -1,0 +1,273 @@
+{% extends "base.html" %}
+{% block title %}Briefing{% endblock %}
+
+{% block head %}
+<style>
+  /* ── Screen: slightly darker label color for readability ── */
+  .metric-label { color: #555; font-size: 0.8rem; margin-bottom: 0.2rem; }
+
+  /* ── Print styles ─────────────────────────────────────── */
+  @media print {
+    @page { size: landscape; margin: 0.35in; }
+
+    /* Remove navbar, footer, screen-only elements from layout */
+    nav.navbar, footer, .no-print {
+      display: none !important;
+      height: 0 !important;
+      overflow: hidden !important;
+    }
+
+    /* Remove all body/main spacing */
+    body, main { margin: 0 !important; padding: 0 !important; font-size: 9.5pt; }
+    .container-fluid { padding: 0.15rem !important; }
+
+    /* Compact page header */
+    .briefing-page-header { margin-bottom: 0.3rem !important; }
+    h1.briefing-title { font-size: 13pt !important; margin: 0 !important; }
+    .briefing-subtitle { font-size: 8.5pt !important; margin: 0 !important; }
+
+    /* Force 2-column grid — Bootstrap col-md-6 doesn't apply in print */
+    .briefing-grid {
+      display: grid !important;
+      grid-template-columns: 1fr 1fr !important;
+      gap: 0.3rem !important;
+    }
+    .briefing-grid > div { padding: 0 !important; }
+
+    /* Compact cards */
+    .card {
+      box-shadow: none !important;
+      border: 1px solid #aaa !important;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+    .card-header { padding: 0.25rem 0.5rem !important; font-size: 9pt !important; }
+    .card-body { padding: 0.4rem !important; }
+
+    /* Compact metric grid */
+    .metric-row { gap: 0.3rem !important; }
+    .metric-row > .col { padding: 0 0.15rem !important; }
+
+    /* Darken labels — text-muted (#6c757d) is too faint on paper */
+    .metric-label, .text-muted { color: #333 !important; }
+
+    /* Shrink large numbers */
+    .metric-value { font-size: 1rem !important; }
+
+    /* Keep color indicators for good/warn values */
+    .text-success { color: #155724 !important; }
+    .text-warning { color: #856404 !important; }
+
+    /* Row gutters */
+    .g-3, .g-4 {
+      --bs-gutter-x: 0.3rem !important;
+      --bs-gutter-y: 0.3rem !important;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+
+  <!-- ── Page header ───────────────────────────────────────── -->
+  <div class="d-flex align-items-start justify-content-between mb-3 flex-wrap gap-2 briefing-page-header">
+
+    <div>
+      <!-- Breadcrumb (screen only) -->
+      <nav aria-label="breadcrumb" class="mb-1 no-print">
+        <ol class="breadcrumb mb-0">
+          <li class="breadcrumb-item"><a href="/" class="text-decoration-none">Release</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Briefing</li>
+        </ol>
+      </nav>
+
+      <h1 class="h3 fw-bold briefing-title mb-0">
+        <i class="bi bi-file-earmark-text me-2 no-print" aria-hidden="true"></i>Operations Briefing
+      </h1>
+      <p class="text-muted small mb-0 mt-1 briefing-subtitle">
+        <i class="bi bi-calendar3 me-1 no-print" aria-hidden="true"></i>
+        Site: <strong>AMJK</strong> &nbsp;|&nbsp; Date: <strong>March 2, 2026</strong>
+        &nbsp;|&nbsp; Generated: <span id="genTime"></span>
+      </p>
+    </div>
+
+    <!-- Print button — hidden on print -->
+    <button class="btn btn-primary no-print" onclick="window.print()" aria-label="Print briefing">
+      <i class="bi bi-printer me-2" aria-hidden="true"></i>Print
+    </button>
+
+  </div>
+  <!-- ── /Page header ──────────────────────────────────────── -->
+
+  <!-- ── Four-section grid ─────────────────────────────────── -->
+  <div class="row g-4 briefing-grid">
+
+    <!-- 1. Shipping ─────────────────────────────────────────── -->
+    <div class="col-md-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header fw-semibold" style="background:#154e9a; color:#fff;">
+          <i class="bi bi-truck me-2" aria-hidden="true"></i>Shipping
+        </div>
+        <div class="card-body">
+          <div class="row row-cols-2 g-3 metric-row">
+
+            <div class="col">
+              <div class="metric-label">Total Loads</div>
+              <div class="fw-bold fs-4 metric-value">42</div>
+            </div>
+            <div class="col">
+              <div class="metric-label">Total Weight</div>
+              <div class="fw-bold fs-4 metric-value">1,284,500 <span class="fs-6 fw-normal text-muted">lbs</span></div>
+            </div>
+            <div class="col">
+              <div class="metric-label">Consignment</div>
+              <div class="fw-bold fs-4 metric-value">18</div>
+            </div>
+            <div class="col">
+              <div class="metric-label">Custom</div>
+              <div class="fw-bold fs-4 metric-value">24</div>
+            </div>
+            <div class="col">
+              <div class="metric-label">On-Time Rate</div>
+              <div class="fw-bold fs-4 text-success">97.6%</div>
+            </div>
+            <div class="col">
+              <div class="metric-label">Avg Freight/lb</div>
+              <div class="fw-bold fs-4 metric-value">$0.062</div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Warehouse ────────────────────────────────────────── -->
+    <div class="col-md-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header fw-semibold" style="background:#154e9a; color:#fff;">
+          <i class="bi bi-building me-2" aria-hidden="true"></i>Warehouse
+        </div>
+        <div class="card-body">
+          <div class="row row-cols-2 g-3 metric-row">
+
+            <div class="col">
+              <div class="metric-label">Active Orders</div>
+              <div class="fw-bold fs-4 metric-value">156</div>
+            </div>
+            <div class="col">
+              <div class="metric-label">Pallets Staged</div>
+              <div class="fw-bold fs-4 metric-value">312</div>
+            </div>
+            <div class="col">
+              <div class="metric-label">Inventory Accuracy</div>
+              <div class="fw-bold fs-4 text-success">99.2%</div>
+            </div>
+            <div class="col">
+              <div class="metric-label">Pick Rate</div>
+              <div class="fw-bold fs-4 metric-value">148 <span class="fs-6 fw-normal text-muted">cases/hr</span></div>
+            </div>
+            <div class="col">
+              <div class="metric-label">Dock Utilization</div>
+              <div class="fw-bold fs-4 metric-value">83%</div>
+            </div>
+            <div class="col">
+              <div class="metric-label">Pending Putaways</div>
+              <div class="fw-bold fs-4 metric-value">14</div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Staff ────────────────────────────────────────────── -->
+    <div class="col-md-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header fw-semibold" style="background:#154e9a; color:#fff;">
+          <i class="bi bi-people me-2" aria-hidden="true"></i>Staff
+        </div>
+        <div class="card-body">
+          <div class="row row-cols-2 g-3 metric-row">
+
+            <div class="col">
+              <div class="metric-label">On-Site Today</div>
+              <div class="fw-bold fs-4 metric-value">47</div>
+            </div>
+            <div class="col">
+              <div class="metric-label">Day Shift</div>
+              <div class="fw-bold fs-4 metric-value">28</div>
+            </div>
+            <div class="col">
+              <div class="metric-label">Night Shift</div>
+              <div class="fw-bold fs-4 metric-value">19</div>
+            </div>
+            <div class="col">
+              <div class="metric-label">Open Positions</div>
+              <div class="fw-bold fs-4 text-warning">3</div>
+            </div>
+            <div class="col">
+              <div class="metric-label">Overtime Hours</div>
+              <div class="fw-bold fs-4 metric-value">112 <span class="fs-6 fw-normal text-muted">hrs</span></div>
+            </div>
+            <div class="col">
+              <div class="metric-label">Training Completions</div>
+              <div class="fw-bold fs-4 metric-value">8</div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Safety ───────────────────────────────────────────── -->
+    <div class="col-md-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header fw-semibold" style="background:#154e9a; color:#fff;">
+          <i class="bi bi-shield-check me-2" aria-hidden="true"></i>Safety
+        </div>
+        <div class="card-body">
+          <div class="row row-cols-2 g-3 metric-row">
+
+            <div class="col">
+              <div class="metric-label">Days Without Incident</div>
+              <div class="fw-bold fs-4 text-success">127</div>
+            </div>
+            <div class="col">
+              <div class="metric-label">YTD Incidents</div>
+              <div class="fw-bold fs-4 metric-value">2</div>
+            </div>
+            <div class="col">
+              <div class="metric-label">Near Misses (Month)</div>
+              <div class="fw-bold fs-4 text-success">0</div>
+            </div>
+            <div class="col">
+              <div class="metric-label">Safety Score</div>
+              <div class="fw-bold fs-4 text-success">98.4%</div>
+            </div>
+            <div class="col">
+              <div class="metric-label">Open Safety Actions</div>
+              <div class="fw-bold fs-4 metric-value">1</div>
+            </div>
+            <div class="col">
+              <div class="metric-label">Inspections This Month</div>
+              <div class="fw-bold fs-4 metric-value">6</div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <!-- ── /Four-section grid ────────────────────────────────── -->
+
+</div>
+
+<script>
+  /* Stamp the generation time on page load */
+  document.getElementById('genTime').textContent = new Date().toLocaleTimeString([], {
+    hour: '2-digit', minute: '2-digit'
+  });
+</script>
+{% endblock %}

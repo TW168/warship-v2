@@ -2,7 +2,8 @@
   meeting_report_results.html — HTMX partial injected into #results.
   Context variables:
     rows          — list of dicts with keys: Group, Pallets, Weight, Freight, Avg_Freight_per_lb
-    carrier_count — int, distinct Carrier_IDs excluding SAIA-IP and CWF-IP
+    consignment_count — int, BL count where Carrier_ID = 'IP-TRUCK'
+    custom_count      — int, BL count excluding IP-TRUCK, SAIA-IP, CWF-IP
     error         — error string or None
     site, product_group, date — the filter values used for this query
 #}
@@ -123,7 +124,7 @@
 
 <div class="card shadow-sm border-secondary">
   <div class="card-header fw-bold bg-secondary text-white">
-    <i class="bi bi-calculator me-2"></i>Totals
+    <i class="bi bi-calculator me-2"></i>Report Elements
   </div>
   <div class="card-body">
     <div class="row text-center g-3">
@@ -139,8 +140,18 @@
         </div>
       </div>
       <div class="col">
-        <div class="text-muted small mb-1">🚛 Carriers <span class="text-muted fw-normal" style="font-size:0.7rem;">(excl. SAIA-IP/CWF-IP)</span></div>
-        <div class="fw-bold fs-5">{{ carrier_count }}</div>
+        <div class="text-muted small mb-1">🚛 Consignment
+          <i class="bi bi-info-circle ms-1"
+             style="font-size:0.75rem; cursor:default;"
+             data-bs-toggle="tooltip"
+             data-bs-placement="top"
+             title="Shipments to Houston, Remington, Phoenix, Charlotte"></i>
+        </div>
+        <div class="fw-bold fs-5">{{ consignment_count }}</div>
+      </div>
+      <div class="col">
+        <div class="text-muted small mb-1">📦 Custom <span class="text-muted fw-normal" style="font-size:0.7rem;">(excl. SAIA-IP/CWF-IP)</span></div>
+        <div class="fw-bold fs-5">{{ custom_count }}</div>
       </div>
       <div class="col">
         <div class="text-muted small mb-1">💰 Freight</div>
@@ -154,4 +165,9 @@
   </div>
 </div>
 
+<script>
+  document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function(el) {
+    new bootstrap.Tooltip(el);
+  });
+</script>
 {% endif %}

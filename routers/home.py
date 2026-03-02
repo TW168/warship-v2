@@ -1,11 +1,11 @@
 """
-routers/home.py — Home, Meeting Report, and Press page routes.
+routers/home.py — Home, Meeting Report, and Briefing page routes.
 
 Includes:
   GET /                              — Home page (weather images)
   GET /meeting-report                — Meeting Report page (filter form)
   GET /api/meeting-report/results    — HTMX partial: query results as cards
-  GET /press                         — Press sub-page
+  GET /briefing                      — VIP Operations Briefing sub-page
 """
 
 from fastapi import APIRouter, Query, Request
@@ -23,8 +23,8 @@ _engine = connect_to_database()
 
 # Meeting report SQL — groups customers into named locations, aggregates shipping metrics.
 # Uses named parameters (:site, :product_group, :date) for safe parameterized execution.
-_CARRIER_COUNT_SQL = text("""
-    SELECT COUNT(*) AS carrier_count
+_CONSIGNMENT_COUNT_SQL = text("""
+    SELECT COUNT(*) AS consignment_count
     FROM (
         SELECT DISTINCT BL_Number, Carrier_ID, Truck_Appointment_Date
         FROM warship.vw_bl_lbs_cnt_carrier_customer
@@ -32,6 +32,30 @@ _CARRIER_COUNT_SQL = text("""
           AND product_group = :product_group
           AND Truck_Appointment_Date = :date
           AND Carrier_ID NOT IN ('SAIA-IP', 'CWF-IP')
+          AND Ship_to_Customer IN (
+              'AMTOPP WAREHOUSE - HOUSTON',
+              'INTEPLAST GROUP CORP. (AMTOPP)',
+              'INTEPLAST GROUP CORP.(AMTOPP ( CFP)',
+              'PINNACLE FILMS'
+          )
+    ) AS sub
+""")
+
+_CUSTOM_COUNT_SQL = text("""
+    SELECT COUNT(*) AS custom_count
+    FROM (
+        SELECT DISTINCT BL_Number, Carrier_ID, Truck_Appointment_Date
+        FROM warship.vw_bl_lbs_cnt_carrier_customer
+        WHERE site = :site
+          AND product_group = :product_group
+          AND Truck_Appointment_Date = :date
+          AND Carrier_ID NOT IN ('SAIA-IP', 'CWF-IP')
+          AND Ship_to_Customer NOT IN (
+              'AMTOPP WAREHOUSE - HOUSTON',
+              'INTEPLAST GROUP CORP. (AMTOPP)',
+              'INTEPLAST GROUP CORP.(AMTOPP ( CFP)',
+              'PINNACLE FILMS'
+          )
     ) AS sub
 """)
 
@@ -128,7 +152,8 @@ async def meeting_report_results(
     On DB error, the partial displays an error alert instead of crashing the page.
     """
     rows = []
-    carrier_count = 0
+    consignment_count = 0
+    custom_count = 0
     error = None
 
     try:
@@ -149,11 +174,9 @@ async def meeting_report_results(
                 for row in result.fetchall()
             ]
 
-            carrier_result = conn.execute(
-                _CARRIER_COUNT_SQL,
-                {"site": site, "product_group": product_group, "date": date},
-            )
-            carrier_count = int(carrier_result.scalar() or 0)
+            params = {"site": site, "product_group": product_group, "date": date}
+            consignment_count = int(conn.execute(_CONSIGNMENT_COUNT_SQL, params).scalar() or 0)
+            custom_count = int(conn.execute(_CUSTOM_COUNT_SQL, params).scalar() or 0)
     except Exception as exc:
         error = str(exc)
 
@@ -162,7 +185,8 @@ async def meeting_report_results(
         {
             "request": request,
             "rows": rows,
-            "carrier_count": carrier_count,
+            "consignment_count": consignment_count,
+            "custom_count": custom_count,
             "error": error,
             "site": site,
             "product_group": product_group,
@@ -172,14 +196,14 @@ async def meeting_report_results(
 
 
 @router.get(
-    "/press",
+    "/briefing",
     response_class=HTMLResponse,
-    summary="Press page",
-    description="Press releases and news sub-page under Home.",
+    summary="VIP Operations Briefing page",
+    description="Printable snapshot of warehouse and shipping operations for VIP visits.",
 )
-async def press(request: Request) -> HTMLResponse:
-    """Render the press sub-page."""
+async def briefing(request: Request) -> HTMLResponse:
+    """Render the VIP Operations Briefing page."""
     return templates.TemplateResponse(
-        "home/press.html",
-        {"request": request, "active_page": "press"},
+        "home/briefing.html",
+        {"request": request, "active_page": "briefing"},
     )
