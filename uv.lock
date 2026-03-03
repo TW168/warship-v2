@@ -946,6 +946,7 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "fastapi", extra = ["standard"] },
+    { name = "httpx" },
     { name = "markdown" },
     { name = "mysql-connector-python" },
     { name = "pygments" },
@@ -955,6 +956,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "fastapi", extras = ["standard"], specifier = ">=0.133.1" },
+    { name = "httpx", specifier = ">=0.28.1" },
     { name = "markdown", specifier = ">=3.10.2" },
     { name = "mysql-connector-python", specifier = ">=9.6.0" },
     { name = "pygments", specifier = ">=2.19.2" },
