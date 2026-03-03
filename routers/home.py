@@ -2,18 +2,23 @@
 routers/home.py — Home, Meeting Report, and Briefing page routes.
 
 Includes:
-  GET /                              — Home page (weather images)
-  GET /meeting-report                — Meeting Report page (filter form)
-  GET /api/meeting-report/results    — HTMX partial: query results as cards
-  GET /briefing                      — VIP Operations Briefing sub-page
+  GET /                                      — Home page (weather images)
+  GET /meeting-report                        — Meeting Report page (filter form)
+  GET /api/meeting-report/results            — HTMX partial: query results as cards
+  GET /briefing                              — VIP Operations Briefing sub-page
+  GET /api/briefing/state-map                — Proxy: IPG-EZ state-map data
+  GET /api/briefing/customer-heatmap         — Proxy: IPG-EZ customer-heatmap data
 """
 
+import httpx
 from fastapi import APIRouter, Query, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import text
 
 from database import connect_to_database
+
+_IPGEZ_BASE = "http://172.17.15.228:8000/ipg-ez"
 
 router = APIRouter(tags=["Home"])
 templates = Jinja2Templates(directory="templates")
@@ -207,3 +212,41 @@ async def briefing(request: Request) -> HTMLResponse:
         "home/briefing.html",
         {"request": request, "active_page": "briefing"},
     )
+
+
+@router.get(
+    "/api/briefing/state-map",
+    summary="Briefing: state-map proxy",
+    description="Proxies the IPG-EZ state-map endpoint to avoid browser CORS restrictions.",
+)
+async def briefing_state_map(
+    site: str = Query(..., description="Site code, e.g. 'AMJK'"),
+    group: str = Query(..., description="Product group, e.g. 'SW'"),
+) -> JSONResponse:
+    """Forward the state-map request to the internal IPG-EZ API and return its JSON."""
+    async with httpx.AsyncClient(timeout=15) as client:
+        resp = await client.get(
+            f"{_IPGEZ_BASE}/state-map",
+            params={"site": site, "group": group},
+        )
+        resp.raise_for_status()
+    return JSONResponse(content=resp.json())
+
+
+@router.get(
+    "/api/briefing/customer-heatmap",
+    summary="Briefing: customer-heatmap proxy",
+    description="Proxies the IPG-EZ customer-heatmap endpoint to avoid browser CORS restrictions.",
+)
+async def briefing_customer_heatmap(
+    site: str = Query(..., description="Site code, e.g. 'AMJK'"),
+    group: str = Query(..., description="Product group, e.g. 'SW'"),
+) -> JSONResponse:
+    """Forward the customer-heatmap request to the internal IPG-EZ API and return its JSON."""
+    async with httpx.AsyncClient(timeout=15) as client:
+        resp = await client.get(
+            f"{_IPGEZ_BASE}/customer-heatmap",
+            params={"site": site, "group": group},
+        )
+        resp.raise_for_status()
+    return JSONResponse(content=resp.json())

@@ -2,6 +2,9 @@
 {% block title %}Briefing{% endblock %}
 
 {% block head %}
+<!-- Plotly.js for shipping analytics charts -->
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+
 <style>
   /* ── Screen: slightly darker label color for readability ── */
   .metric-label { color: #555; font-size: 0.8rem; margin-bottom: 0.2rem; }
@@ -63,6 +66,17 @@
       --bs-gutter-x: 0.3rem !important;
       --bs-gutter-y: 0.3rem !important;
     }
+
+    /* Force charts side-by-side — col-lg-* doesn't apply in print */
+    .charts-row {
+      display: grid !important;
+      grid-template-columns: 7fr 5fr !important;
+      gap: 0.3rem !important;
+    }
+    .charts-row > div { padding: 0 !important; }
+
+    /* Let Plotly SVGs scale to fit the printed column */
+    .js-plotly-plot, .plotly { width: 100% !important; }
   }
 </style>
 {% endblock %}
@@ -100,11 +114,51 @@
   </div>
   <!-- ── /Page header ──────────────────────────────────────── -->
 
+  <!-- ── Shipping Analytics ────────────────────────────────── -->
+  <div class="row g-0 mb-4">
+    <div class="col-12">
+      <div class="card shadow-sm">
+
+        <div class="card-header fw-semibold d-flex align-items-center justify-content-between"
+             style="background:#154e9a; color:#fff;">
+          <span>
+            <i class="bi bi-graph-up me-2" aria-hidden="true"></i>
+            Shipping Analytics &mdash; Last 90 Days &nbsp;
+            <span class="badge text-bg-light text-secondary fw-normal" style="font-size:0.7rem;">
+              AMJK &bull; SW
+            </span>
+          </span>
+          <!-- Loading indicator -->
+          <span id="chartsSpinner" class="spinner-border spinner-border-sm text-white opacity-75"
+                role="status" aria-label="Loading charts" style="width:1rem;height:1rem;"></span>
+        </div>
+
+        <div class="card-body p-3">
+          <div class="row g-3 charts-row">
+
+            <!-- State choropleth map -->
+            <div class="col-lg-7">
+              <div id="stateMapChart" style="height: 420px; min-height: 380px;"></div>
+            </div>
+
+            <!-- Customer treemap -->
+            <div class="col-lg-5">
+              <div id="customerTreemap" style="height: 420px; min-height: 380px;"></div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  <!-- ── /Shipping Analytics ──────────────────────────────── -->
+
   <!-- ── Four-section grid ─────────────────────────────────── -->
   <div class="row g-4 briefing-grid">
 
     <!-- 1. Shipping ─────────────────────────────────────────── -->
-    <div class="col-md-6">
+    <div class="col-md-6 no-print">
       <div class="card shadow-sm h-100">
         <div class="card-header fw-semibold" style="background:#154e9a; color:#fff;">
           <i class="bi bi-truck me-2" aria-hidden="true"></i>Shipping
@@ -143,7 +197,7 @@
     </div>
 
     <!-- 2. Warehouse ────────────────────────────────────────── -->
-    <div class="col-md-6">
+    <div class="col-md-6 no-print">
       <div class="card shadow-sm h-100">
         <div class="card-header fw-semibold" style="background:#154e9a; color:#fff;">
           <i class="bi bi-building me-2" aria-hidden="true"></i>Warehouse
@@ -269,5 +323,176 @@
   document.getElementById('genTime').textContent = new Date().toLocaleTimeString([], {
     hour: '2-digit', minute: '2-digit'
   });
+
+  /* ── Shipping Analytics Charts ────────────────────────────
+     Fetches from the internal IPG-EZ API, filters to last 90 days,
+     aggregates by state / customer, and renders with Plotly.js.
+  ─────────────────────────────────────────────────────────── */
+  (function () {
+    const SITE    = 'AMJK';
+    const GROUP   = 'SW';
+    const API_BASE = '/api/briefing';
+
+    /* IBM Blue monochromatic scale for both charts */
+    const IBM_SCALE = [
+      [0,   '#dce8f8'],
+      [0.3, '#7aaee3'],
+      [0.7, '#3b73c4'],
+      [1,   '#154e9a'],
+    ];
+
+    /* Build the set of YearMonth strings that fall within the last 90 days */
+    function validMonths() {
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - 90);
+      const months = new Set();
+      const cursor = new Date(cutoff.getFullYear(), cutoff.getMonth(), 1);
+      const now    = new Date();
+      while (cursor <= now) {
+        months.add(
+          cursor.getFullYear() + '-' + String(cursor.getMonth() + 1).padStart(2, '0')
+        );
+        cursor.setMonth(cursor.getMonth() + 1);
+      }
+      return months;
+    }
+
+    /* Aggregate an array of rows into a map keyed by `keyField` */
+    function aggregate(rows, keyField, months) {
+      const map = {};
+      for (const row of rows) {
+        if (!months.has(String(row.YearMonth))) continue;
+        const key = (row[keyField] || '').toString().trim();
+        if (!key) continue;
+        if (!map[key]) map[key] = { pick_weight: 0, bl_count: 0, pallet_count: 0 };
+        map[key].pick_weight  += Number(row.pick_weight)  || 0;
+        map[key].bl_count     += Number(row.bl_count)     || 0;
+        map[key].pallet_count += Number(row.pallet_count) || 0;
+      }
+      return map;
+    }
+
+    function fmt(n) { return Number(n).toLocaleString(); }
+
+    const months = validMonths();
+    let pending = 2; /* track both fetches to hide spinner when done */
+
+    function done() {
+      if (--pending === 0) {
+        document.getElementById('chartsSpinner').style.display = 'none';
+      }
+    }
+
+    /* ── State choropleth map ─────────────────────────────── */
+    fetch(`${API_BASE}/state-map?site=${SITE}&group=${GROUP}`)
+      .then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
+      .then(function (data) {
+        const agg    = aggregate(data, 'State', months);
+        const states = Object.keys(agg).filter(s => /^[A-Z]{2}$/.test(s));
+        const z      = states.map(s => agg[s].pick_weight);
+        const text   = states.map(s =>
+          `<b>${s}</b><br>` +
+          `Weight: ${fmt(agg[s].pick_weight)} lbs<br>` +
+          `BLs: ${fmt(agg[s].bl_count)}<br>` +
+          `Pallets: ${fmt(agg[s].pallet_count)}`
+        );
+
+        Plotly.newPlot('stateMapChart', [{
+          type: 'choropleth',
+          locationmode: 'USA-states',
+          locations: states,
+          z: z,
+          text: text,
+          hovertemplate: '%{text}<extra></extra>',
+          colorscale: IBM_SCALE,
+          colorbar: {
+            title: { text: 'lbs', font: { size: 11 } },
+            thickness: 12,
+            len: 0.65,
+          },
+          zmin: 0,
+        }], {
+          geo: {
+            scope: 'usa',
+            showlakes: false,
+            bgcolor: 'rgba(0,0,0,0)',
+          },
+          margin: { l: 0, r: 0, t: 38, b: 0 },
+          title: {
+            text: 'Weight Shipped by State (Last 90 Days)',
+            font: { size: 13, color: '#333' },
+            x: 0.5,
+          },
+          paper_bgcolor: 'rgba(0,0,0,0)',
+          plot_bgcolor:  'rgba(0,0,0,0)',
+        }, { responsive: true, displayModeBar: false });
+      })
+      .catch(function (err) {
+        document.getElementById('stateMapChart').innerHTML =
+          `<div class="alert alert-warning m-3">
+             <i class="bi bi-exclamation-triangle me-2"></i>
+             State map unavailable: ${err.message}
+           </div>`;
+      })
+      .finally(done);
+
+    /* ── Customer treemap ─────────────────────────────────── */
+    fetch(`${API_BASE}/customer-heatmap?site=${SITE}&group=${GROUP}`)
+      .then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
+      .then(function (data) {
+        const agg = aggregate(data, 'Ship_to_Customer', months);
+
+        /* Sort by weight descending, keep top 20 */
+        const sorted = Object.entries(agg)
+          .sort(function (a, b) { return b[1].pick_weight - a[1].pick_weight; })
+          .slice(0, 20);
+
+        const labels  = ['All Customers', ...sorted.map(function ([k]) { return k; })];
+        const parents = ['',              ...sorted.map(function () { return 'All Customers'; })];
+        const values  = [0,               ...sorted.map(function ([, v]) { return v.pick_weight; })];
+        const text    = ['',              ...sorted.map(function ([k, v]) {
+          return `${k}<br>${fmt(v.pick_weight)} lbs<br>${fmt(v.bl_count)} BLs`;
+        })];
+
+        Plotly.newPlot('customerTreemap', [{
+          type: 'treemap',
+          labels:  labels,
+          parents: parents,
+          values:  values,
+          text:    text,
+          hovertemplate: '%{text}<extra></extra>',
+          texttemplate:  '%{label}<br><span style="font-size:0.8em">%{value:,.0f} lbs</span>',
+          marker: {
+            colorscale: IBM_SCALE,
+            colors: values,
+            colorbar: { thickness: 10, len: 0.5 },
+          },
+          tiling: { packing: 'squarify' },
+        }], {
+          margin: { l: 0, r: 0, t: 38, b: 0 },
+          title: {
+            text: 'Top 20 Customers by Weight (Last 90 Days)',
+            font: { size: 13, color: '#333' },
+            x: 0.5,
+          },
+          paper_bgcolor: 'rgba(0,0,0,0)',
+        }, { responsive: true, displayModeBar: false });
+      })
+      .catch(function (err) {
+        document.getElementById('customerTreemap').innerHTML =
+          `<div class="alert alert-warning m-3">
+             <i class="bi bi-exclamation-triangle me-2"></i>
+             Customer treemap unavailable: ${err.message}
+           </div>`;
+      })
+      .finally(done);
+
+  })();
 </script>
 {% endblock %}
