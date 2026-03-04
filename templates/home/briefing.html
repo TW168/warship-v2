@@ -2,7 +2,7 @@
 {% block title %}Briefing{% endblock %}
 
 {% block head %}
-<!-- Plotly.js for shipping analytics charts -->
+<!-- Plotly.js for shipping weight chart -->
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 
 <style>
@@ -11,71 +11,32 @@
 
   /* ── Print styles ─────────────────────────────────────── */
   @media print {
-    @page { size: landscape; margin: 0.35in; }
+    @page { size: auto; margin: 0.35in; }
 
-    /* Remove navbar, footer, screen-only elements from layout */
+    /* Hide nav, breadcrumb, print button */
     nav.navbar, footer, .no-print {
       display: none !important;
       height: 0 !important;
       overflow: hidden !important;
     }
 
-    /* Remove all body/main spacing */
-    body, main { margin: 0 !important; padding: 0 !important; font-size: 9.5pt; }
-    .container-fluid { padding: 0.15rem !important; }
+    /* Preserve screen layout — no forced columns */
+    body, main { font-size: 9.5pt; }
 
-    /* Compact page header */
-    .briefing-page-header { margin-bottom: 0.3rem !important; }
-    h1.briefing-title { font-size: 13pt !important; margin: 0 !important; }
-    .briefing-subtitle { font-size: 8.5pt !important; margin: 0 !important; }
+    /* Darken muted text for paper */
+    .metric-label, .text-muted { color: #333 !important; }
+    .text-success { color: #155724 !important; }
+    .text-warning { color: #856404 !important; }
 
-    /* Force 2-column grid — Bootstrap col-md-6 doesn't apply in print */
-    .briefing-grid {
-      display: grid !important;
-      grid-template-columns: 1fr 1fr !important;
-      gap: 0.3rem !important;
-    }
-    .briefing-grid > div { padding: 0 !important; }
-
-    /* Compact cards */
+    /* Avoid splitting cards across pages */
     .card {
       box-shadow: none !important;
       border: 1px solid #aaa !important;
       break-inside: avoid;
       page-break-inside: avoid;
     }
-    .card-header { padding: 0.25rem 0.5rem !important; font-size: 9pt !important; }
-    .card-body { padding: 0.4rem !important; }
 
-    /* Compact metric grid */
-    .metric-row { gap: 0.3rem !important; }
-    .metric-row > .col { padding: 0 0.15rem !important; }
-
-    /* Darken labels — text-muted (#6c757d) is too faint on paper */
-    .metric-label, .text-muted { color: #333 !important; }
-
-    /* Shrink large numbers */
-    .metric-value { font-size: 1rem !important; }
-
-    /* Keep color indicators for good/warn values */
-    .text-success { color: #155724 !important; }
-    .text-warning { color: #856404 !important; }
-
-    /* Row gutters */
-    .g-3, .g-4 {
-      --bs-gutter-x: 0.3rem !important;
-      --bs-gutter-y: 0.3rem !important;
-    }
-
-    /* Force charts side-by-side — col-lg-* doesn't apply in print */
-    .charts-row {
-      display: grid !important;
-      grid-template-columns: 7fr 5fr !important;
-      gap: 0.3rem !important;
-    }
-    .charts-row > div { padding: 0 !important; }
-
-    /* Let Plotly SVGs scale to fit the printed column */
+    /* Let Plotly SVGs scale */
     .js-plotly-plot, .plotly { width: 100% !important; }
   }
 </style>
@@ -97,11 +58,11 @@
       </nav>
 
       <h1 class="h3 fw-bold briefing-title mb-0">
-        <i class="bi bi-file-earmark-text me-2 no-print" aria-hidden="true"></i>Operations Briefing
+        <i class="bi bi-file-earmark-text me-2 no-print" aria-hidden="true"></i>CFP Warehouse &amp; Shipping Operations Briefing
       </h1>
       <p class="text-muted small mb-0 mt-1 briefing-subtitle">
         <i class="bi bi-calendar3 me-1 no-print" aria-hidden="true"></i>
-        Site: <strong>AMJK</strong> &nbsp;|&nbsp; Date: <strong>March 2, 2026</strong>
+        Product Group: <strong>SW</strong> &nbsp;|&nbsp; Site: <strong>AMJK</strong> &nbsp;|&nbsp; Date: <strong><span id="todayDate"></span></strong>
         &nbsp;|&nbsp; Generated: <span id="genTime"></span>
       </p>
     </div>
@@ -114,81 +75,137 @@
   </div>
   <!-- ── /Page header ──────────────────────────────────────── -->
 
-  <!-- ── Shipping Analytics ────────────────────────────────── -->
-  <div class="row g-0 mb-4">
-    <div class="col-12">
-      <div class="card shadow-sm">
-
-        <div class="card-header fw-semibold d-flex align-items-center justify-content-between"
-             style="background:#154e9a; color:#fff;">
-          <span>
-            <i class="bi bi-graph-up me-2" aria-hidden="true"></i>
-            Shipping Analytics &mdash; Last 90 Days &nbsp;
-            <span class="badge text-bg-light text-secondary fw-normal" style="font-size:0.7rem;">
-              AMJK &bull; SW
-            </span>
-          </span>
-          <!-- Loading indicator -->
-          <span id="chartsSpinner" class="spinner-border spinner-border-sm text-white opacity-75"
-                role="status" aria-label="Loading charts" style="width:1rem;height:1rem;"></span>
-        </div>
-
-        <div class="card-body p-3">
-          <div class="row g-3 charts-row">
-
-            <!-- State choropleth map -->
-            <div class="col-lg-7">
-              <div id="stateMapChart" style="height: 420px; min-height: 380px;"></div>
-            </div>
-
-            <!-- Customer treemap -->
-            <div class="col-lg-5">
-              <div id="customerTreemap" style="height: 420px; min-height: 380px;"></div>
-            </div>
-
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </div>
-  <!-- ── /Shipping Analytics ──────────────────────────────── -->
 
   <!-- ── Four-section grid ─────────────────────────────────── -->
   <div class="row g-4 briefing-grid">
 
-    <!-- 1. Shipping ─────────────────────────────────────────── -->
-    <div class="col-md-6 no-print">
+    <!-- 1. AMJK SW Freight · Monthly Avg Comparison ──────────────── -->
+    <div class="col-md-6">
       <div class="card shadow-sm h-100">
-        <div class="card-header fw-semibold" style="background:#154e9a; color:#fff;">
-          <i class="bi bi-truck me-2" aria-hidden="true"></i>Shipping
+        <div class="card-header fw-semibold d-flex align-items-center justify-content-between"
+             style="background:#154e9a; color:#fff;">
+          <span>
+            <i class="bi bi-arrow-left-right me-2" aria-hidden="true"></i>
+            AMJK SW Freight · Monthly Avg Comparison
+            <span class="badge text-bg-light text-secondary fw-normal ms-1" style="font-size:0.7rem;">
+              2018–2025 avg vs 2026
+            </span>
+          </span>
+          <span id="frtYtdSpinner"
+                class="spinner-border spinner-border-sm text-white opacity-75"
+                role="status" aria-label="Loading"
+                style="width:1rem;height:1rem;"></span>
         </div>
-        <div class="card-body">
-          <div class="row row-cols-2 g-3 metric-row">
+        <div class="card-body p-3" id="frtYtdBody">
+          <!-- populated by JS -->
+        </div>
+      </div>
+    </div>
 
-            <div class="col">
-              <div class="metric-label">Total Loads</div>
-              <div class="fw-bold fs-4 metric-value">42</div>
+    <!-- 2. YTD Carrier ID Usage ─────────────────────────────── -->
+    <div class="col-md-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header fw-semibold d-flex align-items-center justify-content-between"
+             style="background:#154e9a; color:#fff;">
+          <span>
+            <i class="bi bi-pie-chart me-2" aria-hidden="true"></i>
+            YTD Carrier Usage
+            <span class="badge text-bg-light text-secondary fw-normal ms-1" style="font-size:0.7rem;">
+              AMJK · SW · by load count
+            </span>
+          </span>
+          <span id="carrierSpinner"
+                class="spinner-border spinner-border-sm text-white opacity-75"
+                role="status" aria-label="Loading chart"
+                style="width:1rem;height:1rem;"></span>
+        </div>
+        <div class="card-body p-2">
+          <div id="carrierChart" style="height:260px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Freight ¢/lb by Product Code (YTD) — full width ──── -->
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-header fw-semibold d-flex align-items-center justify-content-between"
+             style="background:#154e9a; color:#fff;">
+          <span>
+            <i class="bi bi-bar-chart-steps me-2" aria-hidden="true"></i>
+            Freight ¢/lb by Product Code
+            <span class="badge text-bg-light text-secondary fw-normal ms-1" style="font-size:0.7rem;">
+              AMJK · SW · YTD
+            </span>
+            <i class="bi bi-info-circle ms-2"
+               style="font-size:0.85rem; cursor:pointer; opacity:0.85;"
+               data-bs-toggle="tooltip"
+               data-bs-placement="bottom"
+               data-bs-html="true"
+               title="&lt;b&gt;How to read this boxplot&lt;/b&gt;&lt;br&gt;Each box = one product code, sorted by median ¢/lb.&lt;br&gt;Box: Q1–Q3 (IQR). Median: Q2.&lt;br&gt;Whiskers: 1.5×IQR. Dots: outliers.&lt;br&gt;Lower ¢/lb = more efficient."
+               aria-label="Chart explanation"></i>
+          </span>
+          <span id="frtCplbSpinner"
+                class="spinner-border spinner-border-sm text-white opacity-75"
+                role="status" aria-label="Loading chart"
+                style="width:1rem;height:1rem;"></span>
+        </div>
+        <div class="card-body p-2">
+          <div id="frtCplbChart" style="height:360px;"></div>
+        </div>
+        <div class="card-footer text-muted" style="font-size:0.75rem;">
+          Source: Warship database · AMJK · SW · YTD 2026. Top 50 products by shipped weight. Each box = product code.
+          Sorted by median ¢/lb (low → high).
+        </div>
+      </div>
+    </div>
+
+    <!-- Boxplot explanation -->
+    <div class="col-12">
+      <div class="card shadow-sm border-start border-4 border-info">
+        <div class="card-body py-3">
+          <h6 class="fw-semibold mb-2"><i class="bi bi-info-circle me-2 text-info"></i>About This Chart</h6>
+          <div class="row g-4" style="font-size:0.875rem;">
+
+            <div class="col-md-4">
+              <p class="fw-semibold mb-1">What to look for</p>
+              <ul class="text-muted mb-0 ps-3">
+                <li><strong>High median</strong> — This product consistently costs more per pound to ship.</li>
+                <li><strong>Tall box (wide IQR)</strong> — Rates are inconsistent across loads. May indicate multiple carriers, lanes, or a rate that hasn't been locked in.</li>
+                <li><strong>Outlier dot above the whisker</strong> — One load was charged well above the normal range. Review that BL for surcharges or mis-keyed freight.</li>
+                <li><strong>Outlier dot below the whisker</strong> — Unusually cheap load. Could be a back-haul rate, credit, or data entry error.</li>
+              </ul>
             </div>
-            <div class="col">
-              <div class="metric-label">Total Weight</div>
-              <div class="fw-bold fs-4 metric-value">1,284,500 <span class="fs-6 fw-normal text-muted">lbs</span></div>
+
+            <div class="col-md-4">
+              <p class="fw-semibold mb-1">How to read each box</p>
+              <ul class="text-muted mb-0 ps-3">
+                <li><strong>Box edges</strong> — Q1 (25th percentile) to Q3 (75th percentile). The middle 50% of all loads for that product.</li>
+                <li><strong>Center line</strong> — Median ¢/lb. Half of loads cost less, half cost more.</li>
+                <li><strong>Whiskers</strong> — Extend to the farthest actual load still within 1.5× the box height (IQR) from each edge.</li>
+                <li><strong>Dots</strong> — Individual loads beyond the whiskers. Statistically unusual rates.</li>
+              </ul>
+              <p class="text-muted mt-1 mb-0">Products sorted left → right by median ¢/lb (cheapest to most expensive).</p>
             </div>
-            <div class="col">
-              <div class="metric-label">Consignment</div>
-              <div class="fw-bold fs-4 metric-value">18</div>
+
+            <div class="col-md-4">
+              <p class="fw-semibold mb-1">Formula</p>
+              <p class="text-muted mb-1">
+                <code>¢/lb = Unit_Freight (already in ¢/lb)</code><br>
+                <code>Unit_Freight = freight cost ($) ÷ pick weight (lbs)</code>
+              </p>
+              <p class="fw-semibold mb-1 mt-2">Source</p>
+              <p class="text-muted mb-0">
+                Warship database (AMJK · SW · Jan 1 – today). Top 50 product codes by total shipped weight YTD.
+                Each data point = one truck load (BL Number).
+              </p>
             </div>
-            <div class="col">
-              <div class="metric-label">Custom</div>
-              <div class="fw-bold fs-4 metric-value">24</div>
-            </div>
-            <div class="col">
-              <div class="metric-label">On-Time Rate</div>
-              <div class="fw-bold fs-4 text-success">97.6%</div>
-            </div>
-            <div class="col">
-              <div class="metric-label">Avg Freight/lb</div>
-              <div class="fw-bold fs-4 metric-value">$0.062</div>
+
+            <div class="col-12" style="font-size:0.8rem; border-top:1px solid #dee2e6; padding-top:0.75rem;">
+              <strong>Disclaimer:</strong><br>
+              <i class="bi bi-exclamation-circle me-1 text-warning"></i>
+              <em>Rates are derived from IPG-EZ Report freight cost ÷ pick weight. Outliers may reflect small loads, special handling, or data entry errors.</em><br>
+              <i class="bi bi-exclamation-circle me-1 text-warning"></i>
+              <em>Box plots show statistical distribution — they do not imply that high-cost loads are errors. Outliers may reflect legitimate factors such as small loads, special handling, or remote delivery points. Confirm context before acting on any single data point.</em>
             </div>
 
           </div>
@@ -196,80 +213,56 @@
       </div>
     </div>
 
-    <!-- 2. Warehouse ────────────────────────────────────────── -->
-    <div class="col-md-6 no-print">
-      <div class="card shadow-sm h-100">
-        <div class="card-header fw-semibold" style="background:#154e9a; color:#fff;">
-          <i class="bi bi-building me-2" aria-hidden="true"></i>Warehouse
-        </div>
-        <div class="card-body">
-          <div class="row row-cols-2 g-3 metric-row">
-
-            <div class="col">
-              <div class="metric-label">Active Orders</div>
-              <div class="fw-bold fs-4 metric-value">156</div>
-            </div>
-            <div class="col">
-              <div class="metric-label">Pallets Staged</div>
-              <div class="fw-bold fs-4 metric-value">312</div>
-            </div>
-            <div class="col">
-              <div class="metric-label">Inventory Accuracy</div>
-              <div class="fw-bold fs-4 text-success">99.2%</div>
-            </div>
-            <div class="col">
-              <div class="metric-label">Pick Rate</div>
-              <div class="fw-bold fs-4 metric-value">148 <span class="fs-6 fw-normal text-muted">cases/hr</span></div>
-            </div>
-            <div class="col">
-              <div class="metric-label">Dock Utilization</div>
-              <div class="fw-bold fs-4 metric-value">83%</div>
-            </div>
-            <div class="col">
-              <div class="metric-label">Pending Putaways</div>
-              <div class="fw-bold fs-4 metric-value">14</div>
-            </div>
-
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 3. Staff ────────────────────────────────────────────── -->
+    <!-- 3. Staff & Hours ─────────────────────────────────────── -->
     <div class="col-md-6">
       <div class="card shadow-sm h-100">
         <div class="card-header fw-semibold" style="background:#154e9a; color:#fff;">
-          <i class="bi bi-people me-2" aria-hidden="true"></i>Staff
+          <i class="bi bi-people me-2" aria-hidden="true"></i>Staff &amp; Hours
         </div>
-        <div class="card-body">
-          <div class="row row-cols-2 g-3 metric-row">
+        <div class="card-body py-3 px-3" style="font-size:0.875rem;">
+          <div class="row g-3">
 
-            <div class="col">
-              <div class="metric-label">On-Site Today</div>
-              <div class="fw-bold fs-4 metric-value">47</div>
+            <!-- Headcount -->
+            <div class="col-12 col-md-4">
+              <div class="fw-semibold mb-2" style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:#6c757d;">
+                Headcount
+              </div>
+              <ul class="list-unstyled mb-0" style="line-height:1.9;">
+                <li>👔 1 Supervisor</li>
+                <li>🗂️ 1 Asst. Supervisor</li>
+                <li>🖥️ 2 Office Staff</li>
+                <li>📦 1 Warehouse Lead</li>
+                <li>🚜 6 Forklift Drivers</li>
+              </ul>
             </div>
-            <div class="col">
-              <div class="metric-label">Day Shift</div>
-              <div class="fw-bold fs-4 metric-value">28</div>
+
+            <!-- Work Hours Warehouse -->
+            <div class="col-12 col-md-4 border-start">
+              <div class="fw-semibold mb-2" style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:#6c757d;">
+                Work Hours · Warehouse
+              </div>
+              <ul class="list-unstyled mb-0" style="line-height:1.9;">
+                <li>📅 Monday – Friday · 2 Shifts</li>
+                <li>🌤️ Day:&nbsp;&nbsp; 7:00 AM – 3:30 PM</li>
+                <li>🌙 Night: 3:30 PM – 12:00 AM</li>
+              </ul>
             </div>
-            <div class="col">
-              <div class="metric-label">Night Shift</div>
-              <div class="fw-bold fs-4 metric-value">19</div>
-            </div>
-            <div class="col">
-              <div class="metric-label">Open Positions</div>
-              <div class="fw-bold fs-4 text-warning">3</div>
-            </div>
-            <div class="col">
-              <div class="metric-label">Overtime Hours</div>
-              <div class="fw-bold fs-4 metric-value">112 <span class="fs-6 fw-normal text-muted">hrs</span></div>
-            </div>
-            <div class="col">
-              <div class="metric-label">Training Completions</div>
-              <div class="fw-bold fs-4 metric-value">8</div>
+
+            <!-- Work Hours Shipping -->
+            <div class="col-12 col-md-4 border-start">
+              <div class="fw-semibold mb-2" style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:#6c757d;">
+                Work Hours · Shipping
+              </div>
+              <ul class="list-unstyled mb-0" style="line-height:1.9;">
+                <li>📅 Monday – Friday</li>
+                <li>🌤️ Day:&nbsp;&nbsp; 7:30 AM – 4:30 PM</li>
+              </ul>
             </div>
 
           </div>
+          <p class="text-muted mt-2 mb-0" style="font-size:0.78rem; white-space:nowrap;">
+            📌 Last two Saturdays of each month are designated as 8-hour workdays.
+          </p>
         </div>
       </div>
     </div>
@@ -280,35 +273,32 @@
         <div class="card-header fw-semibold" style="background:#154e9a; color:#fff;">
           <i class="bi bi-shield-check me-2" aria-hidden="true"></i>Safety
         </div>
-        <div class="card-body">
-          <div class="row row-cols-2 g-3 metric-row">
+        <div class="card-body d-flex flex-column align-items-center justify-content-center text-center py-4">
 
-            <div class="col">
-              <div class="metric-label">Days Without Incident</div>
-              <div class="fw-bold fs-4 text-success">127</div>
-            </div>
-            <div class="col">
-              <div class="metric-label">YTD Incidents</div>
-              <div class="fw-bold fs-4 metric-value">2</div>
-            </div>
-            <div class="col">
-              <div class="metric-label">Near Misses (Month)</div>
-              <div class="fw-bold fs-4 text-success">0</div>
-            </div>
-            <div class="col">
-              <div class="metric-label">Safety Score</div>
-              <div class="fw-bold fs-4 text-success">98.4%</div>
-            </div>
-            <div class="col">
-              <div class="metric-label">Open Safety Actions</div>
-              <div class="fw-bold fs-4 metric-value">1</div>
-            </div>
-            <div class="col">
-              <div class="metric-label">Inspections This Month</div>
-              <div class="fw-bold fs-4 metric-value">6</div>
-            </div>
-
+          <!-- Trophy / milestone badge -->
+          <div style="font-size:3.5rem; line-height:1; color:#154e9a;" aria-hidden="true">
+            <i class="bi bi-award-fill"></i>
           </div>
+
+          <div class="mt-3 mb-1" style="font-size:0.8rem; text-transform:uppercase; letter-spacing:0.12em; color:#6c757d; font-weight:600;">
+            Since 2018
+          </div>
+
+          <div class="fw-bold" style="font-size:1.6rem; color:#154e9a; line-height:1.2;">
+            CFP Warehouse &amp; Shipping
+          </div>
+
+          <div class="mt-2 px-3 py-2 rounded-3"
+               style="background:#dce8f8; display:inline-block;">
+            <span style="font-size:1.15rem; font-weight:700; color:#0c2d5e; letter-spacing:0.03em;">
+              <i class="bi bi-check-circle-fill me-2" aria-hidden="true"></i>ZERO Recordable Accidents
+            </span>
+          </div>
+
+          <p class="text-muted mt-3 mb-0" style="font-size:0.8rem; max-width:280px;">
+            Our team's commitment to safety has kept every associate healthy and productive — day after day, year after year.
+          </p>
+
         </div>
       </div>
     </div>
@@ -316,183 +306,206 @@
   </div>
   <!-- ── /Four-section grid ────────────────────────────────── -->
 
+
+
 </div>
 
+{% block scripts %}
 <script>
-  /* Stamp the generation time on page load */
-  document.getElementById('genTime').textContent = new Date().toLocaleTimeString([], {
+  /* Stamp today's date and generation time on page load */
+  var _now = new Date();
+  document.getElementById('todayDate').textContent = _now.toLocaleDateString([], {
+    year: 'numeric', month: 'long', day: 'numeric'
+  });
+  document.getElementById('genTime').textContent = _now.toLocaleTimeString([], {
     hour: '2-digit', minute: '2-digit'
   });
 
-  /* ── Shipping Analytics Charts ────────────────────────────
-     Fetches from the internal IPG-EZ API, filters to last 90 days,
-     aggregates by state / customer, and renders with Plotly.js.
-  ─────────────────────────────────────────────────────────── */
+  /* Initialise Bootstrap tooltips */
+  document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
+    new bootstrap.Tooltip(el);
+  });
+
+  /* ── Freight ¢/lb by Product Code — YTD boxplot ──────────────────────
+     Fetches /api/shipping/shipped-products (AMJK, SW, Jan 1 → today).
+     Top 50 products by weight, sorted by median ¢/lb ascending.
+  ──────────────────────────────────────────────────────────────────── */
   (function () {
-    const SITE    = 'AMJK';
-    const GROUP   = 'SW';
-    const API_BASE = '/api/briefing';
+    const today = new Date();
+    const yyyy  = today.getFullYear();
+    const mm    = String(today.getMonth() + 1).padStart(2, '0');
+    const dd    = String(today.getDate()).padStart(2, '0');
+    const url   = '/api/shipping/shipped-products?site=AMJK&product_group=SW'
+                + '&start_date=' + yyyy + '-01-01'
+                + '&end_date='   + yyyy + '-' + mm + '-' + dd;
 
-    /* IBM Blue monochromatic scale for both charts */
-    const IBM_SCALE = [
-      [0,   '#dce8f8'],
-      [0.3, '#7aaee3'],
-      [0.7, '#3b73c4'],
-      [1,   '#154e9a'],
-    ];
-
-    /* Build the set of YearMonth strings that fall within the last 90 days */
-    function validMonths() {
-      const cutoff = new Date();
-      cutoff.setDate(cutoff.getDate() - 90);
-      const months = new Set();
-      const cursor = new Date(cutoff.getFullYear(), cutoff.getMonth(), 1);
-      const now    = new Date();
-      while (cursor <= now) {
-        months.add(
-          cursor.getFullYear() + '-' + String(cursor.getMonth() + 1).padStart(2, '0')
-        );
-        cursor.setMonth(cursor.getMonth() + 1);
-      }
-      return months;
+    function median(arr) {
+      const s = arr.slice().sort(function (a, b) { return a - b; });
+      const mid = Math.floor(s.length / 2);
+      return s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2;
     }
 
-    /* Aggregate an array of rows into a map keyed by `keyField` */
-    function aggregate(rows, keyField, months) {
-      const map = {};
-      for (const row of rows) {
-        if (!months.has(String(row.YearMonth))) continue;
-        const key = (row[keyField] || '').toString().trim();
-        if (!key) continue;
-        if (!map[key]) map[key] = { pick_weight: 0, bl_count: 0, pallet_count: 0 };
-        map[key].pick_weight  += Number(row.pick_weight)  || 0;
-        map[key].bl_count     += Number(row.bl_count)     || 0;
-        map[key].pallet_count += Number(row.pallet_count) || 0;
-      }
-      return map;
-    }
-
-    function fmt(n) { return Number(n).toLocaleString(); }
-
-    const months = validMonths();
-    let pending = 2; /* track both fetches to hide spinner when done */
-
-    function done() {
-      if (--pending === 0) {
-        document.getElementById('chartsSpinner').style.display = 'none';
-      }
-    }
-
-    /* ── State choropleth map ─────────────────────────────── */
-    fetch(`${API_BASE}/state-map?site=${SITE}&group=${GROUP}`)
+    fetch(url)
       .then(function (r) {
         if (!r.ok) throw new Error('HTTP ' + r.status);
         return r.json();
       })
       .then(function (data) {
-        const agg    = aggregate(data, 'State', months);
-        const states = Object.keys(agg).filter(s => /^[A-Z]{2}$/.test(s));
-        const z      = states.map(s => agg[s].pick_weight);
-        const text   = states.map(s =>
-          `<b>${s}</b><br>` +
-          `Weight: ${fmt(agg[s].pick_weight)} lbs<br>` +
-          `BLs: ${fmt(agg[s].bl_count)}<br>` +
-          `Pallets: ${fmt(agg[s].pallet_count)}`
-        );
+        const groups = {};
+        const wtTotals = {};
+        const carrierCounts = {};
 
-        Plotly.newPlot('stateMapChart', [{
-          type: 'choropleth',
-          locationmode: 'USA-states',
-          locations: states,
-          z: z,
-          text: text,
-          hovertemplate: '%{text}<extra></extra>',
-          colorscale: IBM_SCALE,
-          colorbar: {
-            title: { text: 'lbs', font: { size: 11 } },
-            thickness: 12,
-            len: 0.65,
-          },
-          zmin: 0,
-        }], {
-          geo: {
-            scope: 'usa',
-            showlakes: false,
-            bgcolor: 'rgba(0,0,0,0)',
-          },
-          margin: { l: 0, r: 0, t: 38, b: 0 },
-          title: {
-            text: 'Weight Shipped by State (Last 90 Days)',
-            font: { size: 13, color: '#333' },
-            x: 0.5,
-          },
-          paper_bgcolor: 'rgba(0,0,0,0)',
-          plot_bgcolor:  'rgba(0,0,0,0)',
-        }, { responsive: true, displayModeBar: false });
-      })
-      .catch(function (err) {
-        document.getElementById('stateMapChart').innerHTML =
-          `<div class="alert alert-warning m-3">
-             <i class="bi bi-exclamation-triangle me-2"></i>
-             State map unavailable: ${err.message}
-           </div>`;
-      })
-      .finally(done);
+        data.forEach(function (row) {
+          const prod = row.product_code || '(unknown)';
+          if (row.unit_freight != null) {
+            if (!groups[prod]) groups[prod] = [];
+            groups[prod].push(row.unit_freight);
+          }
+          if (row.pick_weight != null) {
+            wtTotals[prod] = (wtTotals[prod] || 0) + row.pick_weight;
+          }
+          /* Carrier usage — count BL_Numbers per carrier (exclude internal codes) */
+          const cid = row.carrier_id || '(unknown)';
+          if (cid !== 'CWF-IP' && cid !== 'SAIA-IP') {
+            carrierCounts[cid] = (carrierCounts[cid] || 0) + 1;
+          }
+        });
 
-    /* ── Customer treemap ─────────────────────────────────── */
-    fetch(`${API_BASE}/customer-heatmap?site=${SITE}&group=${GROUP}`)
-      .then(function (r) {
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        return r.json();
-      })
-      .then(function (data) {
-        const agg = aggregate(data, 'Ship_to_Customer', months);
-
-        /* Sort by weight descending, keep top 20 */
-        const sorted = Object.entries(agg)
-          .sort(function (a, b) { return b[1].pick_weight - a[1].pick_weight; })
-          .slice(0, 20);
-
-        const labels  = ['All Customers', ...sorted.map(function ([k]) { return k; })];
-        const parents = ['',              ...sorted.map(function () { return 'All Customers'; })];
-        const values  = [0,               ...sorted.map(function ([, v]) { return v.pick_weight; })];
-        const text    = ['',              ...sorted.map(function ([k, v]) {
-          return `${k}<br>${fmt(v.pick_weight)} lbs<br>${fmt(v.bl_count)} BLs`;
-        })];
-
-        Plotly.newPlot('customerTreemap', [{
-          type: 'treemap',
-          labels:  labels,
-          parents: parents,
-          values:  values,
-          text:    text,
-          hovertemplate: '%{text}<extra></extra>',
-          texttemplate:  '%{label}<br><span style="font-size:0.8em">%{value:,.0f} lbs</span>',
+        /* ── Carrier pie chart ── */
+        const carrierLabels = Object.keys(carrierCounts);
+        const carrierValues = carrierLabels.map(function (c) { return carrierCounts[c]; });
+        Plotly.newPlot('carrierChart', [{
+          type:        'pie',
+          labels:      carrierLabels,
+          values:      carrierValues,
+          hole:        0.35,
+          textinfo:    'label+percent',
+          hovertemplate: '%{label}<br>%{value} loads (%{percent})<extra></extra>',
           marker: {
-            colorscale: IBM_SCALE,
-            colors: values,
-            colorbar: { thickness: 10, len: 0.5 },
+            colors: ['#154e9a','#42a5f5','#66bb6a','#ffa726','#ef5350',
+                     '#ab47bc','#26c6da','#d4e157','#8d6e63','#78909c'],
           },
-          tiling: { packing: 'squarify' },
         }], {
-          margin: { l: 0, r: 0, t: 38, b: 0 },
-          title: {
-            text: 'Top 20 Customers by Weight (Last 90 Days)',
-            font: { size: 13, color: '#333' },
-            x: 0.5,
-          },
+          margin:        { l: 10, r: 10, t: 10, b: 10 },
           paper_bgcolor: 'rgba(0,0,0,0)',
+          showlegend:    true,
+          legend:        { orientation: 'v', font: { size: 10 } },
         }, { responsive: true, displayModeBar: false });
+        document.getElementById('carrierSpinner').style.display = 'none';
+
+        /* ── Top 50 by weight, then sort by median ¢/lb asc ── */
+        const top50 = Object.keys(wtTotals)
+          .sort(function (a, b) { return wtTotals[b] - wtTotals[a]; })
+          .slice(0, 50);
+        const products = top50
+          .filter(function (p) { return groups[p]; })
+          .sort(function (a, b) { return median(groups[a]) - median(groups[b]); });
+
+        const traces = products.map(function (p) {
+          return {
+            type:      'box',
+            name:      p,
+            y:         groups[p],
+            boxpoints: 'outliers',
+            marker:    { size: 4 },
+            line:      { width: 1.5 },
+          };
+        });
+        Plotly.newPlot('frtCplbChart', traces, {
+          yaxis:         { title: '¢ / lb', zeroline: false, gridcolor: '#e9ecef' },
+          xaxis:         { title: 'Product Code' },
+          plot_bgcolor:  '#ffffff',
+          paper_bgcolor: '#ffffff',
+          font:          { family: 'Open Sans, sans-serif', size: 12 },
+          margin:        { t: 20, r: 20, b: 100, l: 60 },
+          showlegend:    false,
+        }, { responsive: true, displayModeBar: false });
+
+        document.getElementById('frtCplbSpinner').style.display = 'none';
       })
       .catch(function (err) {
-        document.getElementById('customerTreemap').innerHTML =
-          `<div class="alert alert-warning m-3">
-             <i class="bi bi-exclamation-triangle me-2"></i>
-             Customer treemap unavailable: ${err.message}
-           </div>`;
-      })
-      .finally(done);
-
+        ['frtCplbChart', 'carrierChart'].forEach(function (id) {
+          document.getElementById(id).innerHTML =
+            '<div class="alert alert-warning m-3">' +
+            '<i class="bi bi-exclamation-triangle me-2"></i>' +
+            'Chart unavailable: ' + err.message + '</div>';
+        });
+        document.getElementById('frtCplbSpinner').style.display = 'none';
+        document.getElementById('carrierSpinner').style.display = 'none';
+      });
   })();
+
+
+  /* ── AMJK SW Freight · Monthly Avg Comparison ────────────────────────────
+     Fetches /api/analytics/amjk-frt-ytd-vs-avg and renders three KPI tiles:
+     Frt Amt($), TTL W.(lbs), and ¢/lb — each showing historical avg vs 2026.
+  ──────────────────────────────────────────────────────────────────── */
+  (function () {
+    function fmt$(n) {
+      return '$' + (n / 1e6).toFixed(2) + 'M';
+    }
+    function fmtLbs(n) {
+      return (n / 1e6).toFixed(2) + 'M lbs';
+    }
+    function fmtC(n) {
+      return n.toFixed(2) + '¢/lb';
+    }
+    function deltaHtml(avg, ytd, lowerIsBetter) {
+      var pct = ((ytd - avg) / avg) * 100;
+      var better = lowerIsBetter ? pct < 0 : pct > 0;
+      var color  = better ? '#198754' : '#dc3545';
+      var arrow  = better ? '▲' : '▼';
+      return '<span style="color:' + color + '; font-size:0.85rem; font-weight:600;">'
+           + arrow + ' ' + Math.abs(pct).toFixed(1) + '%</span>'
+           + '<span style="color:#888; font-size:0.75rem; margin-left:4px;">'
+           + (better ? 'better' : 'worse') + '</span>';
+    }
+    function kpiTile(label, avgVal, ytdMonthlyVal, ytdTotalVal, ytdMonths, fmtFn, lowerIsBetter) {
+      /* avgVal and ytdMonthlyVal are both per-month — fair comparison.
+         ytdTotalVal is shown as the raw YTD accumulation for context. */
+      return '<div class="col text-center border-end" style="min-width:160px;">'
+           + '<div style="font-size:0.75rem; color:#666; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:4px;">' + label + '</div>'
+           + '<div style="font-size:0.72rem; color:#888; margin-bottom:2px;">Monthly Avg (hist.)</div>'
+           + '<div style="font-size:1.25rem; font-weight:700; color:#154e9a;">' + fmtFn(avgVal) + '</div>'
+           + '<div style="font-size:0.72rem; color:#888; margin-top:8px; margin-bottom:2px;">YTD Monthly Avg (' + ytdMonths + ' mo.)</div>'
+           + '<div style="font-size:1.25rem; font-weight:700; color:#333;">' + fmtFn(ytdMonthlyVal) + '</div>'
+           + '<div style="font-size:0.7rem; color:#aaa; margin-bottom:4px;">total: ' + fmtFn(ytdTotalVal) + '</div>'
+           + '<div style="margin-top:2px;">' + deltaHtml(avgVal, ytdMonthlyVal, lowerIsBetter) + '</div>'
+           + '</div>';
+    }
+
+    fetch('/api/analytics/amjk-frt-ytd-vs-avg')
+      .then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
+      .then(function (d) {
+        /* Divide YTD totals by number of months to get a monthly avg for comparison */
+        var n = d.ytd.months;
+        var ytdFrtMo = d.ytd.frt / n;
+        var ytdWtMo  = d.ytd.wt  / n;
+
+        var body = document.getElementById('frtYtdBody');
+        body.innerHTML =
+          '<div class="row row-cols-3 g-0">'
+          + kpiTile('Frt Amt ($)',    d.avg.frt,    ytdFrtMo,      d.ytd.frt, n, fmt$,   true)
+          + kpiTile('TTL W. (lbs)',   d.avg.wt,     ytdWtMo,       d.ytd.wt,  n, fmtLbs, false)
+          + kpiTile('¢ / lb',         d.avg.cperlb, d.ytd.cperlb,  d.ytd.cperlb, n, fmtC, true)
+          + '</div>'
+          + '<div class="text-muted mt-2" style="font-size:0.72rem;">'
+          + 'Source: AMJK Frt cost breakdown by plants.xlsx · SW row.'
+          + '</div>';
+        document.getElementById('frtYtdSpinner').style.display = 'none';
+      })
+      .catch(function (err) {
+        document.getElementById('frtYtdBody').innerHTML =
+          '<div class="alert alert-warning m-2">'
+          + '<i class="bi bi-exclamation-triangle me-2"></i>'
+          + 'Unavailable: ' + err.message + '</div>';
+        document.getElementById('frtYtdSpinner').style.display = 'none';
+      });
+  })();
+
 </script>
+{% endblock %}
 {% endblock %}

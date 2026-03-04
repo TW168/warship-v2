@@ -6,19 +6,22 @@ Includes:
   GET /meeting-report                        — Meeting Report page (filter form)
   GET /api/meeting-report/results            — HTMX partial: query results as cards
   GET /briefing                              — VIP Operations Briefing sub-page
-  GET /api/briefing/state-map                — Proxy: IPG-EZ state-map data
-  GET /api/briefing/customer-heatmap         — Proxy: IPG-EZ customer-heatmap data
+  GET /api/analytics/weight-by-year         — Monthly pick_weight per year series (JSON)
+  GET /api/analytics/freight-lbs-by-year-mei   — Monthly lbs from frt_cost_breakdown_mei (JSON)
+  GET /api/analytics/unit-frt-cost-john        — All rows from unit_frt_cost_john (JSON)
+  GET /api/analytics/freight-cost-by-plant     — Annual YTD freight cost by plant from Excel (JSON)
 """
 
-import httpx
+from collections import defaultdict
+from pathlib import Path
+
+import openpyxl
 from fastapi import APIRouter, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import text
 
 from database import connect_to_database
-
-_IPGEZ_BASE = "http://172.17.15.228:8000/ipg-ez"
 
 router = APIRouter(tags=["Home"])
 templates = Jinja2Templates(directory="templates")
@@ -214,39 +217,398 @@ async def briefing(request: Request) -> HTMLResponse:
     )
 
 
-@router.get(
-    "/api/briefing/state-map",
-    summary="Briefing: state-map proxy",
-    description="Proxies the IPG-EZ state-map endpoint to avoid browser CORS restrictions.",
-)
-async def briefing_state_map(
-    site: str = Query(..., description="Site code, e.g. 'AMJK'"),
-    group: str = Query(..., description="Product group, e.g. 'SW'"),
-) -> JSONResponse:
-    """Forward the state-map request to the internal IPG-EZ API and return its JSON."""
-    async with httpx.AsyncClient(timeout=15) as client:
-        resp = await client.get(
-            f"{_IPGEZ_BASE}/state-map",
-            params={"site": site, "group": group},
-        )
-        resp.raise_for_status()
-    return JSONResponse(content=resp.json())
+# ---------------------------------------------------------------------------
+# Analytics — weight by year
+# ---------------------------------------------------------------------------
+# this is from mei excel book
+_WEIGHT_BY_YEAR_SQL = text("""
+    SELECT
+        YEAR(Truck_Appointment_Date)   AS year,
+        MONTH(Truck_Appointment_Date)  AS month,
+        SUM(pick_weight)               AS total_weight
+    FROM warship.vw_bl_lbs_cnt_carrier_customer
+    WHERE Site          = :site
+      AND Product_Group = :product_group
+    GROUP BY YEAR(Truck_Appointment_Date), MONTH(Truck_Appointment_Date)
+    ORDER BY year, month
+""")
 
 
 @router.get(
-    "/api/briefing/customer-heatmap",
-    summary="Briefing: customer-heatmap proxy",
-    description="Proxies the IPG-EZ customer-heatmap endpoint to avoid browser CORS restrictions.",
+    "/api/analytics/weight-by-year",
+    summary="Daily pick_weight split by year",
+    description=(
+        "Returns monthly pick_weight totals grouped into per-year series. "
+        "Each element in the array is one year: {year, data:[{month, weight}]}. "
+        "Suitable for rendering as a multi-line Plotly chart — one line per year."
+    ),
 )
-async def briefing_customer_heatmap(
-    site: str = Query(..., description="Site code, e.g. 'AMJK'"),
-    group: str = Query(..., description="Product group, e.g. 'SW'"),
+async def weight_by_year(
+    site: str = Query(default="AMJK", description="Site code, e.g. 'AMJK'"),
+    product_group: str = Query(default="SW", description="Product group, e.g. 'SW'"),
 ) -> JSONResponse:
-    """Forward the customer-heatmap request to the internal IPG-EZ API and return its JSON."""
-    async with httpx.AsyncClient(timeout=15) as client:
-        resp = await client.get(
-            f"{_IPGEZ_BASE}/customer-heatmap",
-            params={"site": site, "group": group},
+    """
+    Query pick_weight by Truck_Appointment_Date and group results into
+    per-year series — one series object per calendar year found in the data.
+    """
+    try:
+        with _engine.connect() as conn:
+            rows = conn.execute(
+                _WEIGHT_BY_YEAR_SQL,
+                {"site": site, "product_group": product_group},
+            ).fetchall()
+    except Exception as exc:
+        return JSONResponse(status_code=500, content={"error": str(exc)})
+
+    # Group rows by year; each year becomes one line on the chart
+    by_year: dict[int, list] = defaultdict(list)
+    for row in rows:
+        by_year[int(row.year)].append({
+            "month":  int(row.month),
+            "weight": float(row.total_weight or 0),
+        })
+
+    result = [
+        {"year": year, "data": data}
+        for year, data in sorted(by_year.items())
+    ]
+    return JSONResponse(content=result)
+
+
+# ---------------------------------------------------------------------------
+# Analytics — freight lbs by year (frt_cost_breakdown_mei)
+# ---------------------------------------------------------------------------
+
+_FREIGHT_LBS_BY_YEAR_SQL = text("""
+    SELECT
+        yyyy          AS year,
+        mm            AS month,
+        SUM(lbs)      AS total_lbs
+    FROM warship.frt_cost_breakdown_mei
+    WHERE site = :site
+    GROUP BY yyyy, mm
+    ORDER BY yyyy, mm
+""")
+
+
+@router.get(
+    "/api/analytics/freight-lbs-by-year-mei",
+    summary="Monthly freight lbs by year from frt_cost_breakdown_mei",
+    description=(
+        "Returns monthly lbs totals from frt_cost_breakdown_mei grouped into "
+        "per-year series. Each element: {year, data:[{month, lbs}]}. "
+        "Suitable for a multi-line Plotly chart — one line per year. "
+        "param site defaults to 'SW'."
+    ),
+)
+async def freight_lbs_by_year(
+    site: str = Query(default="SW", description="Site/product-group code, e.g. 'SW'"),
+) -> JSONResponse:
+    """
+    Query lbs by yyyy/mm from frt_cost_breakdown_mei filtered by site,
+    and group results into per-year series — one series object per year.
+    """
+    try:
+        with _engine.connect() as conn:
+            rows = conn.execute(
+                _FREIGHT_LBS_BY_YEAR_SQL,
+                {"site": site},
+            ).fetchall()
+    except Exception as exc:
+        return JSONResponse(status_code=500, content={"error": str(exc)})
+
+    by_year: dict[int, list] = defaultdict(list)
+    for row in rows:
+        by_year[int(row.year)].append({
+            "month": int(row.month),
+            "lbs":   float(row.total_lbs or 0),
+        })
+
+    result = [
+        {"year": year, "data": data}
+        for year, data in sorted(by_year.items())
+    ]
+    return JSONResponse(content=result)
+
+
+# ---------------------------------------------------------------------------
+# Analytics — unit freight cost (unit_frt_cost_john)
+# ---------------------------------------------------------------------------
+
+_UNIT_FRT_COST_JOHN_SQL = text("""
+    SELECT
+        id,
+        yyyy,
+        mm,
+        division,
+        product,
+        wt_lbs,
+        freight
+    FROM warship.unit_frt_cost_john
+""")
+
+
+@router.get(
+    "/api/analytics/unit-frt-cost-john",
+    summary="All rows from unit_frt_cost_john",
+    description=(
+        "Returns every row from warship.unit_frt_cost_john as a JSON array. "
+        "Each element: {id, yyyy, mm, division, product, wt_lbs, freight}."
+    ),
+)
+async def unit_frt_cost_john() -> JSONResponse:
+    """Fetch all rows from unit_frt_cost_john and return as a JSON array."""
+    try:
+        with _engine.connect() as conn:
+            rows = conn.execute(_UNIT_FRT_COST_JOHN_SQL).fetchall()
+    except Exception as exc:
+        return JSONResponse(status_code=500, content={"error": str(exc)})
+
+    result = [
+        {
+            "id":       row.id,
+            "yyyy":     row.yyyy,
+            "mm":       row.mm,
+            "division": row.division,
+            "product":  row.product,
+            "wt_lbs":   float(row.wt_lbs)  if row.wt_lbs  is not None else None,
+            "freight":  float(row.freight) if row.freight is not None else None,
+        }
+        for row in rows
+    ]
+    return JSONResponse(content=result)
+
+
+# ---------------------------------------------------------------------------
+# Analytics — annual freight cost by plant (Excel workbook)
+# ---------------------------------------------------------------------------
+
+_EXCEL_FRTCOST_PATH = (
+    Path(__file__).parent.parent
+    / "raw_data" / "Mei" / "AMJK Frt cost breakdown by plants.xlsx"
+)
+_PLANT_NAMES = ("BP", "SW", "CT", "YA", "Total")
+
+
+@router.get(
+    "/api/analytics/freight-cost-by-plant",
+    summary="Annual freight cost by plant from Excel workbook",
+    description=(
+        "Reads the 'AMJK Frt cost breakdown by plants' Excel workbook and returns "
+        "annual YTD freight cost ($) per plant (BP, SW, CT, YA, Total) for 2019–2026. "
+        "2018 is excluded because that sheet tracks weight (lbs), not cost ($)."
+    ),
+)
+async def freight_cost_by_plant() -> JSONResponse:
+    """Parse the AMJK freight cost Excel workbook and return annual YTD totals by plant."""
+    try:
+        wb = openpyxl.load_workbook(_EXCEL_FRTCOST_PATH, data_only=True, read_only=True)
+    except Exception as exc:
+        return JSONResponse(status_code=500, content={"error": str(exc)})
+
+    result = []
+    for year_str in [str(y) for y in range(2019, 2027)]:
+        if year_str not in wb.sheetnames:
+            continue
+        ws = wb[year_str]
+        # Data rows start at row 4 (1-indexed): BP, SW, CT, YA, Total
+        # YTD Total is the second-to-last column; last column is % share
+        year_data: dict = {"year": int(year_str)}
+        for row in ws.iter_rows(min_row=4, max_row=8, values_only=True):
+            if not row or row[0] not in _PLANT_NAMES:
+                continue
+            ytd = row[-2]
+            year_data[row[0]] = float(ytd) if isinstance(ytd, (int, float)) else 0.0
+        result.append(year_data)
+
+    wb.close()
+    return JSONResponse(content=result)
+
+
+# ---------------------------------------------------------------------------
+# Analytics — SW transport type by year (Transp Type-email.xlsx, sheet AM)
+# ---------------------------------------------------------------------------
+
+_EXCEL_TRANSP_PATH = (
+    Path(__file__).parent.parent
+    / "raw_data" / "John" / "Transp Type-email.xlsx"
+)
+
+# Row order within each product block (11 rows per product)
+_TRANSP_BLOCK_SIZE = 11
+_TRANSP_TYPES = [
+    "Intermodal", "FTL", "Railcar", "LTL", "Export",
+    "Sample", "Reconsignment", "Prepaid Total", "CPU (Lolita)",
+    "Wharehouse", "Grand Total",
+]
+# SW is the second product block (0-indexed: 1)
+_SW_BLOCK_INDEX = 1
+
+
+@router.get(
+    "/api/analytics/sw-transport-type-by-year",
+    summary="SW annual shipping volume by transport type (AMTOPP)",
+    description=(
+        "Reads 'Transp Type-email.xlsx' (AM sheet) and returns annual totals "
+        "(lbs) for SW product by transport type: FTL, LTL, Intermodal, Export, "
+        "Prepaid Total. Covers 2020–2025; 2026 is excluded as a partial year."
+    ),
+)
+async def sw_transport_type_by_year() -> JSONResponse:
+    """Parse the AM sheet and return SW annual lbs totals per transport type."""
+    try:
+        wb = openpyxl.load_workbook(_EXCEL_TRANSP_PATH, data_only=True, read_only=True)
+    except Exception as exc:
+        return JSONResponse(status_code=500, content={"error": str(exc)})
+
+    ws = wb["AM"]
+    all_rows = list(ws.iter_rows(min_row=4, max_row=55, values_only=True))
+    header = all_rows[0]
+
+    # Period columns are even-indexed starting at col 2; label format "YY/MM"
+    periods = [
+        (ci, str(header[ci]).strip())
+        for ci in range(2, len(header), 2)
+        if header[ci] is not None and "/" in str(header[ci])
+    ]
+
+    # Extract the SW block
+    block_start = 2 + _SW_BLOCK_INDEX * _TRANSP_BLOCK_SIZE
+    block_rows = all_rows[block_start: block_start + _TRANSP_BLOCK_SIZE]
+
+    # Accumulate annual totals for the types we care about
+    keep = {"FTL", "LTL", "Intermodal", "Export", "Prepaid Total"}
+    year_totals: dict[int, dict[str, float]] = {}
+
+    for t_idx, ttype in enumerate(_TRANSP_TYPES):
+        if ttype not in keep:
+            continue
+        row = block_rows[t_idx]
+        for ci, period in periods:
+            yy, _ = period.split("/")
+            year = int("20" + yy.strip())
+            if year > 2025:          # exclude partial 2026
+                continue
+            val = row[ci] if ci < len(row) and isinstance(row[ci], (int, float)) else 0.0
+            year_totals.setdefault(year, {t: 0.0 for t in keep})
+            year_totals[year][ttype] += val or 0.0
+
+    wb.close()
+
+    result = [
+        {
+            "year":          year,
+            "FTL":           round(d["FTL"], 0),
+            "LTL":           round(d["LTL"], 0),
+            "Intermodal":    round(d["Intermodal"], 0),
+            "Export":        round(d["Export"], 0),
+            "Prepaid_Total": round(d["Prepaid Total"], 0),
+        }
+        for year, d in sorted(year_totals.items())
+    ]
+    return JSONResponse(content=result)
+
+
+# ── AMJK Freight Monthly Avg Comparison ──────────────────────────────────────
+# Reads SW row from _EXCEL_FRTCOST_PATH (same file as freight-cost-by-plant).
+# Historical = full calendar years 2018–(cur_year-1); YTD = current year sheet.
+# NOTE: 2018 sheet layout is reversed — lbs section is first, Frt Amt is second.
+# All other years: Frt Amt section is first (rows 3–8), lbs section second (10–15).
+
+
+@router.get(
+    "/api/analytics/amjk-frt-ytd-vs-avg",
+    summary="AMJK SW freight cost monthly avg comparison",
+    description=(
+        "Reads the SW row from 'AMJK Frt cost breakdown by plants.xlsx'. "
+        "Historical avg = monthly avg across full calendar years (2018–last year). "
+        "YTD = current year sheet totals. Returns Frt Amt ($), lbs, and ¢/lb."
+    ),
+)
+async def amjk_frt_ytd_vs_avg() -> JSONResponse:
+    """Return AMJK SW monthly avg (historical full years 2018+) and current YTD from Excel."""
+    import datetime as _dt
+
+    cur_year = _dt.date.today().year
+
+    try:
+        wb = openpyxl.load_workbook(_EXCEL_FRTCOST_PATH, data_only=True, read_only=True)
+    except Exception as exc:
+        return JSONResponse(status_code=500, content={"error": str(exc)})
+
+    hist_frt_total = 0.0
+    hist_wt_total  = 0.0
+    hist_months    = 0
+    hist_years: list[int] = []
+    ytd_frt = 0.0
+    ytd_wt  = 0.0
+    ytd_n   = 0
+
+    for year_str in [str(y) for y in range(2018, cur_year + 1)]:
+        if year_str not in wb.sheetnames:
+            continue
+        ws = wb[year_str]
+        rows = list(ws.iter_rows(min_row=1, max_row=15, values_only=True))
+
+        # 2018 sheet is reversed: top section = lbs, bottom section = Frt Amt ($)
+        # All other years: top section = Frt Amt ($), bottom section = lbs
+        top_is_lbs = (rows[2] and str(rows[2][0]).startswith("Weight"))
+        if top_is_lbs:
+            sw_frt_row = next((r for r in rows[9:15] if r and r[0] == "SW"), None)
+            sw_lbs_row = next((r for r in rows[2:8]  if r and r[0] == "SW"), None)
+        else:
+            sw_frt_row = next((r for r in rows[2:8]  if r and r[0] == "SW"), None)
+            sw_lbs_row = next((r for r in rows[9:15] if r and r[0] == "SW"), None)
+
+        if sw_frt_row is None or sw_lbs_row is None:
+            continue
+
+        ytd_frt_val = sw_frt_row[-2]
+        ytd_wt_val  = sw_lbs_row[-2]
+
+        if not isinstance(ytd_frt_val, (int, float)) or not isinstance(ytd_wt_val, (int, float)):
+            continue
+
+        yr = int(year_str)
+        # Monthly data sits at even-indexed columns 2,4,6,...,24 (skipping Vari columns)
+        month_count = sum(
+            1 for i in range(2, 26, 2)
+            if i < len(sw_frt_row) and isinstance(sw_frt_row[i], (int, float))
         )
-        resp.raise_for_status()
-    return JSONResponse(content=resp.json())
+
+        if yr < cur_year:
+            if month_count == 12:  # only include complete years in historical avg
+                hist_frt_total += float(ytd_frt_val)
+                hist_wt_total  += float(ytd_wt_val)
+                hist_months    += 12
+                hist_years.append(yr)
+        else:
+            ytd_frt = float(ytd_frt_val)
+            ytd_wt  = float(ytd_wt_val)
+            ytd_n   = month_count
+
+    wb.close()
+
+    if not hist_years:
+        return JSONResponse(status_code=500, content={"error": "No historical data found"})
+
+    avg_monthly_frt = hist_frt_total / hist_months
+    avg_monthly_wt  = hist_wt_total  / hist_months
+    avg_cperlb  = (avg_monthly_frt / avg_monthly_wt * 100) if avg_monthly_wt else 0.0
+    ytd_cperlb  = (ytd_frt / ytd_wt * 100) if ytd_wt else 0.0
+
+    return JSONResponse(content={
+        "avg": {
+            "frt":    round(avg_monthly_frt, 0),
+            "wt":     round(avg_monthly_wt, 0),
+            "cperlb": round(avg_cperlb, 4),
+            "label":  f"Monthly Avg ({hist_years[0]}–{hist_years[-1]})",
+        },
+        "ytd": {
+            "frt":    round(ytd_frt, 0),
+            "wt":     round(ytd_wt, 0),
+            "cperlb": round(ytd_cperlb, 4),
+            "months": ytd_n,
+            "label":  f"YTD {cur_year} ({ytd_n} mo.)",
+        },
+    })
