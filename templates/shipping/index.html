@@ -69,6 +69,105 @@
     </div>
   </div>
 
+  <!-- Freight ¢/lb Boxplot by Product Code -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-header fw-semibold d-flex align-items-center justify-content-between"
+         style="background:#154e9a; color:#fff;">
+      <span>
+        <i class="bi bi-bar-chart-steps me-2" aria-hidden="true"></i>
+        Freight ¢/lb by Product Code
+        <span class="badge text-bg-light text-secondary fw-normal ms-1" style="font-size:0.7rem;">
+          AMJK · SW · YTD
+        </span>
+      </span>
+    </div>
+    <div class="card-body">
+      <div id="boxplot-spinner" class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading…</span>
+        </div>
+      </div>
+      <div id="boxplot-error" class="alert alert-danger d-none"></div>
+      <div id="boxplot-chart" style="height:560px;"></div>
+    </div>
+    <div class="card-footer text-muted" style="font-size:0.75rem;">
+      Source: Warship database · AMJK · SW · YTD 2026. Top 50 products by shipped weight. Each box = product code.
+      Sorted by median ¢/lb (low → high).
+    </div>
+  </div>
+
+  <!-- Boxplot explanation -->
+  <div class="card shadow-sm mb-4 border-start border-4 border-info">
+    <div class="card-body py-3">
+      <h6 class="fw-semibold mb-2"><i class="bi bi-info-circle me-2 text-info"></i>About This Chart</h6>
+      <div class="row g-4" style="font-size:0.875rem;">
+
+        <div class="col-md-4">
+          <p class="fw-semibold mb-1">What to look for</p>
+          <ul class="text-muted mb-0 ps-3">
+            <li><strong>High median</strong> — This product consistently costs more per pound to ship. Is the rate justified by distance or load density?</li>
+            <li><strong>Tall box (wide IQR)</strong> — Rates are inconsistent across loads. May indicate multiple carriers, lanes, or a rate that hasn't been locked in.</li>
+            <li><strong>Outlier dot above the whisker</strong> — One load was charged well above the normal range. Review that BL for surcharges or mis-keyed freight.</li>
+            <li><strong>Outlier dot below the whisker</strong> — Unusually cheap load. Could be a back-haul rate, credit, or data entry error.</li>
+          </ul>
+        </div>
+
+        <div class="col-md-4">
+          <p class="fw-semibold mb-1">How to read each box</p>
+          <ul class="text-muted mb-0 ps-3">
+            <li><strong>Box edges</strong> — Q1 (25th percentile) to Q3 (75th percentile). The middle 50% of all loads for that product.</li>
+            <li><strong>Center line</strong> — Median ¢/lb. Half of loads cost less, half cost more.</li>
+            <li><strong>Whiskers</strong> — Extend to the farthest actual load still within 1.5× the box height (IQR) from each edge.</li>
+            <li><strong>Dots</strong> — Individual loads beyond the whiskers. Statistically unusual rates.</li>
+          </ul>
+          <p class="text-muted mt-1 mb-0">Products sorted left → right by median ¢/lb (cheapest to most expensive).</p>
+        </div>
+
+        <div class="col-md-4">
+          <p class="fw-semibold mb-1">Formula</p>
+          <p class="text-muted mb-1">
+            <code>¢/lb = Unit_Freight (already in ¢/lb)</code><br>
+            <code>Unit_Freight = freight cost ($) ÷ pick weight (lbs)</code>
+          </p>
+          <p class="fw-semibold mb-1 mt-2">Source</p>
+          <p class="text-muted mb-2">
+            Warship database (AMJK · SW · Jan 1 – today). Top 50 product codes by total shipped weight YTD.
+            Each data point = one truck load (BL Number).
+          </p>
+          <p class="text-muted mb-0" style="font-size:0.8rem; border-top:1px solid #dee2e6; padding-top:0.5rem;">
+            <strong>Disclaimer:</strong><br>
+            <i class="bi bi-exclamation-circle me-1 text-warning"></i>
+            <em>Rates are derived from IPG-EZ Report freight cost ÷ pick weight. Outliers may reflect small loads, special handling, or data entry errors.</em><br>
+            <i class="bi bi-exclamation-circle me-1 text-warning"></i>
+            <em>Box plots show statistical distribution — they do not imply that high-cost loads are errors. Outliers may reflect legitimate factors such as small loads, special handling, or remote delivery points. Confirm context before acting on any single data point.</em>
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Products by Total Weight (lbs) -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-header fw-semibold">
+      <i class="bi bi-trophy me-2"></i>
+      Top Products by Shipped Weight
+      <span class="badge bg-secondary ms-2 fw-normal" id="topsales-range-badge"></span>
+    </div>
+    <div class="card-body">
+      <div id="topsales-spinner" class="text-center py-4">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading…</span>
+        </div>
+      </div>
+      <div id="topsales-error" class="alert alert-danger d-none"></div>
+      <div id="topsales-chart" style="height:420px;"></div>
+    </div>
+    <div class="card-footer text-muted" style="font-size:0.75rem;">
+      Source: Warship database · AMJK · SW · YTD 2026. Total pick_weight (lbs) per product code, ascending.
+    </div>
+  </div>
+
   <!-- Shipments table -->
   <div class="card shadow-sm">
     <div class="card-header d-flex justify-content-between align-items-center">
@@ -161,4 +260,129 @@
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  /* ── Date range: Jan 1 → today ── */
+  var today     = new Date();
+  var yyyy      = today.getFullYear();
+  var mm        = String(today.getMonth() + 1).padStart(2, '0');
+  var dd        = String(today.getDate()).padStart(2, '0');
+  var startDate = yyyy + '-01-01';
+  var endDate   = yyyy + '-' + mm + '-' + dd;
+  var badge     = 'AMJK · SW · ' + startDate + ' – ' + endDate;
+
+  document.getElementById('topsales-range-badge').textContent = badge;
+
+  function median(arr) {
+    var s = arr.slice().sort(function (a, b) { return a - b; });
+    var mid = Math.floor(s.length / 2);
+    return s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2;
+  }
+
+  /* ── Single fetch shared by both charts ── */
+  var url = '/api/shipping/shipped-products?site=AMJK&product_group=SW'
+          + '&start_date=' + startDate
+          + '&end_date='   + endDate;
+
+  fetch(url)
+    .then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function (data) {
+      /* ── hide spinners ── */
+      document.getElementById('boxplot-spinner').classList.add('d-none');
+      document.getElementById('topsales-spinner').classList.add('d-none');
+
+      if (!Array.isArray(data) || data.length === 0) {
+        ['boxplot-error', 'topsales-error'].forEach(function (id) {
+          document.getElementById(id).textContent = 'No data for this period.';
+          document.getElementById(id).classList.remove('d-none');
+        });
+        return;
+      }
+
+      /* ── Aggregate by product_code ── */
+      var frtGroups = {};   /* product → [¢/lb values] for boxplot */
+      var wtTotals  = {};   /* product → total pick_weight (lbs)   */
+
+      data.forEach(function (row) {
+        var prod = row.product_code || '(unknown)';
+        if (row.unit_freight != null) {
+          if (!frtGroups[prod]) frtGroups[prod] = [];
+          frtGroups[prod].push(row.unit_freight);
+        }
+        if (row.pick_weight != null) {
+          wtTotals[prod] = (wtTotals[prod] || 0) + row.pick_weight;
+        }
+      });
+
+      /* ── Top 50 products by weight → restrict boxplot to those ── */
+      var top50 = Object.keys(wtTotals)
+        .sort(function (a, b) { return wtTotals[b] - wtTotals[a]; })
+        .slice(0, 50);
+      var top50Set = {};
+      top50.forEach(function (p) { top50Set[p] = true; });
+
+      /* ── Chart 1: Freight ¢/lb boxplot (top-50-by-weight only), sorted by median asc ── */
+      var boxProducts = top50.filter(function (p) { return frtGroups[p]; })
+        .sort(function (a, b) {
+          return median(frtGroups[a]) - median(frtGroups[b]);
+        });
+      var boxTraces = boxProducts.map(function (prod) {
+        return {
+          type: 'box', name: prod, y: frtGroups[prod] || [],
+          boxpoints: 'outliers',
+          marker: { size: 4 }, line: { width: 1.5 },
+        };
+      });
+      Plotly.newPlot('boxplot-chart', boxTraces, {
+        yaxis:         { title: '¢ / lb', zeroline: false, gridcolor: '#e9ecef' },
+        xaxis:         { title: 'Product Code' },
+        plot_bgcolor:  '#ffffff', paper_bgcolor: '#ffffff',
+        font:          { family: 'Open Sans, sans-serif', size: 12 },
+        margin:        { t: 20, r: 20, b: 100, l: 60 },
+        showlegend:    false,
+      }, { responsive: true, displayModeBar: false });
+
+      /* ── Chart 2: Total weight by product, ascending (lowest → highest) ── */
+      var salesProducts = Object.keys(wtTotals).sort(function (a, b) {
+        return wtTotals[a] - wtTotals[b];   /* ascending: smallest bar at top */
+      });
+      var salesVals = salesProducts.map(function (p) {
+        return Math.round(wtTotals[p] / 1e6 * 100) / 100;  /* → million lbs */
+      });
+      Plotly.newPlot('topsales-chart', [{
+        type:          'bar',
+        orientation:   'h',
+        x:             salesVals,
+        y:             salesProducts,
+        marker:        { color: '#154e9a' },
+        hovertemplate: '%{y}<br>%{x:.2f}M lbs<extra></extra>',
+      }], {
+        xaxis:         { title: 'Million lbs', zeroline: false, gridcolor: '#e9ecef' },
+        yaxis:         { title: '', automargin: true },
+        plot_bgcolor:  '#ffffff', paper_bgcolor: '#ffffff',
+        font:          { family: 'Open Sans, sans-serif', size: 12 },
+        margin:        { t: 10, r: 30, b: 50, l: 110 },
+        showlegend:    false,
+      }, { responsive: true, displayModeBar: false });
+    })
+    .catch(function (err) {
+      ['boxplot-spinner', 'topsales-spinner'].forEach(function (id) {
+        document.getElementById(id).classList.add('d-none');
+      });
+      ['boxplot-error', 'topsales-error'].forEach(function (id) {
+        document.getElementById(id).textContent = 'Failed to load: ' + err.message;
+        document.getElementById(id).classList.remove('d-none');
+      });
+    });
+}());
+</script>
 {% endblock %}

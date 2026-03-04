@@ -113,6 +113,11 @@ The `connect_to_database()` function returns a SQLAlchemy `Engine`.
 | Home | `GET /` | Opens with `MaxT1_conus.png` and `national_forecast.jpg` side by side |
 | Meeting Report | `GET /meeting-report` | Sub-page of Home; filter form (site, product_group, date) |
 | Meeting Report Results | `GET /api/meeting-report/results` | HTMX partial — runs aggregated shipping query, returns cards |
+| Briefing | `GET /briefing` | VIP Operations Briefing — printable snapshot of ops metrics |
+| Weight by Year | `GET /api/analytics/weight-by-year` | JSON — monthly pick_weight per year series; params: `site` (default AMJK), `product_group` (default SW) |
+| Freight Lbs by Year | `GET /api/analytics/freight-lbs-by-year-mei` | JSON — monthly lbs from `frt_cost_breakdown_mei`; param: `site` (default SW) |
+| Unit Freight Cost John | `GET /api/analytics/unit-frt-cost-john` | JSON — all rows from `unit_frt_cost_john`: id, yyyy, mm, division, product, wt_lbs, freight |
+| Freight Cost by Plant | `GET /api/analytics/freight-cost-by-plant` | JSON — annual YTD freight cost ($) by plant (BP, SW, CT, YA, Total) for 2019–2026; reads Excel workbook `AMJK Frt cost breakdown by plants-26.02.03.xlsx` |
 | Press | `GET /press` | Sub-page of Home |
 | Warehouse | `GET /warehouse` | |
 | Shipping | `GET /shipping` | |
@@ -201,6 +206,7 @@ Managed via `pyproject.toml` / `uv.lock`:
 | `mysql-connector-python` | MySQL driver |
 | `pygments` | Syntax highlighting for Software Architectural page |
 | `markdown` | Markdown → HTML for Software Architectural page |
+| `openpyxl` | Read Excel workbooks (`.xlsx`) for freight cost analytics |
 
 ---
 
