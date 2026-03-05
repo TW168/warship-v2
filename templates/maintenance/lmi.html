@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% block title %}LMI Analysis{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item text-muted">Maintenance</li>
+      <li class="breadcrumb-item active" aria-current="page">LMI Analysis</li>
+    </ol>
+  </nav>
+
+  <h1 class="page-header h3 mb-1">
+    <i class="bi bi-robot me-2" aria-hidden="true"></i>LMI Document Analysis
+  </h1>
+  <p class="text-muted small mb-4">
+    AI-powered bullet-point takeaways for each Logistics Managers Index report.
+    Powered by <strong>deepseek-r1:8b</strong> via local Ollama.
+  </p>
+
+  {% if not files %}
+  <div class="alert alert-warning">
+    <i class="bi bi-exclamation-triangle me-2"></i>
+    No documents found in <code>raw_data/lmi/</code>.
+  </div>
+  {% else %}
+
+  <div class="row g-4" id="docList">
+    {% for filename in files %}
+    <div class="col-12">
+      <div class="card shadow-sm" id="card-{{ loop.index }}">
+        <div class="card-header fw-semibold d-flex align-items-center justify-content-between"
+             style="background:#154e9a; color:#fff;">
+          <span>
+            <i class="bi bi-file-earmark-pdf me-2" aria-hidden="true"></i>
+            {{ filename }}
+          </span>
+          <button
+            class="btn btn-sm btn-light"
+            onclick="analyzeDoc('{{ filename }}', {{ loop.index }})"
+            id="btn-{{ loop.index }}"
+            aria-label="Analyze {{ filename }}">
+            <i class="bi bi-play-fill me-1"></i>Analyze
+          </button>
+        </div>
+        <div class="card-body">
+          <!-- Status line -->
+          <div id="status-{{ loop.index }}" class="text-muted small mb-2 d-none">
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            Reading document and generating takeaways…
+          </div>
+          <!-- Result area -->
+          <div id="result-{{ loop.index }}" class="d-none">
+            <ul id="bullets-{{ loop.index }}" class="mb-2" style="line-height:1.8; padding-left:1.25rem;"></ul>
+            <div class="d-flex gap-2 mt-2">
+              <button class="btn btn-outline-secondary btn-sm"
+                      onclick="copyResults({{ loop.index }})"
+                      id="copy-{{ loop.index }}">
+                <i class="bi bi-clipboard me-1"></i>Copy
+              </button>
+              <button class="btn btn-outline-primary btn-sm"
+                      onclick="analyzeDoc('{{ filename }}', {{ loop.index }})"
+                      id="rerun-{{ loop.index }}">
+                <i class="bi bi-arrow-clockwise me-1"></i>Re-analyze
+              </button>
+            </div>
+          </div>
+          <!-- Empty placeholder -->
+          <div id="empty-{{ loop.index }}" class="text-muted small">
+            Click <strong>Analyze</strong> to generate takeaways.
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  /**
+   * analyzeDoc — fetch streaming takeaways from the backend for a given file.
+   * Streams text/plain chunks, parses bullet lines (starting with • or -),
+   * and appends them as <li> elements in real time.
+   *
+   * @param {string} filename  Filename in raw_data/lmi/
+   * @param {number} idx       Card index (matches template loop.index)
+   */
+  async function analyzeDoc(filename, idx) {
+    const statusEl  = document.getElementById('status-'  + idx);
+    const resultEl  = document.getElementById('result-'  + idx);
+    const emptyEl   = document.getElementById('empty-'   + idx);
+    const bulletsEl = document.getElementById('bullets-' + idx);
+    const btnEl     = document.getElementById('btn-'     + idx);
+    const rerunEl   = document.getElementById('rerun-'   + idx);
+
+    // Reset state
+    bulletsEl.innerHTML = '';
+    statusEl.classList.remove('d-none');
+    resultEl.classList.add('d-none');
+    emptyEl.classList.add('d-none');
+    btnEl.disabled = true;
+    if (rerunEl) rerunEl.disabled = true;
+
+    let buffer = '';  // accumulates partial line text
+
+    try {
+      const res = await fetch('/maintenance/lmi/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename: filename }),
+      });
+
+      if (!res.ok) {
+        throw new Error('Server error: ' + res.status);
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+
+      // Show result area once stream starts
+      statusEl.querySelector('.spinner-border').classList.remove('d-none');
+      resultEl.classList.remove('d-none');
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+
+        // Flush complete lines from the buffer
+        const lines = buffer.split('\n');
+        buffer = lines.pop(); // keep the last incomplete fragment
+
+        for (const line of lines) {
+          appendLine(bulletsEl, line);
+        }
+      }
+
+      // Flush any remaining buffer content
+      if (buffer.trim()) {
+        appendLine(bulletsEl, buffer);
+      }
+
+    } catch (err) {
+      const li = document.createElement('li');
+      li.className = 'text-danger';
+      li.textContent = 'Error: ' + err.message;
+      bulletsEl.appendChild(li);
+    } finally {
+      statusEl.classList.add('d-none');
+      resultEl.classList.remove('d-none');
+      emptyEl.classList.add('d-none');
+      btnEl.disabled = false;
+      if (rerunEl) rerunEl.disabled = false;
+    }
+  }
+
+  /**
+   * appendLine — parse a streamed line and add it as a bullet <li> if it's non-empty.
+   * Lines may start with •, -, *, or just be plain text continuation.
+   */
+  function appendLine(container, rawLine) {
+    const line = rawLine.trim();
+    if (!line) return;
+
+    // Strip leading bullet markers for clean rendering
+    const text = line.replace(/^[•\-\*]\s*/, '');
+    if (!text) return;
+
+    // Check if a bullet for this line already exists (for partial streaming updates)
+    // We always append new <li> per complete line
+    const li = document.createElement('li');
+    li.textContent = text;
+    container.appendChild(li);
+  }
+
+  /**
+   * copyResults — copy all bullet text for a card to the clipboard.
+   */
+  function copyResults(idx) {
+    const items = document.querySelectorAll('#bullets-' + idx + ' li');
+    const text = Array.from(items).map(li => '• ' + li.textContent).join('\n');
+    navigator.clipboard.writeText(text).then(function () {
+      showToast('Takeaways copied to clipboard.', 'success');
+    });
+  }
+</script>
+{% endblock %}

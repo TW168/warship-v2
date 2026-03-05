@@ -120,7 +120,7 @@
                 style="width:1rem;height:1rem;"></span>
         </div>
         <div class="card-body p-2">
-          <div id="carrierChart" style="height:260px;"></div>
+          <div id="carrierChart" style="height:320px;"></div>
         </div>
       </div>
     </div>
@@ -150,7 +150,7 @@
                 style="width:1rem;height:1rem;"></span>
         </div>
         <div class="card-body p-2">
-          <div id="frtCplbChart" style="height:360px;"></div>
+          <div id="frtCplbChart" style="height:500px;"></div>
         </div>
         <div class="card-footer text-muted" style="font-size:0.75rem;">
           Source: Warship database · AMJK · SW · YTD 2026. Top 50 products by shipped weight. Each box = product code.
@@ -382,7 +382,7 @@
           labels:      carrierLabels,
           values:      carrierValues,
           hole:        0.35,
-          textinfo:    'label+percent',
+          textinfo:    'percent',
           hovertemplate: '%{label}<br>%{value} loads (%{percent})<extra></extra>',
           marker: {
             colors: ['#154e9a','#42a5f5','#66bb6a','#ffa726','#ef5350',
@@ -392,7 +392,7 @@
           margin:        { l: 10, r: 10, t: 10, b: 10 },
           paper_bgcolor: 'rgba(0,0,0,0)',
           showlegend:    true,
-          legend:        { orientation: 'v', font: { size: 10 } },
+          legend:        { orientation: 'h', x: 0, y: -0.15, font: { size: 10 } },
         }, { responsive: true, displayModeBar: false });
         document.getElementById('carrierSpinner').style.display = 'none';
 
@@ -416,11 +416,11 @@
         });
         Plotly.newPlot('frtCplbChart', traces, {
           yaxis:         { title: '¢ / lb', zeroline: false, gridcolor: '#e9ecef' },
-          xaxis:         { title: 'Product Code' },
+          xaxis:         { title: 'Product Code', tickangle: -45, automargin: true },
           plot_bgcolor:  '#ffffff',
           paper_bgcolor: '#ffffff',
-          font:          { family: 'Open Sans, sans-serif', size: 12 },
-          margin:        { t: 20, r: 20, b: 100, l: 60 },
+          font:          { family: 'Open Sans, sans-serif', size: 11 },
+          margin:        { t: 20, r: 20, b: 140, l: 60 },
           showlegend:    false,
         }, { responsive: true, displayModeBar: false });
 
