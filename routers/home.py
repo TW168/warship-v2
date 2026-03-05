@@ -14,6 +14,7 @@ Includes:
 
 from collections import defaultdict
 from pathlib import Path
+import time
 
 import openpyxl
 from fastapi import APIRouter, Query, Request
@@ -122,7 +123,7 @@ async def home(request: Request) -> HTMLResponse:
     """Render the home page."""
     return templates.TemplateResponse(
         "home/index.html",
-        {"request": request, "active_page": "home"},
+        {"request": request, "active_page": "home", "img_ts": int(time.time())},
     )
 
 
@@ -426,12 +427,12 @@ async def freight_cost_by_plant() -> JSONResponse:
 
 
 # ---------------------------------------------------------------------------
-# Analytics — SW transport type by year (Transp Type-email.xlsx, sheet AM)
+# Analytics — SW transport type by year (Transp Type.xlsx, sheet AM)
 # ---------------------------------------------------------------------------
 
 _EXCEL_TRANSP_PATH = (
     Path(__file__).parent.parent
-    / "raw_data" / "John" / "Transp Type-email.xlsx"
+    / "raw_data" / "John" / "Transp Type.xlsx"
 )
 
 # Row order within each product block (11 rows per product)
@@ -449,7 +450,7 @@ _SW_BLOCK_INDEX = 1
     "/api/analytics/sw-transport-type-by-year",
     summary="SW annual shipping volume by transport type (AMTOPP)",
     description=(
-        "Reads 'Transp Type-email.xlsx' (AM sheet) and returns annual totals "
+        "Reads 'Transp Type.xlsx' (AM sheet) and returns annual totals "
         "(lbs) for SW product by transport type: FTL, LTL, Intermodal, Export, "
         "Prepaid Total. Covers 2020–2025; 2026 is excluded as a partial year."
     ),
