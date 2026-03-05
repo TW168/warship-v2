@@ -2,7 +2,8 @@
 routers/maintenance.py — Maintenance sub-page routes.
 
 Handles:
-  GET /maintenance/input — data entry form
+  GET /maintenance/input            — data entry form
+  GET /maintenance/frt-validation   — Freight ¢/lb by Product Code validation tool
 """
 
 from fastapi import APIRouter, Request
@@ -24,4 +25,21 @@ async def maintenance_input(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(
         "maintenance/input.html",
         {"request": request, "active_page": "maintenance"},
+    )
+
+
+@router.get(
+    "/frt-validation",
+    response_class=HTMLResponse,
+    summary="Freight ¢/lb by Product Code Validation",
+    description=(
+        "Interactive tool to validate the Freight ¢/lb by Product Code chart. "
+        "Steps: raw API data table, per-product median check, top-50 weight filter, BL number lookup."
+    ),
+)
+async def frt_validation(request: Request) -> HTMLResponse:
+    """Render the freight ¢/lb validation tool page."""
+    return templates.TemplateResponse(
+        "maintenance/frt_validation.html",
+        {"request": request, "active_page": "frt_validation"},
     )

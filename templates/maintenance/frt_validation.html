@@ -1,0 +1,387 @@
+{% extends "base.html" %}
+{% block title %}Frt by Product Validation{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item text-muted">Maintenance</li>
+      <li class="breadcrumb-item active" aria-current="page">Frt by Product Validation</li>
+    </ol>
+  </nav>
+
+  <h1 class="page-header h3 mb-1">
+    <i class="bi bi-search me-2" aria-hidden="true"></i>Freight ¢/lb by Product Code — Validation
+  </h1>
+  <p class="text-muted small mb-4">Validate the Freight ¢/lb by Product Code chart (AMJK · SW · YTD) against raw source data.</p>
+
+  <!-- Controls -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <div class="row g-3 align-items-end">
+        <div class="col-sm-4 col-lg-3">
+          <label for="startDate" class="form-label fw-semibold small">Start Date</label>
+          <input type="date" class="form-control form-control-sm" id="startDate" />
+        </div>
+        <div class="col-sm-4 col-lg-3">
+          <label for="endDate" class="form-label fw-semibold small">End Date</label>
+          <input type="date" class="form-control form-control-sm" id="endDate" />
+        </div>
+        <div class="col-sm-4 col-lg-2">
+          <button class="btn btn-primary btn-sm w-100" id="loadBtn" onclick="loadData()">
+            <span class="spinner-border spinner-border-sm me-1 d-none" id="loadSpinner" aria-hidden="true"></span>
+            <i class="bi bi-cloud-download me-1" id="loadIcon"></i>Load Data
+          </button>
+        </div>
+        <div class="col-auto">
+          <span id="rowCountBadge" class="badge text-bg-secondary d-none"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 1 — Raw API Data -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-header fw-semibold">
+      <i class="bi bi-table me-2 text-primary"></i>Step 1 — Raw API Data
+      <span class="text-muted fw-normal small ms-2">One row per BL load from <code>/api/shipping/shipped-products</code></span>
+    </div>
+    <div class="card-body p-0">
+      <div id="step1Empty" class="text-center text-muted py-4 small">
+        <i class="bi bi-inbox d-block display-6 mb-2" aria-hidden="true"></i>Load data to inspect raw rows.
+      </div>
+      <div id="step1TableWrap" class="table-responsive d-none" style="max-height:340px; overflow-y:auto;">
+        <table class="table table-striped table-hover table-sm mb-0">
+          <thead class="table-light" style="position:sticky;top:0;z-index:1;">
+            <tr>
+              <th>#</th>
+              <th>BL Number</th>
+              <th>Date</th>
+              <th>Product Code</th>
+              <th class="text-end">Unit Freight (¢/lb)</th>
+              <th class="text-end">Pick Weight (lbs)</th>
+              <th>Carrier</th>
+            </tr>
+          </thead>
+          <tbody id="step1Body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2 — Per-Product Median Check -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-header fw-semibold">
+      <i class="bi bi-bar-chart-line me-2 text-primary"></i>Step 2 — Product Code Median Check
+      <span class="text-muted fw-normal small ms-2">Select a product to see all its loads and computed median</span>
+    </div>
+    <div class="card-body">
+      <div id="step2Empty" class="text-muted small">Load data first.</div>
+      <div id="step2Controls" class="d-none">
+        <div class="row g-2 align-items-center mb-3">
+          <div class="col-sm-4 col-lg-3">
+            <label for="productSelect" class="form-label fw-semibold small">Product Code</label>
+            <select class="form-select form-select-sm" id="productSelect" onchange="showProductDetail()">
+              <option value="">Select…</option>
+            </select>
+          </div>
+          <div class="col-auto" id="step2Stats"></div>
+        </div>
+        <div id="step2TableWrap" class="table-responsive d-none" style="max-height:280px;overflow-y:auto;">
+          <table class="table table-striped table-hover table-sm mb-0">
+            <thead class="table-light" style="position:sticky;top:0;z-index:1;">
+              <tr>
+                <th>#</th>
+                <th>BL Number</th>
+                <th>Date</th>
+                <th class="text-end">Unit Freight (¢/lb)</th>
+                <th class="text-end">Pick Weight (lbs)</th>
+                <th>Carrier</th>
+              </tr>
+            </thead>
+            <tbody id="step2Body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 3 — Top 50 Weight Filter -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-header fw-semibold">
+      <i class="bi bi-funnel me-2 text-primary"></i>Step 3 — Top 50 Weight Filter
+      <span class="text-muted fw-normal small ms-2">Products ranked by total shipped weight — only top 50 appear in the chart</span>
+    </div>
+    <div class="card-body p-0">
+      <div id="step3Empty" class="text-center text-muted py-4 small">
+        <i class="bi bi-inbox d-block display-6 mb-2" aria-hidden="true"></i>Load data to see rankings.
+      </div>
+      <div id="step3TableWrap" class="table-responsive d-none" style="max-height:380px;overflow-y:auto;">
+        <table class="table table-striped table-hover table-sm mb-0">
+          <thead class="table-light" style="position:sticky;top:0;z-index:1;">
+            <tr>
+              <th>Rank</th>
+              <th>Product Code</th>
+              <th class="text-end">Total Weight (lbs)</th>
+              <th class="text-end">Load Count</th>
+              <th class="text-end">Median ¢/lb</th>
+              <th>In Chart?</th>
+            </tr>
+          </thead>
+          <tbody id="step3Body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 4 — BL Number Lookup -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-header fw-semibold">
+      <i class="bi bi-upc-scan me-2 text-primary"></i>Step 4 — BL Number Lookup
+      <span class="text-muted fw-normal small ms-2">Find a specific load in the loaded dataset</span>
+    </div>
+    <div class="card-body">
+      <div class="row g-2 align-items-center mb-3">
+        <div class="col-sm-5 col-lg-3">
+          <label for="blInput" class="form-label fw-semibold small">BL Number</label>
+          <input type="text" class="form-control form-control-sm" id="blInput"
+                 placeholder="e.g. BL-123456" oninput="lookupBL()" />
+        </div>
+      </div>
+      <div id="step4Empty" class="text-muted small">Load data, then type a BL number above.</div>
+      <div id="step4Result" class="d-none">
+        <table class="table table-bordered table-sm" style="max-width:600px;">
+          <tbody id="step4Body"></tbody>
+        </table>
+      </div>
+      <div id="step4NotFound" class="d-none text-warning small">
+        <i class="bi bi-exclamation-triangle me-1"></i>BL number not found in loaded dataset.
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  /** All rows returned from the API — populated by loadData(). */
+  let _rows = [];
+
+  /** Compute the median of a numeric array. */
+  function median(arr) {
+    if (!arr.length) return 0;
+    const s = [...arr].sort((a, b) => a - b);
+    const mid = Math.floor(s.length / 2);
+    return s.length % 2 === 0 ? (s[mid - 1] + s[mid]) / 2 : s[mid];
+  }
+
+  /** Set default date range to YTD (Jan 1 → today). */
+  function initDates() {
+    const today = new Date();
+    const yyyy  = today.getFullYear();
+    const pad   = n => String(n).padStart(2, '0');
+    document.getElementById('startDate').value = `${yyyy}-01-01`;
+    document.getElementById('endDate').value   = `${yyyy}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
+  }
+
+  /** Fetch raw data from the shipping API and populate all four steps. */
+  async function loadData() {
+    const start = document.getElementById('startDate').value;
+    const end   = document.getElementById('endDate').value;
+    if (!start || !end) { showToast('Select both dates.', 'warning'); return; }
+
+    const btn     = document.getElementById('loadBtn');
+    const spinner = document.getElementById('loadSpinner');
+    const icon    = document.getElementById('loadIcon');
+    btn.disabled  = true;
+    spinner.classList.remove('d-none');
+    icon.classList.add('d-none');
+
+    try {
+      const url = `/api/shipping/shipped-products?site=AMJK&product_group=SW&start_date=${start}&end_date=${end}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      _rows = await res.json();
+    } catch (err) {
+      showToast(`Failed to load data: ${err.message}`, 'danger');
+      return;
+    } finally {
+      btn.disabled = false;
+      spinner.classList.add('d-none');
+      icon.classList.remove('d-none');
+    }
+
+    document.getElementById('rowCountBadge').textContent = `${_rows.length} rows loaded`;
+    document.getElementById('rowCountBadge').classList.remove('d-none');
+
+    buildStep1();
+    buildStep3();
+    buildStep2Selects();
+    // reset step 4
+    document.getElementById('step4Empty').classList.remove('d-none');
+    document.getElementById('step4Result').classList.add('d-none');
+    document.getElementById('step4NotFound').classList.add('d-none');
+    document.getElementById('blInput').value = '';
+  }
+
+  /* ── Step 1 ─────────────────────────────────────────────────────────── */
+  function buildStep1() {
+    const tbody = document.getElementById('step1Body');
+    tbody.innerHTML = '';
+    // Show first 500 rows to keep the DOM light
+    const display = _rows.slice(0, 500);
+    display.forEach((r, i) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="text-muted">${i + 1}</td>
+        <td><code>${r.bl_number ?? ''}</code></td>
+        <td>${r.truck_appointment_date ?? ''}</td>
+        <td><strong>${r.product_code ?? ''}</strong></td>
+        <td class="text-end">${r.unit_freight != null ? r.unit_freight.toFixed(4) : '—'}</td>
+        <td class="text-end">${r.pick_weight != null ? r.pick_weight.toLocaleString() : '—'}</td>
+        <td>${r.carrier_id ?? ''}</td>`;
+      tbody.appendChild(tr);
+    });
+    if (_rows.length > 500) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td colspan="7" class="text-center text-muted small py-2">… and ${_rows.length - 500} more rows (filtered out for display)</td>`;
+      tbody.appendChild(tr);
+    }
+    document.getElementById('step1Empty').classList.add('d-none');
+    document.getElementById('step1TableWrap').classList.remove('d-none');
+  }
+
+  /* ── Step 2 ─────────────────────────────────────────────────────────── */
+  function buildStep2Selects() {
+    const codes = [...new Set(_rows.map(r => r.product_code).filter(Boolean))].sort();
+    const sel = document.getElementById('productSelect');
+    sel.innerHTML = '<option value="">Select…</option>';
+    codes.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c;
+      opt.textContent = c;
+      sel.appendChild(opt);
+    });
+    document.getElementById('step2Empty').classList.add('d-none');
+    document.getElementById('step2Controls').classList.remove('d-none');
+    document.getElementById('step2TableWrap').classList.add('d-none');
+    document.getElementById('step2Stats').innerHTML = '';
+  }
+
+  function showProductDetail() {
+    const code = document.getElementById('productSelect').value;
+    if (!code) {
+      document.getElementById('step2TableWrap').classList.add('d-none');
+      document.getElementById('step2Stats').innerHTML = '';
+      return;
+    }
+    const loads = _rows.filter(r => r.product_code === code);
+    const vals  = loads.map(r => r.unit_freight).filter(v => v != null);
+    const med   = median(vals);
+    const mn    = Math.min(...vals);
+    const mx    = Math.max(...vals);
+    const totalWt = loads.reduce((s, r) => s + (r.pick_weight ?? 0), 0);
+
+    document.getElementById('step2Stats').innerHTML = `
+      <span class="badge text-bg-primary me-1">Loads: ${loads.length}</span>
+      <span class="badge text-bg-success me-1">Median: ${med.toFixed(4)} ¢/lb</span>
+      <span class="badge text-bg-light text-dark border me-1">Min: ${mn.toFixed(4)}</span>
+      <span class="badge text-bg-light text-dark border me-1">Max: ${mx.toFixed(4)}</span>
+      <span class="badge text-bg-secondary">Total Wt: ${totalWt.toLocaleString()} lbs</span>`;
+
+    const tbody = document.getElementById('step2Body');
+    tbody.innerHTML = '';
+    // Sort loads by date
+    const sorted = [...loads].sort((a, b) =>
+      (a.truck_appointment_date ?? '').localeCompare(b.truck_appointment_date ?? ''));
+    sorted.forEach((r, i) => {
+      const tr = document.createElement('tr');
+      // Highlight if unit_freight == median
+      const isMedian = r.unit_freight != null && Math.abs(r.unit_freight - med) < 0.0001;
+      tr.className = isMedian ? 'table-success' : '';
+      tr.innerHTML = `
+        <td class="text-muted">${i + 1}</td>
+        <td><code>${r.bl_number ?? ''}</code></td>
+        <td>${r.truck_appointment_date ?? ''}</td>
+        <td class="text-end fw-semibold">${r.unit_freight != null ? r.unit_freight.toFixed(4) : '—'}</td>
+        <td class="text-end">${r.pick_weight != null ? r.pick_weight.toLocaleString() : '—'}</td>
+        <td>${r.carrier_id ?? ''}</td>`;
+      tbody.appendChild(tr);
+    });
+    document.getElementById('step2TableWrap').classList.remove('d-none');
+  }
+
+  /* ── Step 3 ─────────────────────────────────────────────────────────── */
+  function buildStep3() {
+    // Group by product_code: sum weight, count loads, compute median ¢/lb
+    const map = {};
+    _rows.forEach(r => {
+      const c = r.product_code ?? '(unknown)';
+      if (!map[c]) map[c] = { wt: 0, count: 0, vals: [] };
+      map[c].wt    += r.pick_weight ?? 0;
+      map[c].count += 1;
+      if (r.unit_freight != null) map[c].vals.push(r.unit_freight);
+    });
+
+    // Sort by total weight descending
+    const ranked = Object.entries(map)
+      .sort((a, b) => b[1].wt - a[1].wt);
+
+    const tbody = document.getElementById('step3Body');
+    tbody.innerHTML = '';
+    ranked.forEach(([code, d], i) => {
+      const rank = i + 1;
+      const inChart = rank <= 50;
+      const med = median(d.vals);
+      const tr = document.createElement('tr');
+      tr.className = rank === 51 ? 'table-warning' : '';
+      tr.innerHTML = `
+        <td class="${inChart ? 'fw-semibold' : 'text-muted'}">${rank}</td>
+        <td>${code}</td>
+        <td class="text-end">${d.wt.toLocaleString(undefined, {maximumFractionDigits: 0})}</td>
+        <td class="text-end">${d.count}</td>
+        <td class="text-end">${med.toFixed(4)}</td>
+        <td>${inChart
+          ? '<span class="badge text-bg-success"><i class="bi bi-check-lg me-1"></i>Yes</span>'
+          : '<span class="badge text-bg-secondary">No</span>'}</td>`;
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById('step3Empty').classList.add('d-none');
+    document.getElementById('step3TableWrap').classList.remove('d-none');
+  }
+
+  /* ── Step 4 ─────────────────────────────────────────────────────────── */
+  function lookupBL() {
+    const query = document.getElementById('blInput').value.trim();
+    if (!query || !_rows.length) return;
+
+    const match = _rows.find(r => (r.bl_number ?? '').toLowerCase() === query.toLowerCase());
+
+    document.getElementById('step4Empty').classList.add('d-none');
+    if (match) {
+      document.getElementById('step4NotFound').classList.add('d-none');
+      document.getElementById('step4Result').classList.remove('d-none');
+      document.getElementById('step4Body').innerHTML = `
+        <tr><th>BL Number</th><td><code>${match.bl_number}</code></td></tr>
+        <tr><th>Date</th><td>${match.truck_appointment_date ?? '—'}</td></tr>
+        <tr><th>Site</th><td>${match.site ?? '—'}</td></tr>
+        <tr><th>Product Group</th><td>${match.product_group ?? '—'}</td></tr>
+        <tr><th>Product Code</th><td><strong>${match.product_code ?? '—'}</strong></td></tr>
+        <tr><th>Unit Freight (¢/lb)</th><td class="fw-semibold text-primary">${match.unit_freight != null ? match.unit_freight.toFixed(4) : '—'}</td></tr>
+        <tr><th>Pick Weight (lbs)</th><td>${match.pick_weight != null ? match.pick_weight.toLocaleString() : '—'}</td></tr>
+        <tr><th>Pallet Count</th><td>${match.pallet_count ?? '—'}</td></tr>
+        <tr><th>Carrier</th><td>${match.carrier_id ?? '—'}</td></tr>`;
+    } else {
+      document.getElementById('step4Result').classList.add('d-none');
+      document.getElementById('step4NotFound').classList.remove('d-none');
+    }
+  }
+
+  /* Init on page load */
+  initDates();
+</script>
+{% endblock %}

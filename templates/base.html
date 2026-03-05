@@ -86,11 +86,24 @@
             </a>
           </li>
 
-          <!-- Maintenance -->
-          <li class="nav-item">
-            <a class="nav-link {% if active_page == 'maintenance' %}active{% endif %}" href="/maintenance/input">
+          <!-- Maintenance (dropdown) -->
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle {% if active_page in ['maintenance', 'frt_validation'] %}active{% endif %}"
+               href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
               <i class="bi bi-tools me-1" aria-hidden="true"></i>Maintenance
             </a>
+            <ul class="dropdown-menu">
+              <li>
+                <a class="dropdown-item {% if active_page == 'maintenance' %}active{% endif %}" href="/maintenance/input">
+                  <i class="bi bi-pencil-square me-2" aria-hidden="true"></i>Input
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item {% if active_page == 'frt_validation' %}active{% endif %}" href="/maintenance/frt-validation">
+                  <i class="bi bi-search me-2" aria-hidden="true"></i>Frt by Product Validation
+                </a>
+              </li>
+            </ul>
           </li>
 
           <!-- About (dropdown) -->
@@ -141,8 +154,8 @@
   <!-- ── Footer ─────────────────────────────────────────────── -->
   <footer class="mt-auto py-3 bg-white">
     <div class="container-fluid px-4">
-      <span class="text-muted">
-        &copy; {{ 2025 }} Warship &mdash; Warehouse &amp; Shipping
+      <span class="text-muted" style="font-size:0.8rem;">
+        &copy; 2025 CFP Warehouse &amp; Shipping
       </span>
     </div>
   </footer>
