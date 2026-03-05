@@ -1,0 +1,257 @@
+LOGISTICS MANAGERS' INDEX
+Home
+ 
+About
+ 
+Contact
+ 
+LMI Survey
+ 
+February 2019 Logistics Index Report
+ 
+more...
+​July 2025 Logistics Managers' Index
+Picture
+FOR RELEASE: Tuesday, August 5th, 2025
+Contact:  
+Zac Rogers, Ph.D.
+Logistics Manager’s Index Analyst
+Associate Professor, Supply Chain Management
+Department of Management
+Colorado State University
+Fort Collins, Colorado
+(970) 491-0890
+E-mail: Zac.Rogers@colostate.edu
+http://www.the-lmi.com
+​
+July 2025 Logistics Manager’s Index Report®
+LMI® at 59.2
+Growth is INCREASING AT AN INCREASING RATE for: Warehousing Capacity, Warehousing Prices, Transportation Capacity, Transportation Utilization, and Transportation Prices.
+Growth is INCREASING AT A DECREASING RATE for: Inventory Levels, Inventory Costs, and Warehousing Utilization, 
+Fort Collins, CO) — The July Logistics Manager’s Index reads in at 59.2, down (-1.5) from June’s reading of 60.7, and very close to May’s reading of 59.4. The movement back above 60.0 marks only the third time since July of 2022. The increase in the overall slowdown in expansion is driven by a decreased rate of expansion for Inventory Costs, which are down (-9.0) to 71.9. While this is notably slower than June’s rate of expansion of 80.9, it still represents a significant rate of expansion Inventory Costs. Cost growth has likely slowed due to the dip (-4.2) in the expansion of Inventory Levels which came in at a more modes 55.2 in July. This led directly to Warehousing Capacity moving (+3.3) back into expansion territory at 51.1. It is worth noting that all of these shifts are primarily driven by either our Upstream or smaller (<999 employees) respondents. Larger firms and Downstream retailers are actually reporting contracting inventories, more capacity, and lower price expansion as they attempt to maintain JIT inventory management strategies to avoid higher costs. Transportation Utilization was up (+6.6) to 59.5, but Transportation Capacity (+0.2 to 52.6) and Transportation Prices (+1.0 to 63.0) remained fairly consistent with readings from June, as what had been a slow freight recovery remains in the holding pattern that we have observed through much of 2025.
+
+Researchers at Arizona State University, Colorado State University, Florida Atlantic University, Rutgers University, and the University of Nevada, Reno, and in conjunction with the Council of Supply Chain Management Professionals (CSCMP) issued this report today.
+ 
+Results Overview
+The LMI score is a combination of eight unique components that make up the logistics industry, including: Inventory Levels and Costs, Warehousing Capacity, Utilization, and Prices, and Transportation Capacity, Utilization, and Prices. The LMI is calculated using a diffusion index, in which any reading above 50.0 indicates that logistics is expanding; a reading below 50.0 is indicative of a shrinking logistics industry. The latest results of the LMI summarize the responses of supply chain professionals collected in July 2025.
+
+The LMI read in at 59.2 in July, down (-1.5) from June’s reading of 60.7. This is just below the all-time average of 61.5 for the overall index and represents a moderate rate of expansion. Continuing the trend we have observed over the last three months, logistics expansion is being disproportionately driven by smaller firms, who reported an overall index of 62.1, which is statistically significantly higher than the 56.2 that was reported by our larger respondents. This continued disparity is largely driven by higher inventories and tighter capacity for smaller firms. Many of these smaller firms represent the “middle-mile” of supply chains, sitting between ports and manufacturers upstream and retail customers downstream. They are largely distributors, wholesalers, and logistics service providers. This is corroborated by a statement from Eric Hoplin, president and CEO of the National Association of Wholesaler-Distributors that the middle-mile entities like wholesalers and distributors will be hit the hardest by tariffs – with some analysts estimating they will carry up to 50% of the cost[1]. Essentially, they are holding the high levels of inventory that were brought into the U.S. to avoid tariffs but have not been moved down to retailers yet. The expense of these inventories is high, but the idea is that they will act as buffers to the current uncertainty.
+ 
+Unfortunately, uncertainty is still high as the tariff situation continues to be a fluid one. U.S. President Trump signed an order imposing new tariffs on 66 countries starting August 8th. This is a week later than had been announced on July y 9th (which itself was an announcement of a pushback), to give time for more countries to strike deals with the U.S. As of this writing, tariffs stand at 15% for the EU, 25% for India and Mexico (with a  new 90-day negotiating period for the latter), 35% for Canada, 30% for China, 50% on Brazil, and 15% for Japan and South Korea[2]. There are also 40% tariffs on transshipments of Chinese goods passing through another country if they did not undergo “substantial transformation”. The exact threshold of “substantial transformation” has yet to be specified[3]. This is in addition to the flat tariffs on commodities such as steel, aluminum, and copper. Taken altogether, these announcements mean that the average U.S. tariffs is now 18.3%. This is a significant shift from their average of 2.3% before Trump re-took office[4]. This is the highest tariff rate U.S. consumers have faced since 1934[5]. The assertion of these tariffs is currently under review in Federal Courts, where litigants are asserting that the administration may have exceeded its authority to address emergency situations through trade regulations[6].
+ 
+Markets were down sharply on August 1st as a result of the tariff announcements. The dip may have been somewhat tempered however by the weaker-than-expected job report, which investors are hoping may lead to interest rate cuts from the Federal Reserve[7]. The U.S. added 73,000 jobs in July, which was lower than anticipated. The previous two job reports were also revised down significantly, with May being revised down 125,000 positions to 19,000 jobs added, and June being revised down 133,000 positions to 14,000 added. That means that over the last three months, an average of 35,300 jobs have been added. For reference, the U.S. added an average of 186,000 jobs per month in 2024[8].
+ 
+Digging more deeply into the jobs report and revisions, we see that when adjusting for seasonality, we lost 11,000 manufacturing positions in July. This comes after losing 15,000 in June and another 11,000 in May, meaning that the U.S. is down 37,000 seasonally-adjusted manufacturing jobs in the last three months[9]. Corroborating this is the reading of 48% in July’s manufacturing PMI. This is down (-1.0%) from June’s reading and the fifth straight month of contraction[10]. The struggle that U.S. manufacturing is currently having with the tariffs is two-fold:
+ 
+1) Building up capacity takes time and resources. Since we keep going back and forth on the cost and implementation of tariffs, companies aren't sure what is permanent and what is not. As such, they may be unwilling to make the capital expenditures that would be needed to set up domestic manufacturing. The International Chamber of Commerce (ICC) supports this, noting that the lack of detail in the tariff announcements have made it difficult for firms and their supply partners to quickly formulate the strategies need to deal with them effectively[11].
+
+2) As they stand at the moment, tariffs disproportionately impact inputs, not finished goods. Ford Motor is an example of this, with company officials stating that they are actually at a disadvantage relative to competitors because they assemble 80% of their vehicles in the U.S. Their current structure means that they will pay more for the components (and likely for U.S. labor as well) needed to build vehicles themselves than they would if they were importing finished goods[12]. Finance chief Sherry Hourse noted that Ford paid more than $800 million in tariffs in Q2 due to tariffs[13]. Meanwhile, General Motors, who imports approximately half of their vehicles, reported a $1.1 billion decrease in net income – shaving 35% off of their profits – due to the increased cost of components from the tariffs. This loss comes despite their industry-leading expansion of a 12% sales gain to dealerships through the first half of the year[14].
+ 
+The other major economic announcement in the last week of June was U.S. Q2 GDP. U.S. GDP increased by 3% in Q2, a shift away from the 0.5% decline in Q1. Nearly all of this shift can be explained by trade dynamics. In Q2 the U.S. had a positive trade balance – partly due to the “air pocket” in May when tariffs were elevated. net exports added 5.0% to GDP, while inventories – including the goods left over from the Q1 stock-up, subtracted 3.2%. Meanwhile, consumption was soft, adding less than 1%[15]. No matter how you slice it, it is a good thing when GDP goes up instead of down, but it will be important to keep an eye on inventories and trade movements in Q3 – particularly if they dip due to increased tariffs.  One of the most important aspects of this – particularly for firms in the logistics industry looking to make capital expenditures – is how it will impact interest rates. The Federal Reserve voted to hold rates steady at their July meeting, citing uncertainty regarding tariffs. Two of the nine governors dissented, signaling that if some certainty were to be established regarding tariffs, that the board would be open to decreasing rates[16].
+ 
+ 
+As mentioned above, inventories often act as a buffer, helping firms to deal with the swings associated with economic uncertainty. Inventory Levels expanded more slowly (-4.2) in July at a rate of 55.6. This moderated rate of expansion hides significant differences in inventory strategies at the different levels of the supply chain. The most drastic of these is that smaller (<999 employees) respondents reported rapidly expanding inventories at 64.8, while larger (1,000+ employees) reported mild contraction at 47.6. We observe similar dynamics with Upstream firms, who reported Inventory Level expansion at 58.5, contrasting with the contraction of 47.6 reported by Downstream firms. Despite the differences in rates of expansion, all of these groups report significant expansion above 70.0 in Inventory Costs.
+ 
+Much of the Upstream inventory being held by smaller firms are recent imports. Shippers clearly took advantage of the extension of the tariff pause. Pre-extension, The Port of LA had been expecting a drop of 27.2% year-over-year at the end of July but instead saw an increase of 35.2% - a 62.4% increase. This comes on the heels of the busiest June ever at the Port of LA, which processed 892,340 TEUs in the month[17]. Interestingly, container volumes are expected to drop off again following the first week of August and the re-implementation of tariffs[18]. The is corroborated by the slowdown of East-West container rates (Shanghai to LA down 2% to $2,632 per 40 ft), at a time of the year when generally seasonality would be driving container prices up[19]. South East Asian manufacturers also reported their lowest level of sentiment since the pandemic five years ago, citing a lack of demand for their goods[20]. Conversely, traffic at smaller ports was down significantly over the same period. For instance, the Port of Oakland saw a 10.1% month-over-month, and 13% year-over-year decrease in June. The Port of Oakland has traditionally been a strong exporting port. Beyond ships not wanting to make the extra stop, this could bely a slowdown in some exports as well. Other “secondary” ports such as Jacksonville and New Orleans experienced similar slowdowns over the last few months[21]. There is some evidence of this in CMA CGM, the world’s third-largest container carrier, reported a 19.9% drop in EBITDA in the second quarter, with their revenue per container dropping by 1.2% year-over-year[22].
+ 
+            The flow of inventories going forward largely depends on the associated cost. The rate of expansion for Inventory Costs slowed (-9.0), but at 71.9 are still growing at a significant rate. Higher costs for inventories often eventually lead to higher prices for consumers. The University of Michigan’s Consumer Sentiment Index was up (+1.6) to 61.7 in July on the strength of increased consumer perceptions of current economic conditions (+4.9) and in spite of slightly lower (-0.70) expectations for future economic expansion. The reading of 61.7 is up from earlier in the Spring, but is still 7.1% down from the same time a year ago, reflecting uncertainty regarding both tariffs and potential inflation[23]. KPMG reported that consumer spending only rose by 0.1% in June[24], corroborating the notion of a cautious consumer. Proctor & Gamble corroborates this anecdotally,  reported that consumers are buying smaller sizes and delaying purchases of their products to wait for potential sales, indicating they are “looking for value”[25].
+ 
+That being said, consumers are still spending. Amazon Prime Day (which is now four days), drove $24.1 billion in spend (up 30.3%)[26]. It should be noted that the 30.3% increase came over 100% more time as the event went from two to four days. Prime Day has been a bellwether for holiday spending in the past. That being said, CEO Andy Jassy did warn that Amazon has burned through a significant amount of the inventory that was brought in pre-tariffs, and increased costs could lead to lower consumer demand and/or higher potential for stockouts[27]. So far spending in 2025 has been against the backdrop of moderate inflation. The PCE was up 2.6% in June (up 2.8% when stripping away food and energy)[28]. This is higher than the Fed’s preference of 2% inflation but is still lower rate of inflation than we saw through much of 2022. However, as firms work through their stores of inventory there is a strong possibility that prices could go up. The NRF reports that retailers are likely to increase prices in the coming months as tariffs increase. Smaller firms in particular are likely to have a more difficult time absorbing these costs without increasing prices[29].
+ 
+ The warehousing space that firms have to hold these inventories continues to be tight, although there was some loosening (+3.3) in July as Warehousing Capacity went from slight contraction at 47.8 to mild expansion at 51.1. Unsurprisingly given what we saw with Inventory Levels, Warehousing Capacity is much tighter for smaller respondents (45.3) than larger respondents (55.0), and for Upstream respondents (48.6) than Downstream respondents (52.4). A similar split exits for Warehousing Utilization. The overall metric slowed (-2.8) to 59.4. However, Upstream firms that are tight on available capacity reported robust expansion at 62.0, which Downstream firms that are keeping inventories low reported contraction in their utilization of available space at 47.6. This juxtaposition may partially explain some of the contradictions that are currently characterizing the warehousing market. According to Cushman & Wakefield, average warehouse vacancy was up to 7.1% in the second quarter, which is the first time their measure has been above 7% since 2014. Their head of logistics and real estate Jason Tolliver believes that it is due to retailers paring back inventories due to the start-stop nature of tariffs impacting the normal flow of goods. This slowdown has impacted overall construction, which at 72 million new square feet of space is down 45% year-over-year[30]. Some of this is due to trade regulations. For instance, DSV announced that they would be “hitting pause” on investments in infrastructure along the U.S.-Mexico border. The international logistics giant had invested heavily in warehouses, rail yards, and truck terminals near the border over the last few years, citing the lack of growth potential given the current trade environment[31]. At the same time, Prologis put in over $900 million in new development starts in Q2. An additional explanation for this divide is that facilities built on spec are moving slowly, but demand for custom-built storage is high. We also see that some are renewing existing leases to “kick the can down the road” until more is known about the current economic situation[32].
+ 
+            Regardless of the shifting rates of warehousing construction, we observe that prices continue to expand, holding steady at 68.3 which is a robust rate of expansion. This is fairly consistent across the board, with no major differences existing between Upstream and Downstream, or small and large firms. At a national level, Warehousing rents are up but the rate of change has softened. The average price for industrial space was up to $10.06 in Q2, only slightly up from the average of $9.99 in Q1 and $10.03 year-over-year.
+ 
+            Transportation Utilization was the most significant mover in July, with its rate of expansion increasing (+6.6) to 59.5. This was primarily driven by Upstream firms, who reported robust expansion of 60.7, while Downstream reported no change at 50.0. There was little change overall for Transportation Capacity (+0.2) as it came in at 52.6. This metric has now registered soft rates of expansion, with every reading over the last 12 months coming in between 50.0 and 55.2. So long as this metric comes in above 50.0, it is unlikely that we will have a truly robust expansion in the freight market. It should be pointed out that Transportation Capacity actually did contract very slightly for larger firms at 49.1, while expanding for smaller firms at 60.2. This likely ties into the differences we saw with inventories. Essentially, larger firms are pursuing more JIT oriented strategies and are therefore more consistently utilizing transportation. Some evidence of the focus on middle-mile rather than last-mile activity was seen in J.B. Hunt’s recent financial reporting. J.B. Hunt saw revenue from their intermodal business increase by 2%, and over-the-road revenue increase by 5%. However, final-mile service fell 10%[33]. These dynamics potentially echo the stratification we have been seeing between Upstream and Downstream firms.
+ 
+            Transportation was one of the winners of the latest jobs report, as unadjusted for seasonality, truck transportation added just under 8,000 jobs in July. Air, water, and rail jobs essentially held steady over the same period[34]. Of course, the big news in rail is the merger of Union Pacific and Norfolk Southern creates the first coast-to-coast rail line in U.S. history[35]. One potential benefit of this merger is that there will now be direct rail connections from the busy West Coast ports to the populous East Coast, without needing to transfer from one carrier to another[36].
+ 
+            Transportation Price expansion was up slightly (+1.0) to 63.0. Prices have expanded steadily throughout 2025, with every reading in the last four months coming in between 62.0 and 63.1. The increase is at least in part to fuel costs. U.S. diesel fuel came in at $3.805 per gallon in the last week of July. This is down very slightly (-0.007 – which is a bit James Bond-ian), and up 0.037 per gallon from a year ago. This is a sharp rise from the $3.451 per gallon from the first week of June – which was the low for the past 12-months – suggesting that increased demand has put some pressure on prices[37]. The increase is likely welcome news for oil produces, as both Exxon Mobil and Chevron reported their lowest profits in four years during Q2. The price of a barrel of crude has been below $70 for most of 2025 and was below $60 in May during the “air pocket” of slowed U.S. imports[38].
+
+Respondents were asked to predict movement in the overall LMI and individual metrics 12 months from now. Respondent predictions for the overall index are 62.6, down (-1.9) from June’s future prediction of. This would represent a faster rate of growth than the all-time average of 61.5. A primary reason for this slowed down prediction are softer (-5.8) predictions regarding Inventory Level expansion, which came in at 56.7 – largely on the back of predictions of contraction from both large and Downstream respondents. As a result of this, future predictions expansion are lower for both Inventory Costs (-6.6 to 75.3) and Warehousing Prices (-0.8 to 74.7) – although bother are still quite high. The forecasted levels of available Transportation Capacity is up (+8.0) as well, moving from contraction at 45.7 to expansion at 53.7. Taken altogether this suggests that firms are hoping that tariffs will become a settled matter over the next 12 months and that inventory flows can become more predictable (at least on the Downstream side). However, the high predicted cost expansion (225.5 cumulative) suggests that, however this settles, that respondents are anticipating supply and logistics costs to expand rapidly over the next year.
+
+
+Picture
+We observe some differences when comparing feedback from Upstream (blue bars) and Downstream (orange bars) respondents in July. Continuing the trends we observed through June and May, Upstream firms report expansion in Inventory Levels (58.5) while their Downstream counterparts report contraction (47.6). This is also reflected Upstream firms experiencing contraction (48.6) relative to the mild expansion reported Downstream (52.4) in available Warehousing Capacity, as the former struggles to find a place to hold this continued wave of goods. We also observe marginally statistically significant differences in both Warehousing Utilization (62.0 to 47.6) and Transportation Utilization (60.7 to 50.0), suggesting that Upstream firms are utilizing significant levels of available logistics capacity in order to manage the large volumes of inventories they are holding. Conversely, Downstream firms report contraction for Warehousing Utilization and no movement for Transportation Utilization, suggesting that the JIT approach they are taking to inventory replenishment means they are utilizing either less, or similar, level of available capacity from month to month. 
+Picture
+Picture
+​We also split future predictions by Downstream respondents (purple bars) and Upstream respondents (green bars). The differences are more pronounced this month, with five of the eight metrics predicted to have at least some statistically significant differences, as opposed to only one significant difference in June. Future Inventory Levels are the metric that displays significant differences in both June and July. This month we that Upstream firms are predicting strong continued expansion in Inventory Levels at 62.0, while their downstream counterparts once again predict contraction at 45.2. This suggests the Downstream retailers are planning to continue pursuing JIT policies and their Upstream suppliers expect to continue holding high levels of inventory. As a result of this difference, Upstream firms are predicant significantly higher readings for Warehousing Prices (78.5 to 67.5), Transportation Utilization (67.3 to 54.8), Transportation Prices (78.3 to 66.7), and in the overall LMI (64.3 to 57.6). Taken together this suggests that Upstream firms will bear a heavy cost burden if inventories do indeed expand so quickly. Interestingly, Downstream firms predict contraction in Transportation Capacity (47.6 to 54.7 Upstream). The tight capacity suggests that Downstream firms will be continuously moving goods in order to maintain JIT inventory practices. 
+Picture
+Picture
+​
+Breaking the trend established over the last few months, we observe no significant statistical differences between responses that were collected early (gold bars) and late (green bars) in the month. A likely reason for this is that, because of the delay in implementations ahead of the initial July 9th deadline, trade regulations stayed relatively constant throughout the entire month. As a result of this, port data shows that inventories continued flowing into the U.S. at a consistent rate, which in turn spread the demand for warehousing and transportation out more evenly throughout July. While none of them were statistically significant, there were some notable shifts in July. First is the decrease in expansion for both Transportation and Warehousing Utilization, which suggests that usage of available capacity grew throughout July, but was at its fastest pace in the first half of the month. We also see that Warehousing Capacity went from mild contraction early in the month (where it also was in June) to mild expansion in the second half of July, which could indicate a loosening of available space as Downstream firms continue to run down their existing inventories
+Picture
+Picture
+​We also compare smaller firms (those with 0-999 employees, represented by maroon lines) to larger firms (those with 1,000 employees or more, represented by gold lines) in July. The differences between the two groups were very pronounced in July, moving back toward the dynamics we observed in May and April of this year. Similar to what we saw throughout the Spring, smaller respondents are reporting significantly more activity this month than their larger counterparts. This was most pronounced in smaller firms reporting an expansion of Inventory Levels at 64.8, while larger firms report slight contraction at 49.0. Reflecting these differences, smaller respondents report contraction in available Warehousing Capacity (45.3), while larger firms report expansion (55.0). Conversely, we also observe that smaller firms report significantly higher levels of available Transportation Capacity (60.2) than their larger counterparts, who actually report contraction (49.1). Taken all together, what seems likely is that larger firms are turning over inventories as quickly as they can as a measure to keep costs down. This JIT strategy likely necessitates high levels of transportation to keep goods flowing. Smaller firms, which are often the middle-mile of supply chains, are sitting on high volumes of imported inventories that were brought into the U.S. early to avoid tariffs. Their Warehousing Capacity is tight because this inventory is static. It will be interesting to observe whether this inventory moves downstream to larger firms slowly as they need it, or in a large rush that would be similar to seasonality? Traditionally we would expect the latter but given the time between now and the holiday season, it is possible we could see the former. 
+Picture
+Picture
+​
+The index scores for each of the eight components of the Logistics Managers’ Index, as well as the overall index score, are presented in the table below. The rate of expansion for the overall index is 59.2, which is down (-1.5) from June’s reading of 60.7 and very close to May’s reading of 59.4. This slowdown in expansion was driven by a downward shift in the expansion of Inventory Costs (-9.0), although it should be noted that at 71.9 costs are still expanding at a significant rate. We also see a slowdown in the expansion of Inventory Levels (-4.2) at 55.6, which is to be expected after the mild slowdown in imports from June to July. The slowdown in Inventory Level expansion allowed Warehousing Capacity to move (+3.3) back into expansion at 51.1. Transportation Capacity and Prices metrics remained fairly consistent with last month's readings, but Transportation Utilization increased (+6.6) to 59.5, a move that was largely driven by Upstream respondents. 
+Picture
+​Historic Logistics Managers’ Index Scores
+This period’s along with prior readings from the last two years of the LMI are presented table below:
+Picture
+LMI®
+ 
+The overall index reads in at 59.2 in July, down (-1.5) from June’s reading of 60.7 but close (-0.2) to May’s reading of 59.4. This is up (+2.7) from last July and significantly up (+17.8) from the reading of 45.4 two years ago, which represents the all-time nadir of the overall index. Speaking in overall terms, this reading within less than half of a standard deviation from the all-time average of 61.5, so this represents an only slightly lower than average rate of expansion. The overall index was consistent between early (59.4) and late (58.6) July, as well as among Upstream (59.8) and Downstream (55.9) respondents. However, we observe a significant difference between smaller (62.1) and larger (56.2) respondents, reflecting the higher levels of inventory and strain on storage capacity at the middle-mile of the supply chain.
+​
+When asked to predict what conditions will be over the next 12 months, respondents foresee a rate of expansion of 62.6, which is down (-1.9) from June’s future prediction of 64.5 and just above (+1.1) the all-time average. Respondents expect the bifurcation of activity by supply chain position to continue, with Upstream respondents predicting overall expansion of 64.3 which is a statistically significantly faster rate of expansion than the 57.6 predicted by Downstream firms.
+ 
+Picture
+​Inventory Levels
+ 
+The Inventory Levels index is 55.6, which is down (-4.2) from June’s reading of 59.8. This is a fast rate of expansion seasonally speaking, Inventory Levels are 6.1points higher than a year ago, and 13.7 points higher than two years ago at this time when logistics activity was at the lowest level ever recorded in this index. This was driven further up supply chains, as Upstream respondents returned strong expansion at 58.5, while Downstream respondents returned contraction at 47.6. Smaller firms continue to hold high levels of incoming inventories, reporting expansion at 64.8 which is significantly higher than the mild contraction of 49.0 reported by larger respondents.
+ 
+When asked to predict what conditions will be like 12 months from now, the average value is 56.7, down (-5.8) from June’s future prediction of 62.5. There are some differences in future predictions by supply chain position. Upstream firms predict significant increase, at 62.0, significantly higher than the contraction of 45.2 predicted by Downstream respondents. This is consistent with the dynamics from June and continues to suggest that retailers are looking to move back to a more JIT approach, while their Upstream partners hold elevated levels of stock.  
+ 
+Picture
+​Inventory Costs
+ 
+Inventory Cost read in at 71.9 in July, which while down significantly (-9.0) from June’s reading of 80.9 in June, still represented a very robust rate of expansion. For context, this is only the fifth-highest rate of expansion for this metric in 2025 but would have been the highest reading in 2024. This value is 6.2 points higher than last year at this time, and 11.4 points higher than two years ago. Downstream (76.2) returned a value 4.8 points higher than Upstream (71.4). It is interesting that Downstream reported higher Inventory Costs, by 4.8 points, because Upstream reported higher much higher expansion for Inventory Levels (+ 10.8). Downstream firms would appear to be bearing higher Inventory Costs – possibly due to a combination of existing stocks of inventories and more expensive warehousing options. We also saw this phenomenon last month. Similarly Small firms reported a value of 74.4, representing significant increases. Large firms reported a very similar value at 70.4. Small firms are seeing a significant increase in inventory, while large firms are flat, and yet both groups report very similar increases in Inventory Costs.
+ 
+Predictions for future Inventory Cost growth is 75.3, down (-6.6) from June’s future prediction of 81.9 but still representing a significant predicted rate of expansion. Upstream respondents predict that Inventory Prices will expand at 77.1, and Downstream is predicting similar expansion at 76.2. Both of these expectations are for very significant rates of expansion. If they come to pass, it is difficult to imagine that at least a portion of the increased costs will not be passed down to supply chain customers and consumers.
+ 
+Picture
+​Warehousing Capacity
+ 
+Breaking the trend of the past three months' downward slide, this month we see Warehouse Capacity register slightly up (+3.3) and back into expansionary territory​ at 51.1. This reading is down 3.4 points from the reading one year ago and is also down by 13.3 points from the reading two years ago when the industry was dealing with a glut of capacity. In addition, there was a 3.8-point split between Upstream (48.6 and up nearly 6 points from last month) and Downstream (52.4 largely unchanged from the month prior) which was not statistically significant (p>.1), this two-month contraction in the Upstream market whereas Downstream appears to be still expanding is notable. Comparing the differences between small (<999 employees) and large (>999) employers we see that these values are 45.3 and 55.0 (previously 43.3 and 52.1, respectively), with small firms still in contraction territory from last month, with modest growth in the large size firms. This 9.7-point split was marginally statistically significant (p <.1).
+ 
+Exploring the future predictions for this value we see that Warehouse Capacity is expected to expand at 52.2, marginally up (+0.1) from June’s future prediction of 52.1. Downstream is expected to shift from the contraction rating of last month and enter slight expansionary territory (50.7) and Upstream is expected to continue to expand one year out with a value of 54.8 (a slight increase from last month). This 4.1-point increase was not statistically significant (p>.1).
+Picture
+​Warehousing Utilization
+ 
+The Warehousing Utilization index registered in at 59.4 for the month of July 2025, reflecting a modest 2.8-point decrease from the month prior, continuing the trend of slowing expansion to three months in a row. Even with the slowdown this reading is up 1.5-points from the reading one year ago, and also up 6.9-points from the reading two years ago. In addition, there was a 14.4-point split between Upstream (62, down over 2 points from the month prior) and Downstream (47.6, down over 13 points from the month prior) which was marginally statistically significant (p<.1) and notable due to the Downstream space entering contraction. Comparing the differences between small (<999 employees) and large (>999) employees we see that these values are 61.6 and 58.0 (previously 43.3 and 52.1, respectively), with small firms entering expansionary territory and growth in the large market strengthening from last month. This 3.6-point split was not statistically significant (p >.1).  
+ 
+Finally, exploring the future predictions for this value we see that Warehouse Utilization is expected to continue to stay in expansionary territory one year out at 60.4, down (-2.8) from June’s future prediction of 63.2, suggesting that capacity may be strained over the next 12 months. Future Upstream expectations (62.5) are predicted to be slightly higher than Downstream expectations (59.5). Although it should be noted that this 3.0-point difference was not statistically significant (p>.1).
+Picture
+​Warehousing Prices
+ 
+The Warehousing Price index registered in at 68.3 for the month of July 2025, which is even with June’s reading. This reading is up 7.4 points from the reading one year ago, and also up 7.7 points from the reading two years ago. In addition, there was a 4.7-point split between Upstream (69.7 ) and Downstream (65.0) which was not statistically significant (p>.1). Comparing the differences between small (<999 employees) and large (>999) employees we see that these values are 66.3 and 71.4 (previously 71.7 and 64.9) reflecting a 5.1-point difference between the two which was not statistically significant (p >.1). Essentially, storage costs are up all across the supply chain.
+ 
+Finally, exploring the future predictions for this value we see that Warehouse Prices are expected to continue to stay in expansionary territory one year out at 74.7, down slightly (-0.8) from June’s future prediction of 75.5. Future Upstream expectations (78.5) are down nearly 7.0 points from the reading one month prior and are predicted to be increasing at a faster rate than Downstream expectations (67.5, up 3.0 points from June). This month's 6.8 (vs last month’s 11)-point difference was not statistically significant (p>.1) as both sides expect significant price pressure on storage costs to continue.
+Picture
+Transportation Capacity
+ 
+The Transportation Capacity Index increased a mere .2 points to 52.6 percent in July 2025. With this small increase, the Transportation Capacity index remains in the slight expansion territory. While the Upstream transportation capacity index at 54.0, the Downstream index is slightly lower at 52.4 but the difference is not statistically significant.
+​
+The Transportation Capacity index moved back above the critical threshold, and it is now at 53.7, indicating expansion for next 12 months. While the future Upstream index is at 54.7 indicating slight expansion, the Transportation Capacity index is at 47.6 indicating slight contraction, but the difference is not statistically significant.
+ 
+Picture
+Transportation Utilization
+ 
+The Transportation Utilization Index jumped 6.6 points, indicating 59.5. This is the highest level indicated since January of this year, and is solidly in the expansion territory, indicating that Transportation Utilization has heated up. The Downstream Transportation Utilization Index is now at 50.0, while the Upstream index indicates 60.7, and the difference is marginally significant.  So, this month, Transportation Utilization was somewhat greater Upstream than Downstream.    
+​
+The future Transportation Utilization Index jumps 7 points from last month, indicating 64.2 points for the next 12 months.  The future Upstream Transportation Utilization at 67.3 and the Downstream index at 54.8 and the difference is marginally significant. As such, Upstream supply chains have expectations of greater utilization growth than Downstream supply chains.
+Picture
+Transportation Prices
+
+The Transportation Prices Index rebounded 1 point from the previous reading and recorded 63.0 in July 2025. The Upstream Transportation Prices Index is at 61.2, and the Downstream index is at 61.9, indicating that the price increases that we see in transportation are felt relatively uniformly across the supply chain.
+​
+The future index for Transportation also increased slightly from last month, indicating 2.2 points higher at 75.5. The Upstream future transportation prices index is at 78.3 while the Downstream Transportation index is at 66.7, and the difference is marginally significant. As such, it can be concluded that expectations of higher Transportation remain prevalent across the economy but are more pronounced Upstream than Downstream supply chains
+ 
+Picture
+About This Report
+The data presented herein are obtained from a survey of logistics supply executives based on information they have collected within their respective organizations. LMI® makes no representation, other than that stated within this release, regarding the individual company data collection procedures. The data should be compared to all other economic data sources when used in decision-making.
+
+Data and Method of Presentation
+Data for the Logistics Manager’s Index is collected in a monthly survey of leading logistics professionals. The respondents are CSCMP members working at the director-level or above. Upper-level managers are preferable as they are more likely to have macro-level information on trends in Inventory, Warehousing and Transportation trends within their firm. Data is also collected from subscribers to both DC Velocity and Supply Chain Quarterly as well. Respondents hail from firms working on all six continents, with the majority of them working at firms with annual revenues over a billion dollars. The industries represented in this respondent pool include, but are not limited to: Apparel, Automotive, Consumer Goods, Electronics, Food & Drug, Home Furnishings, Logistics, Shipping & Transportation, and Warehousing.
+
+Respondents are asked to identify the monthly change across each of the eight metrics collected in this survey (Inventory Levels, Inventory Costs, Warehousing Capacity, Warehousing Utilization, Warehousing Prices, Transportation Capacity, Transportation Utilization, and Transportation Prices). In addition, they also forecast future trends for each metric ranging over the next 12 months. The raw data is then analyzed using a diffusion index. Diffusion Indexes measure how widely something is diffused or spread across a group. The Bureau of Labor Statistics has been using a diffusion index for the Current Employment Statics program since 1974, and the Institute for Supply Management (ISM) has been using a diffusion index to compute the Purchasing Managers Index since 1948. The ISM Index of New Orders is considered a Leading Economic Indicator.
+ 
+We compute the Diffusion Index as follows:
+ 
+PD = Percentage of respondents saying the category is Declining,
+PU = Percentage of respondents saying the category is Unchanged,
+PI = Percentage of respondents saying the category is Increasing,
+Diffusion Index = 0.0 * PD + 0.5 * PU + 1.0 * PI
+ 
+For example, if 25 say the category is declining, 38 say it is unchanged, and 37 say it is increasing, we would calculate an index value of 0*0.25 + 0.5*0.38 + 1.0*0.37 = 0 + 0.19 + 0.37 = 0.56, and the index is increasing overall. For an index value above 0.5 indicates the category is increasing, a value below 0.5 indicates it is decreasing, and a value of 0.5 means the category is unchanged. When a full year’s worth of data has been collected, adjustments will be made for seasonal factors as well.
+ 
+Logistics Managers Index
+Requests for permission to reproduce or distribute Logistics Managers Index Content can be made by contacting in writing at: Dale S. Rogers, WP Carey School of Business, Tempe, Arizona 85287, or by emailing dale.rogers@asu.edu Subject: Content Request.
+The authors of the Logistics Managers Index shall not have any liability, duty, or obligation for or relating to the Logistics Managers Index Content or other information contained herein, any errors, inaccuracies, omissions, or delays in providing any Logistics Managers Index Content, or for any actions taken in reliance thereon. In no event shall the authors of the Logistics Managers Index be liable for any special, incidental, or consequential damages, arising out of the use of the Logistics Managers Index. Logistics Managers Index, and LMI® are registered trademarks. 
+​
+About The Logistics Manager’s Index®
+The Logistics Manager’s Index (LMI) is a joint project between researchers from Arizona State University, Colorado State University, University of Nevada, Reno, Florida Atlantic University, and Rutgers University, supported by CSCMP. It is authored by Zac Rogers Ph.D., Steven Carnovale Ph.D., Shen Yeniyurt Ph.D., Ron Lembke Ph.D., and Dale Rogers Ph.D.
+ 
+ 
+
+[1] LaRocco, L. A. (2025c, July 31). With Trump tariff deadline one day away, U.S. economy’s wholesalers, distributors fear the worst and plan for price increases. CNBC. https://www.cnbc.com/2025/07/31/trump-tariff-deadline-wholesalers-distributors-economy-price-increases.html
+
+[2] Boak, J. (2025b, August 1). Trump injects new dose of uncertainty in tariffs as he pushes start date back to Aug. 7. AP News. https://apnews.com/article/trump-tariffs-effect-05bc12428163b9f28ef80f952cf9dafd
+
+[3] Stevenson, A., Bradsher, K., & China, M. since P. T. announced tariffs in A. K. B. has reported the disruption in trade from across. (2025, August 1). With New 40% Tariff, Trump Takes Aim at U.S. Dependence on China’s Factories. The New York Times. https://www.nytimes.com/2025/08/01/business/trump-tariffs-china-transshipment.html
+
+[4] Associated Press. (2025, August 1). Live updates: Trump’s new tariffs give some countries a break, while shares and US dollar sink. AP News. https://apnews.com/live/donald-trump-news-updates-8-1-2025
+
+[5] Yale Budget Lab. (2025, July 28). State of U.S. Tariffs: July 28, 2025 | The Budget Lab at Yale. The Budget Lab. https://budgetlab.yale.edu/research/state-us-tariffs-july-28-2025
+
+[6] Bravin, J., & Radnofsky, L. (2025, August 1). The Rough Day in Court for Trump’s Tariffs. WSJ. https://www.wsj.com/politics/policy/the-rough-day-in-court-for-trumps-tariffs-8f039448
+
+[7] Troise, D. J., & Cerojano, T. (2025, August 1). Wall Street slumps and bond yields sink following weak hiring numbers and new tariffs. AP News. https://apnews.com/article/trump-tariffs-asia-wall-street-5bf5640b85f63cf7db292d0aaf26e97a
+ 
+
+[8] U.S. Bureau of Labor Statistics. (2025, August 1). THE EMPLOYMENT SITUATION — JULY 2025. chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/https://www.bls.gov/news.release/pdf/empsit.pdf
+
+[9] U.S. Bureau of Labor Statistics. (2025, August 1). Table B-1. Employees on nonfarm payrolls by industry sector and selected industry detail—2025 M07 Results. Bureau of Labor Statistics. https://www.bls.gov/news.release/empsit.t17.htm
+
+[10] Institute for Supply Management. (2025, August 1). July. PMI - July 2025. https://www.ismworld.org/supply-management-news-and-reports/reports/ism-report-on-business/pmi/july/
+
+[11] Hannon, P. (2025, August 1). Businesses Continue to Face Uncertainty After Latest U.S. Tariff Blitz, ICC Says. WSJ. https://www.wsj.com/economy/trade/businesses-continue-to-face-uncertainty-after-latest-u-s-tariff-blitz-icc-says-c2c0b367
+
+[12] Terlep, S. (2025b, August 1). Why Ford’s Made-in-America Strategy Hurts It in Trump’s Trade War. WSJ. https://www.wsj.com/business/autos/ford-trump-tariffs-made-in-america-df94b933
+
+[13] Terlep, S. (2025a, July 30). Ford Takes $800 Million Tariff Hit, Posts First Loss Since 2023. WSJ. https://www.wsj.com/business/autos/ford-earnings-q2-2025-tariffs-0df0cedf
+ 
+
+[14] Otts, C. (2025, July 22). GM Profit Shrinks After $1.1 Billion Tariff Hit. WSJ. https://www.wsj.com/business/autos/general-motors-gm-q2-earnings-report-2025-stock-3418ac97
+
+[15] Golara, S. (2025, July 30). Q2 GDP Analysis. LinkedIn. https://www.linkedin.com/in/sinagolara/recent-activity/all/
+
+[16] Boak, J. (2025a, August 1). Trump calls on the Federal Reserve board to take full control of the central bank from Powell. AP News. https://apnews.com/article/trump-powell-interest-rates-federal-reserve-fed-88fe11c20c3074bbd1445a69bbdc623e
+
+[17] LaRocco, L. A. (2025a, July 14). Port of Los Angeles sees record container traffic as shippers race to beat Trump’s tariff deadlines. CNBC. https://www.cnbc.com/2025/07/14/port-of-los-angeles-record-container-traffic-trade-war-shipping-tariffs.html
+
+[18] Port Optimizer—Control Tower. (2025, August 1). Port of LA Signal - August 1, 2025. https://signal.portoptimizer.com/
+
+[19] van Marle, G. (2025, August 1). Container Spot Rates Flat as Peak Season Fails to Materialize. gCaptain. https://gcaptain.com/container-spot-rates-flat-as-peak-season-fails-to-materialize/
+
+[20] Kao, K. (2025, August 1). Asia Manufacturing Outlook Marks Five-Year Low as Tariff Concerns Linger. WSJ. https://www.wsj.com/economy/asia-manufacturing-outlook-marks-five-year-low-as-tariff-concerns-linger-249cc404
+
+[21] LaRocco, L. A. (2025b, July 21). Trump’s trade war taking biggest toll on nation’s smaller, secondary ports from California to Gulf Coast. CNBC. https://www.cnbc.com/2025/07/21/trumps-tariffs-take-biggest-toll-on-nations-smaller-secondary-ports.html
+
+[22] Chirls, S. (2025a, July 30). CMA CGM revenue, earnings decline on China tariff fight. FreightWaves. https://www.freightwaves.com/news/cma-cgm-revenue-earnings-decline-on-china-tariff-fight
+
+[23] Hsu, J. (2025, August 1). Surveys of Consumers Final Results for July 2025. University of Michigan Consumer Sentiment Survey. https://www.sca.isr.umich.edu/
+
+[24] KPMG. (2025, July 31). Consumer constrained, inflation accelerates. KPMG. https://kpmg.com/us/en/articles/2025/june-2025-pce.html
+
+[25] Khan, N. (2025, July 29). Procter & Gamble Says Consumers Are Under Stress. WSJ. https://www.wsj.com/business/retail/procter-gamble-pg-q4-earnings-report-2025-ae53f6f9
+
+[26] James, D. (2025, July 15). Amazon once again touts ‘record’ Prime Day sales | Retail Dive. Retail Dive. https://www.retaildive.com/news/amazon-prime-day-2025-record-sales/753034/
+
+[27] Weise, K. (2025, July 31). Amazon Reports Strong Retail Demand, but Says Future Is Less Clear. The New York Times. https://www.nytimes.com/2025/07/31/business/amazon-earnings-second-quarter.html
+
+[28] CBS News. (2025, July 31). PCE report shows U.S. inflation rose last month as Trump’s tariffs boosted some prices—CBS News. CBS News. https://www.cbsnews.com/news/pce-report-today-inflation-june-federal-reserve/
+
+[29] Durbin, D.-A., & D’innocenzio, A. (2025, August 1). What consumers can expect from import taxes as the US sets new tariff rates. AP News. https://apnews.com/article/trump-tariffs-consumers-prices-ebf959d8f8ad24bd0757d8e3693924c1
+
+[30] Young, L. (2025a, July 9). Warehouse Vacancies Climb to Highest Level in More Than a Decade. Wall Street Journal. https://www.wsj.com/articles/warehouse-vacancies-climb-to-highest-level-in-more-than-a-decade-aac533d2
+
+[31] Berger, P. (2025b, July 31). Logistics Giant DSV Hits Pause on U.S.-Mexico Investments. Wall Street Journal. https://www.wsj.com/articles/logistics-giant-dsv-hits-pause-on-u-s-mexico-investments-dea40a96
+
+[32] Young, L., & Jacob, D. (2025, July 16). Prologis Ramps Up Plans for New Warehouse Construction. Wall Street Journal. https://www.wsj.com/articles/prologis-ramps-up-plans-for-new-warehouse-construction-d5de136b
+
+[33] Hamilton, K. (2025, July 15). J.B. Hunt Profit Falls Due to Higher Expenses. Wall Street Journal. https://www.wsj.com/articles/j-b-hunt-profit-falls-due-to-higher-expenses-2ef61619
+
+[34] U.S. Bureau of Labor Statistics. (2025, August 1). THE EMPLOYMENT SITUATION — JULY 2025. chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/https://www.bls.gov/news.release/pdf/empsit.pdf
+
+[35] Fung, E. (2025, July 29). A Megamerger Creates America’s First Coast-to-Coast Rail Operator. WSJ. https://www.wsj.com/business/logistics/transcontinental-railway-union-pacific-norfolk-southern-03e313aa
+
+[36] Chirls, S. (2025b, July 31). Rail deal will open new markets for top US container port. FreightWaves. https://www.freightwaves.com/news/rail-deal-will-open-new-markets-for-top-us-container-port
+
+[37] U.S. Energy Information Administration. (2025, July 29). Gasoline and Diesel Fuel Update—July 29, 2025. Gasoline and Diesel Fuel Update - July 29, 2025. https://www.eia.gov/petroleum/gasdiesel/index.php
+
+[38] Chapman, M. (2025, August 1). Q2 profits at Exxon Mobil and Chevron dip to lowest level in 4 years on subdued energy prices. AP News. https://apnews.com/article/exxon-mobil-oil-opec-6dff763ff5e048c9a7e82ebefea8c8dd
+ ​
+Proudly powered by Weebly

@@ -10,6 +10,7 @@ Handles:
 
 import json
 import re
+from datetime import datetime
 from pathlib import Path
 
 import httpx
@@ -173,9 +174,12 @@ async def lmi_page(request: Request) -> HTMLResponse:
     files = sorted(
         [f.name for f in _LMI_DIR.glob("*") if f.suffix.lower() in _SUPPORTED_EXTS]
     )
+    # Pre-select current month's file; fall back to the last (most recent) file
+    month_str = datetime.now().strftime("%B %Y")  # e.g. "March 2026"
+    default_file = next((f for f in files if month_str in f), files[-1] if files else None)
     return templates.TemplateResponse(
         "maintenance/lmi.html",
-        {"request": request, "active_page": "lmi", "files": files},
+        {"request": request, "active_page": "lmi", "files": files, "default_file": default_file},
     )
 
 

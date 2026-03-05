@@ -1,0 +1,905 @@
+2/3/26, 4:22 PM
+January 2026 Logistics Managers' Index - LOGISTICS MANAGERS' INDEX
+LOGISTICS
+MANAGERS'
+INDEX 
+HOME
+ABOUT
+LMI SURVEY
+CONTACT
+MORE...
+January 2026
+Logistics Managers'
+Index
+https://www.the-lmi.com/january-2026-logistics-managers-index.html
+1/28
+2/3/26, 4:22 PM
+January 2026 Logistics Managers' Index - LOGISTICS MANAGERS' INDEX
+LOGISTICS
+MANAGERS'
+INDEX 
+HOME
+ABOUT
+FOR RELEASE: Tuesday, February 3rd, 2026
+Contact:  
+Zac Rogers, Ph.D.
+Logistics Manager’s Index Analyst
+Associate Professor, Supply Chain Management
+Department of Management
+Colorado State University
+Fort Collins, Colorado
+(970) 491-0890
+E-mail: Zac.Rogers@colostate.edu
+LMI SURVEY
+CONTACT
+MORE...
+January 2026 Logistics Manager’s
+Index Report®
+LMI® at 59.6
+Growth is INCREASING AT AN INCREASING RATE for: Inventory Levels, Inventory Costs,
+Warehousing Capacity, Warehousing Utilization, and Transportation Prices
+Growth is INCREASING AT A DECREASING RATE for: Warehousing Prices and Transportation
+Utilization
+NO MOVEMENT for: Warehousing Capacity
+Transportation Capacity is CONTRACTING
+Fort Collins, CO) —The January Logistics Manager’s Index reads in at 59.6, up (+5.2) from December’s
+reading of 54.2. This is the fastest level of expansion since May of last year. It is down (-2.4) from
+January 2025’s reading of 62.0. The overall rate of expansion is largely due to a shift back towards
+milder restocking to start the year. It is lower than last year because the rate of expansion for
+Inventory Levels (53.9) is relatively mild compared to what we often see in January (58.5 last year)
+when firms are engaged in restocking. This is especially notable given that December’s reading was
+35.1, which was the lowest ever for this metric. This suggests that respondents kept with their future
+predictions from last year and running inventories relatively lean to start the year. This is possibly
+reflective of the continued high costs. Inventory Costs (+8.4) read in at 71.3, pushing them back above
+the significant expansion threshold of 70.0 for the 12th out of 13 times. The expansion in inventory is
+reflected in Warehousing Capacity dropping (-11.2) to 50.0 and no movement. Warehousing Utilization
+is the mirror image, bouncing back (+11.6) from contraction to expansion at 54.4. Transportation is still
+tight, although the rate of Transportation Capacity has slowed (+10.9) from 36.9 to a milder rate of 47.1.
+This continued tightening led to another increase (+4.8) in Transportation Prices, which at 71.4 is
+expanding more quickly than any time since April of 2022.
+Researchers at Arizona State University, Colorado State University, Florida Atlantic University, Rutgers
+https://www.the-lmi.com/january-2026-logistics-managers-index.html
+2/28
+2/3/26, 4:22 PM
+January 2026 Logistics Managers' Index - LOGISTICS MANAGERS' INDEX
+LOGISTICS
+HOME
+ABOUT
+University, and the University of Nevada, Reno, and in conjunction with the Council of Supply Chain
+Management Professionals (CSCMP) issued this report today.
+CONTACT
+MANAGERS'
+INDEX 
+Results Overview
+LMI SURVEY
+MORE...
+The LMI score is a combination of eight unique components that make up the logistics industry,
+including: Inventory Levels and Costs, Warehousing Capacity, Utilization, and Prices, and
+Transportation Capacity, Utilization, and Prices. The LMI is calculated using a diffusion index, in which
+any reading above 50.0 indicates that logistics is expanding; a reading below 50.0 is indicative of a
+shrinking logistics industry. The latest results of the LMI summarize the responses of supply chain
+professionals collected in January 2026.
+The January LMI read in at 59.6, which is up (+5.4) from December’s reading of 54.2. This is the fastest
+rate of expansion since last May, which comes on the heels of what had been an 18-month low last
+month. This is the eleventh consecutive reading to come in below the all-time overall average of 61.3.
+This slightly below average yet steady rate of growth is consistent across supply chains, with no
+significant differences between Upstream and Downstream (59.7 and 58.3), early and late (58.1 and
+60.2) or large and small (59.0 and 59.5) respondents.
+The overall economy continues to be an interesting, if not somewhat uncertain place. In a 10-2 vote
+the U.S. Federal Reserve held interest rates steady between 3.5-3.75%. Comments from the board
+suggest they are comfortable staying put until a big move happens in the interest or unemployment
+numbers[1]. The nomination of Kevin Warsh for incoming Fed Chair may have some expecting softer
+interest rates later this year, it is worth pointing out that he was actually fairly hawkish on rates as a
+governor from 2006-2011[2]. Whether that happens is likely more dependent on the job market than
+one particularly governor. Canada also chose to keep their interest rates unchanged, holding at a rate
+of 2.25% for the second consecutive meeting[3]. The Fed is attempting to balance the cross pressures
+of inflation and unemployment. Several large firms announced significant layoffs in January. The
+largest of these is UPS, who will be cutting up to 30,000 operational jobs (i.e. warehousing and
+delivery) as they continue to reduce their volume with Amazon, who has been their largest customer.
+This comes after cutting another 62,000 positions in 2025, reflecting a significant reduction in
+workforce as they continue attempting to fill the gap with increased automation throughout their
+distribution network[4]. Amazon is in a similar boat, eliminating 16,000 white-collar positions that are
+slated to be partially back-filled by AI. This marks a true strategic shift more than a cost-cutting one,
+as Amazon’s profits were up 40% to $21 billion in the most recent quarter[5]. In the last week of
+January Nike also announced the termination of 775 warehousing positions coming as the result of
+increased automation[6]. It is interesting that all of these firms cited automation, rather than
+significant business slowdowns, as the raison d’etre for these cuts. Economists have been classifying
+the U.S. job market as a “no-hire, no-fire” economy. The economy added 584,000 jobs in 2025. That
+comes out to approximately 50,000 per month – down significantly from the 170,000 jobs the U.S.
+gained in the average month in 2024[7]. If the recent wave of firings continues (Dow Chemicals,
+Home Depot, and Mastercard also announced significant layoffs in the last week of January)[8] [9]
+and new jobs do not pick up – 50,000 were added last month – economists may have to reclassify
+their labor market assessment.
+https://www.the-lmi.com/january-2026-logistics-managers-index.html
+3/28
+2/3/26, 4:22 PM
+January 2026 Logistics Managers' Index - LOGISTICS MANAGERS' INDEX
+LOGISTICS
+MANAGERS'
+INDEX 
+HOME
+ABOUT
+LMI SURVEY
+CONTACT
+MORE...
+Uncertainty regarding the job market seems to be reflected in consumer sentiment. The Consumer
+Board’s January 2026 Consumer Confidence Index (CCI) is down (-9.7) to 84.5 which is the lowest level
+for the overall index since May of 2014. Respondents repeatedly mentioned increased costs of living,
+as well as concerns regarding tariffs and the labor market as reasons behind this pessimism[10].
+While the University of Michigan survey of consumers was up (+3.5) to 56.4 in December, it is down
+15.3 points, or 21.3%, from the same time a year ago. Consumers in this report are still concerned
+about tariffs, but their fears regarding future inflation have subsided somewhat[11]. Despite the poor
+sentiment, U.S. spending continues, although there is evidence that it continues to be driven more by
+high socio-economic consumers – leading to what is called a “k-shaped” economy. Decreased
+spending by lower socio-economic consumers has not been bad for everyone. Goodwill reported $7
+billion in revenue for 2025 which is up 7% from 2024 and is an all-time record. Similar increase were
+seen at Savers Value Village and ThredUp, suggesting an increased number of consumers looking for
+deals to stretch their dollar[12]. Consumer spending at the low end could be boosted by tax returns,
+which are expected to be $1000 larger this year on average[13].
+Looking abroad, international trade continues to fluctuate. In November the U.S. trade deficit
+increased by 94.6% to $56.8 billion. This is a product of decreased exports as well as the significant
+inflows of products during the Q4 shopping season. Some of this may have been due to
+manufacturing investment as well, with $7.4 billion in capital goods – an all-time high – coming in
+November. It is possible that some of this uptick was due more to cost increases than volume
+alone[14]. Canada announced plans to lower tariffs on Chinese automobiles. Specifically, they will
+lower tariffs on Chinese electric vehicles from 100% to 6.1%. This will create additional challenges for
+U.S. automakers in what has historically been a strong market for them. Canadian lawmakers argue
+that the country has little choice but to lower barrier with Canada, given the increased costs of U.S.
+vehicles due to tariffs and counter tariffs[15]. Several trade partnerships have been formed in the wake
+of continued U.S. tariffs. In January the EU announced separate free trade deals with the South
+American bloc known as Mercosur[16], as well as with India[17]. While both deals still have some legal
+hurdles, they represent a coming together of the world’s largest economic bloc in the EU and several
+of its fastest growing economies – something which will allow all involved parties to lessen their
+reliance on the United States.
+Some of this volume may be replaced by domestic manufacturing. GM announced plans to continue
+increasing production in the U.S., eventually reaching 2 million units per year. GM reported $3.1 billion
+in tariff costs in 2025 and expects another $3-4 billion in 2026, so there is a strong financial incentive
+to reshore[18]. U.S. factory orders were up 2.7% to 621.6 billion in November, which was double the
+expectations of economists surveyed by the Wall Street Journal[19]. This may be putting some cost
+pressure on Upstream inventories, as the Producer Price Index (PPI) was up 0.5% in December, which
+is more than expected. This is driven by a 0.7% month-over-month increase in the cost of services[20].
+This may be reflected in the significantly higher Inventory Costs of 77.5 reported by larger firms.
+Smaller firms also reported expansion – albeit at the significantly lower level of 65.0. This difference in
+cost and inflation may be reflective of tariffs paid on imports and/or the costs of standing up
+domestic manufacturing.
+https://www.the-lmi.com/january-2026-logistics-managers-index.html
+4/28
+2/3/26, 4:22 PM
+January 2026 Logistics Managers' Index - LOGISTICS MANAGERS' INDEX
+LOGISTICS
+MANAGERS'
+INDEX 
+HOME
+ABOUT
+LMI SURVEY
+CONTACT
+MORE...
+Inventory Costs are up (+8.4) to 71.3 and continue to expand at a much faster rate than Inventory
+Levels. Inventory Levels contracted at 35.1 in December, which was their fastest decline in the history
+of the index. That shifted in January as Inventory Levels moved (+18.8) back to very mild expansion at
+53.9. This moderate rate of expansion is consistent across the supply chain (small and large
+respondents report identical expansion at 53.9) and may represent the long-predicted return to JIT
+inventory management policies. The chart below shows Inventory Level movements in December
+(green bars) and January (blue bars) over the last seven years. Values are presented relative to the
+breakeven level of 50.0 (i.e. January 2026’s reading was 53.9, so relative to 50.0 it is 3.9). Inventory
+Levels contracted more quickly in December 2025 than at any other point in the history of the LMI.
+However, the replenishment we see occurring in 2026 is the second lowest for any January. It is
+interesting that the three slowest rates of January Inventory Level replenishment occurred after the
+only three readings of Inventory Level contractions in December. The last time these dynamics
+existed was going from 2023 to 2024. Inventories were run very lean in 2024 – which in many ways
+was the only truly JIT year of the 2020s (inventory managers may have ended 2019 and started 2020
+planning on lean inventories, but that changed due to existential global health crisis-related reasons).
+That suggests that the inventory dynamics of 2024 may provide a blueprint for 2026. In that case, we
+may see firms turning over inventories quickly, which will likely require increased freight utilization.
+The caveat here is that Inventory Costs are statistically significantly higher (p<0.0001) than they were
+two years ago. Inventory Costs expanded at an average of 65.5 from December 2023-December 2024
+at an average of 73.7 from January 2025-January 2026. The lean inventory turnover plans are
+incentivized by a combination of tariffs and expectations of strong consumer spending. If high costs
+put a dent in spending, the slowdown could look more like 2023 than 2024, when inventories were
+still low, but also relatively static.
+https://www.the-lmi.com/january-2026-logistics-managers-index.html
+5/28
+Whatever happens going forward, inventories are moving quickly now, which is reflected in our
+transportation metrics. Transportation Capacity continued to contract in at 47.1 in January, although
+at a much slower rate (+10.2) than the 36.9 in December. As discussed below, Transportation Capacity
+contraction has slowed in each 2-week period since early December, suggesting that the market is
+leveling off after contracting quickly at the start of the holiday shopping season. January’s contraction
+is driven by larger respondents, who reported a level of contraction (41.5) that was statistically
+significantly lower than the mild expansion (52.5) reported by their smaller counterparts. We also saw
+Upstream firms report contraction (45.9) while Downstream retailers reported Transportation
+Capacity breaking even at 50.0. It has been an interesting month for Downstream retail
+transportation and fulfillment. Office Depot and American Eagle were among the retailers that had
+opened logistics arms during the pandemic. American Eagle’s $360 million acquisition of Quiet
+Logistics was an attempt to offer logistics as a service for similar retailers. Both AE and Office Depot
+shuttered these operations, pivoting back towards their core competencies and exiting the world of
+third-party delivery[21]. However, grocery delivery was another bright spot for the B2C market, with
+U.S. e-grocery sales up 32% year-over-year with $12.7 billion in sales in December. Interestingly, this
+expansion contributed to the ongoing “k-shaped” economy, as earners making more than $200,000
+per year have doubled their e-grocery shopping since 2023, while those making between $50,00
+99,999 have pulled back[22]  This could be partially facilitated via drones at the nation’s largest
+grocery retailer. Walmart continues to invest in their drone delivery program, rolling it out to an
+additional 150 stores, with an eye on offering the service at 270 locations by 2027. This would involve
+diversifying from their current operations in Dallas-Fort Worth and Atlanta, expanding the reach of
+their program from 2 million to 40 million[23].
+ 
+As one would expect with the two-month contraction of Transportation Capacity, Transportation
+LOGISTICS
+MANAGERS'
+INDEX
+  
+ 
+HOME ABOUT CONTACT
+LMI SURVEY MORE...
+2/3/26, 4:22 PM January 2026 Logistics Managers' Index - LOGISTICS MANAGERS' INDEX
+https://www.the-lmi.com/january-2026-logistics-managers-index.html 6/28
+2/3/26, 4:22 PM
+January 2026 Logistics Managers' Index - LOGISTICS MANAGERS' INDEX
+LOGISTICS
+MANAGERS'
+INDEX 
+HOME
+ABOUT
+LMI SURVEY
+CONTACT
+MORE...
+Prices have continued to rise. This month’s reading is up (+4.8) to 71.4, which is the highest reading for
+this metric since April of 2022. There seems to have been a shift to the more intermodal-heavy
+strategies that characterized mid-2025, to more OTR shipping – which would be consistent with a
+movement towards faster inventory turnover. Norfolk Southern’s profits were down 12% in the fourth
+quarter. This is largely due to one-time charges related to its ongoing merger with Union Pacific[24].
+It could also reflect a possibly shift away from intermodal and towards OTR as inventory began
+moving faster at the end of the year. Interestingly, BNSF has announced it will spend $3.6 billion on
+infrastructure investments in 2026, with plans to lay some new track and also either resurface or
+replace thousands of miles of track[25]. At the same time, U.S. diesel prices were to $3.624 per gallon
+in the last week of January up (+$0.094 per gallon) from the week before but down (-$0.035 per
+gallon) year-over-year[26].
+The dip in capacity and increase in price comes despite consistent expansion (-0.1) of 58.1 in
+Transportation Utilization. It is likely that this is due to capacity being constrained by harsh weather
+conditions. Economists believe that January’s severe winter storms could reduce GDP by 0.5-2.0%, the
+equivalent of $150-600 billion[27]. There is evidence that this storm led to tighter freight capacity and
+may have prolonged elevated freight prices post-holiday[28]. We also see that Upstream
+Transportation Capacity came in much higher (73.8) than their Downstream counterparts (56.3). This
+could point to a combination of slower fulfillment at the retail level, as well as the potential for more
+B2B investment Upstream.
+Similar to what we observe with inventories, warehousing metrics shifted back towards expansion in
+January as firms restocked after the holiday rush. Warehousing Capacity dropped (-11.2) from 61.2,
+which had been its highest expansion in years, down to 50.0 and no movement. After emptying out
+through the last 2.5 months, there seems to be some optimism around warehousing. Warehousing
+vacancy rate held steady at 7.1% in the fourth quarter, tying an 11-year high. That being said,
+companies did lease 665 million square feet of space in 2025, which is the most since 2022. This could
+be reflective of the buildup and subsequent rundown of inventories throughout 2025. The
+movements in demand were good for the world’s largest industrial real estate firm, as Prologis
+reported Q4 revenue of $2.25 billion, up 2% year-over-year[29]. This is driven more by Downstream
+retailers, who reported active contraction (47.1), contrasting with mild expansion (51.4) Upstream.
+Warehousing Utilization made a similarly significant move, going from contraction at 42.9 up (+11.6) to
+expansion at 54.4. Warehousing Utilization contracted for the only time ever in our index in
+November and December. As predicted last month, this was a temporary byproduct of a historic
+rundown in inventories. Utilization is now back into expansion territory, where both Upstream (63.8)
+and Downstream (59.1) respondents expect it to stay for the next 12 months. Of the warehousing
+metrics, Warehousing Prices moved the least (-1.5) but remained in robust expansion at 64.8.
+Upstream firms reported significantly faster rates of price expansion at 67.6 to the 58.8 reported by
+their Downstream counterparts. This is something that seems likely to continue into the future, with
+Upstream firms predicting what would be highly significant expansion at 77.5 and Downstream firms
+predicting still strong growth of 68.2. Based on both current and future predictions it seems likely
+that storage costs will continue to increase throughout 2026. One way that firms are attempting to
+https://www.the-lmi.com/january-2026-logistics-managers-index.html
+7/28
+2/3/26, 4:22 PM
+January 2026 Logistics Managers' Index - LOGISTICS MANAGERS' INDEX
+LOGISTICS
+MANAGERS'
+INDEX 
+HOME
+ABOUT
+CONTACT
+cut warehousing costs is through increased AI, such as the Athena system that is being used to
+determine the authenticity of returned high-end goods[30]. January also saw an increased adoption
+by U.S. government facilities of computer-vision AI models originally developed by Amazon[31].
+LMI SURVEY
+MORE...
+Respondents were asked to predict movement in the overall LMI and individual metrics 12 months
+from now. Respondent predictions for the overall index are 65.8, which is up marginally (+0.5) from
+December’s future prediction of 65.3. Firms expect robust increase in Inventory Levels at 60.9
+(although that is driven more by Upstream firms). They also expect significant cost growth across the
+board with Inventory Costs (+2.1) at 74.2, Warehousing Prices (-0.2) at 74.5, and Transportation Prices
+(+2.7) at 79.5. All three metrics are predicted to be above the significant expansion line of 70.0 and
+cumulative cost predictions are 228.25 which would represent a notable – though not severe – level of
+supply inflation. The last time cumulative logistics costs expanded at that rate was in May 2022, which
+was a time of significant inflation in the U.S. and around the world. Capacity is also expected to be
+limited in the coming 12 months, with Warehousing Capacity predicted to be close to break even at
+51.9 and Transportation Capacity expected to contract at 42.3.
+We observe some differences when comparing feedback from Upstream (blue bars) and Downstream
+(orange bars) respondents in January. In the first month of 2026 activity is more balanced across
+https://www.the-lmi.com/january-2026-logistics-managers-index.html
+8/28
+2/3/26, 4:22 PM
+January 2026 Logistics Managers' Index - LOGISTICS MANAGERS' INDEX
+LOGISTICS
+MANAGERS'
+INDEX 
+HOME
+ABOUT
+LMI SURVEY
+CONTACT
+MORE...
+supply chains than we saw for much of 2025. Inventory Levels are coming up slowly for both
+Upstream and Downstream firms (53.7 and 54.4 respectively). Warehousing Capacity is contracting
+slightly (47.1) Downstream while increasing slightly Upstream (51.4). The opposite if true for
+Transportation Capacity which is contracting Upstream (45.9) while holding steady Downstream
+(50.0). Taken together, this may suggest that everyone across the supply chain is engaged in some
+level of restocking and are utilizing a notable level of logistics infrastructure to do so. The only
+statistically significant difference between the two groups is the marginally higher rate of expansion
+for Warehousing Prices Upstream (67.6) relative to Downstream (58.8) which is a continuation of the
+trends from December.
+We also split future predictions by Downstream respondents (purple bars) and Upstream
+respondents (green bars). Unlike the relative parity of current readings, future predictions suggest
+that Upstream firms will be notably busier than their Downstream counterparts. Upstream firms
+continue to expect slightly higher rates of Inventory Level expansion (63.2) than Downstream retailers
+(56.1). Due to this, they also expect tighter Warehousing Capacity (no movement at 50.0 to 56.1 and
+slight expansion Downstream), faster Warehousing Price expansion (77.5 to 68.2), and much higher
+https://www.the-lmi.com/january-2026-logistics-managers-index.html
+9/28
+Transportation Utilization (73.8 to 56.3). Together these push the overall index to 66.6 Upstream which
+is marginally significantly higher than the 59.1 predicted Downstream. 
+We analyze any differences in responses collected in early (gold bars) versus late (green bars) January.
+There were six statistically significant differences in the December analysis – there are none in
+January – suggesting much less movement within the month. The most notable (though statistically
+insignificant) shift was in Transportation Prices, which slowed from a 4-year high of 75.5 to a still
+robust rate of expansion at 68.4. Transportation Capacity contraction slowed at the same time, going
+from 44.1 early to almost no movement at 49.3 later in January. These same metrics also slowed
+between early and late December. Together this suggests that while freight market continues to
+expand, the rate of expansion has slowed since the initial burst early last month. That does not mean
+that it will move into a slowdown, merely that the rate of expansion may level off into a more
+sustainable level going forward (which is what is being predicted in respondent future forecasting).
+LOGISTICS
+MANAGERS'
+INDEX
+  
+ 
+HOME ABOUT CONTACT
+LMI SURVEY MORE...
+2/3/26, 4:22 PM January 2026 Logistics Managers' Index - LOGISTICS MANAGERS' INDEX
+https://www.the-lmi.com/january-2026-logistics-managers-index.html 10/28
+ We also compare smaller firms (those with 0-999 employees, represented by maroon lines) to larger
+firms (those with 1,000 employees or more, represented by gold lines) in January. After having no
+statistically significant differences in December, we see a few notably differences in January. Larger
+firms report significantly higher Inventory Costs (77.5 to 65.0) and significantly tighter Warehousing
+Capacity (41.5 to 52.5). The higher costs come despite Inventory Levels being identical at 53.9 for both
+groups. Inventories across the two groups have now been very similar for three months in a row. The
+fact that large and small firms are both going from contraction last month (37.5 and 31.7 respectively)
+to mild expansion suggests that the inventory dynamics that characterized 2025 may be shifting in
+2026. Last year smaller firms held onto significant levels of inventory to protect the cashflows of their
+larger partners, in some cases acting as “human shields” for large firms as well as end consumers.
+Respondents began indicating last year that they would move towards faster, cheaper inventory
+turnover strategies. These January readings suggest that may in fact be the case. 
+LOGISTICS
+MANAGERS'
+INDEX
+  
+ 
+HOME ABOUT CONTACT
+LMI SURVEY MORE...
+2/3/26, 4:22 PM January 2026 Logistics Managers' Index - LOGISTICS MANAGERS' INDEX
+https://www.the-lmi.com/january-2026-logistics-managers-index.html 11/28
+The index scores for each of the eight components of the Logistics Managers’ Index, as well as the
+overall index score, are presented in the table below. The rate of expansion for the overall index is 59.6,
+which is up (+5.4) from December’s reading of 54.2. Breaking the trend of the last two months, we
+observe upward movement from the inventory and warehousing metrics. Inventory Levels swung
+(+18.8) from their lowest-ever rate of contraction at 35.1 to mild expansion at 53.9. Despite the mild rate
+of expansion, Inventory Costs are up (+8.4) to 71.3, marking 12 of 13 months above the significant
+expansion threshold of 70.0. This inflow of inventory brought Warehousing Capacity down (-11.2) from
+last month’s multi-year high of 61.2 to no movement at 50.0. Warehousing Utilization moved out
+(+11.6) of contraction and back into expansion at 54.4. Transportation Capacity continues to contract,
+although at a much milder rate (+10.2) of 47.1. At the same time, Transportation Prices are up (+4.8) to
+71.4, which is the fastest rate of expansion level since April of 2022.
+LOGISTICS
+MANAGERS'
+INDEX
+  
+ 
+HOME ABOUT CONTACT
+LMI SURVEY MORE...
+2/3/26, 4:22 PM January 2026 Logistics Managers' Index - LOGISTICS MANAGERS' INDEX
+https://www.the-lmi.com/january-2026-logistics-managers-index.html 12/28
+Historic Logistics Managers’ Index Scores
+This period’s along with prior readings from the last two years of the LMI are presented table below:
+LOGISTICS
+MANAGERS'
+INDEX
+  
+ 
+HOME ABOUT CONTACT
+LMI SURVEY MORE...
+2/3/26, 4:22 PM January 2026 Logistics Managers' Index - LOGISTICS MANAGERS' INDEX
+https://www.the-lmi.com/january-2026-logistics-managers-index.html 13/28
+LMI®
+The January Logistics Manager’s Index reads in at 59.6, which is up (+5.2) from December’s reading of
+54.2, and is the highest reading since June. This reading is down (-2.4) from last year’s reading of 62.0
+which is interestingly the all-time average for the index in January. The slightly slower rate of growth
+compared to many other years is largely due to a slower rate of post-holiday restocking. We do
+however see strong expansion in Inventory Costs (+8.4) and Warehousing Utilization (+11.6) and a
+slowdown to no movement (-11.2) in Warehousing Capacity. The strong is unspectacular rate of
+expansion is consistent across the supply chain, with no significant differences between Upstream
+and Downstream (59.7 and 58.3), early and late (58.1 and 60.2) or large and small (59.0 and 59.5)
+respondents.
+When asked to predict what conditions will be over the next 12 months, respondents foresee a rate of
+LOGISTICS
+MANAGERS'
+INDEX
+  
+ 
+HOME ABOUT CONTACT
+LMI SURVEY MORE...
+2/3/26, 4:22 PM January 2026 Logistics Managers' Index - LOGISTICS MANAGERS' INDEX
+https://www.the-lmi.com/january-2026-logistics-managers-index.html 14/28
+2/3/26, 4:22 PM
+January 2026 Logistics Managers' Index - LOGISTICS MANAGERS' INDEX
+LOGISTICS
+MANAGERS'
+INDEX 
+HOME
+ABOUT
+CONTACT
+expansion of 65.8, which is marginally higher (+0.5) than December’s future prediction of 65.3, and
+would be above the all-time average of 61.3. Respondent expectations vary across the supply chain,
+with Upstream respondents predicting overall expansion of 66.6 and Downstream respondents
+predicting a slower (although still notable) rate of expansion at 59.1. 
+LMI SURVEY
+MORE...
+Inventory Levels
+The Inventory Level index is 53.9, up (+18.8) from last month’s 35.1. This is a sharp rebound following
+last month’s lowest value ever recorded for this index. Inventory Levels are 4.6 points lower than a
+year ago, and 1.1 points higher than two years ago at this time. While declining values in late-year
+months are not unusual—especially as firms work through holiday-related stock—last month’s drop
+was unusually large and likely influenced by a lower-than-normal response rate. This month
+represents a restocking, although at a slower level than one might expect given the rapid de-stocking
+from December. Upstream and Downstream were very consistent. Upstream returned a value of 53.7
+and Downstream read in at 54.4. This stands in contrast to the holiday-period volatility seen earlier in
+the season, when upstream and downstream values diverged significantly.
+Predictions for future Inventory Level growth are 60.9, up slightly (+1.9) from December’s future
+prediction of 59.0. Upstream respondents predict robust expansion at 63.2 while their Downstream
+counterparts look to keep things a bit leaner at 56.1. This is likely an attempt by retailers to keep
+https://www.the-lmi.com/january-2026-logistics-managers-index.html
+15/28
+inventories as low as possible to avoid tariffs and optimize cashflow.
+ 
+Inventory Costs
+ 
+Inventory Costs are 71.3, up (+8.4) from last month’s reading of 62.9. As seen above, the Inventory Level
+index showed a sharp decline in December followed by a full rebound in January, and Inventory Costs
+showed a similar—though less dramatic—pattern. Inventory Levels fell by 17.4 points in December,
+while Inventory Costs fell by only 7.9. Over the past three months, Inventory Levels moved from a
+small increase to a significant decrease and back to a small increase, while Inventory Costs showed no
+decreasing values at all during this period. Inventory Costs are 1.1 points higher than a year ago, and
+4.5 points higher than two years ago at this time, indicating stability for this point in the year.
+Upstream returned a value of 70.1, and Downstream returned a similar value, at 73.5. The interesting
+thing is that small firms reported increasing costs at 65.0, while large firms reported a much larger
+increase at 77.5, despite identical Inventory Level readings (53.9) for both groups. Early respondents
+reported a significant increase in Inventory Costs (70.5), while later respondents returned a very
+similar value (71.9).
+ 
+Predictions for future Inventory Cost growth is 74.2, up (+2.1) from December’s future prediction of
+72.1, suggesting that costs will continue to increase significantly over the next 12 months. Upstream
+respondents predict growth of 75.8 and Downstream predicts expansion at 71.2. Respondents clearly
+LOGISTICS
+MANAGERS'
+INDEX
+  
+ 
+HOME ABOUT CONTACT
+LMI SURVEY MORE...
+2/3/26, 4:22 PM January 2026 Logistics Managers' Index - LOGISTICS MANAGERS' INDEX
+https://www.the-lmi.com/january-2026-logistics-managers-index.html 16/28
+expect Inventory Costs to continue outpacing Inventory Levels, particularly Downstream where they
+predict Inventory Levels to run relatively lean.
+Warehousing Capacity
+ 
+The reading for Warehousing Capacity for January 2026 registered in at a neutral 50.0 points
+reflecting a 11.2 -point drop from the month prior. This reading is down 1.7 points from the reading
+one year ago and is also up by 4.1-points from the reading two years ago. In addition, there was a 4.4
+point split between Upstream (51.4) and Downstream (47.1) which was not statistically significant
+(p>.1), but notable as the Downstream value entered into contraction from its entrance into
+expansion. Comparing the differences between small (<999 employees) and large (>999) employees
+we see that these values are identical at 50.0 and 50.0.
+ 
+Finally, exploring the future predictions for Warehousing Capacity, respondents predict close to no
+expansion at51.9, down (-4.0) from December’s future prediction of 55.9. Downstream is expected to
+sustain expansionary growth with a value of 56.1 with Upstream’s growth expected to retreat to
+neutrality, with the predicted value one year out registering in at 50.0. This 6.1-point difference was
+not statistically significant (p>.1).
+LOGISTICS
+MANAGERS'
+INDEX
+  
+ 
+HOME ABOUT CONTACT
+LMI SURVEY MORE...
+2/3/26, 4:22 PM January 2026 Logistics Managers' Index - LOGISTICS MANAGERS' INDEX
+https://www.the-lmi.com/january-2026-logistics-managers-index.html 17/28
+Warehousing Utilization
+ 
+Breaking three months of rapid decline, the Warehousing Utilization index registered in at 54.5-points
+for the month of January 2026, reflecting a 11.6 -point increase from the month prior, entering back
+into expansion from three months of contraction.  This reading is down a dramatic 14.1-points from
+the reading one year ago, and down by 4.3-points from the reading two years ago. In addition, there
+was a 2.2-point split between Upstream (55.1) and Downstream (52.9), where both values are now
+squarely in contractionary territory, but this difference was also not statistically significant (p>.1).
+Comparing the differences between small (<999 employees) and large (>999) employees we see that
+these values are 54.0 and 54.8 with both small and large firms back into expansionary territory. This
+.8-point split was not statistically significant (p >.1).  
+ 
+Finally, exploring the future predictions for Warehousing Utilization, respondents predict expansion
+at 62.3, which is down (-3.3) December’s future prediction of 65.6. Expectations for growth are
+consistent across the supply chain with future Upstream expectations (63.8) being predicted to be
+growing slightly faster than Downstream expectations (59.1), where this 4.7-point difference was not
+statistically significant (p>.1).
+LOGISTICS
+MANAGERS'
+INDEX
+  
+ 
+HOME ABOUT CONTACT
+LMI SURVEY MORE...
+2/3/26, 4:22 PM January 2026 Logistics Managers' Index - LOGISTICS MANAGERS' INDEX
+https://www.the-lmi.com/january-2026-logistics-managers-index.html 18/28
+Warehousing Prices
+ 
+The Warehousing Pricing index is exhibiting a recurring "see-saw" pattern, with pricing decreasing (in
+direct contrast from last month’s reading) by 1.5-points to 64.8 for January 2026. This reading is down
+8.1-points from the reading one year ago, and up 0.4-points from the reading two years ago. In
+addition, there was a 8.8-point split between Upstream (67.6) and Downstream (58.8) which was
+marginally statistically significant (p<.1). Comparing the differences between small (<999 employees)
+and large (>999) employees we see that these values are 62.5 and 67.0 reflecting a 4.5 -point
+difference between the two which was not statistically significant (p >.1). 
+ 
+Finally, exploring the future predictions for Warehouse Price, respondents predict robust expansion at
+74.5, down slightly (-0.2) from December’s prediction of 74.7. Expectations across the supply chain are
+elevated, with future Upstream expectations (77.5) being predicted to be increasing, at a faster rate
+than Downstream expectations (68.2). This month's 9.3 -point difference was marginally significant
+(p<.1).
+LOGISTICS
+MANAGERS'
+INDEX
+  
+ 
+HOME ABOUT CONTACT
+LMI SURVEY MORE...
+2/3/26, 4:22 PM January 2026 Logistics Managers' Index - LOGISTICS MANAGERS' INDEX
+https://www.the-lmi.com/january-2026-logistics-managers-index.html 19/28
+Transportation Capacity
+The Transportation Capacity Index rebounded 10.2 points to 47.1 percent in January 2026. Despite this
+large increase, the Transportation Capacity index remains below the critical threshold and indicates
+slight contraction. While the Upstream Transportation Capacity index is at 45.9, the Downstream
+index is at 50.0 but the difference is not statistically significant.
+The future Transportation Capacity index increased 1.8 points, and it is now at 42.3, still indicating
+contraction for the next 12 months. While the future Upstream index is at 42.4, the Downstream
+Transportation Capacity index is at 42.2, and the difference is not statistically significant. As such, the
+expectations of future contractions are prevalent across the supply chains, both Upstream and
+Downstream.
+ 
+LOGISTICS
+MANAGERS'
+INDEX
+  
+ 
+HOME ABOUT CONTACT
+LMI SURVEY MORE...
+2/3/26, 4:22 PM January 2026 Logistics Managers' Index - LOGISTICS MANAGERS' INDEX
+https://www.the-lmi.com/january-2026-logistics-managers-index.html 20/28
+Transportation Utilization
+The Transportation Utilization Index decreased a mere .1 points, indicating 58.1 in January 2026. The
+Downstream Transportation Utilization Index is now at 52.9, while the Upstream index indicates 60.2,
+and the difference is not statistically significant.  As such, it can be concluded that the increase in
+Transportation Utilization is prevalent across the supply chains, both Upstream and Downstream.
+The future Transportation Utilization Index decreased 1.3 points from last month, indicating 69.0
+points for the next 12 months.  The future Upstream Transportation Utilization index at 73.8 and the
+Downstream index at 56.3 and the difference is statistically significant. As such expectation of
+increased Transportation Utilization remains stronger Upstream than Downstream. 
+LOGISTICS
+MANAGERS'
+INDEX
+  
+ 
+HOME ABOUT CONTACT
+LMI SURVEY MORE...
+2/3/26, 4:22 PM January 2026 Logistics Managers' Index - LOGISTICS MANAGERS' INDEX
+https://www.the-lmi.com/january-2026-logistics-managers-index.html 21/28
+Transportation Prices
+The Transportation Prices Index increased another 4.7 points from the previous reading and recorded
+71.4 in January 2026. With this increase, the index is 1 point lower than the level indicated one year
+ago. While the Upstream Transportation Prices Index is at 71.8, the Downstream index is at 70.6 and
+the difference is not statistically significant. As such, it can be concluded that the inflationary
+pressure on Transportation prices is being felt strongly across the supply chains, both Upstream and
+Downstream.
+The future index for Transportation prices also increased from last month, indicating 79.5 level for the
+next year. The Upstream future Transportation prices index is at 81.0 while the Downstream
+Transportation prices index is at 75.8, and the difference is not statistically significant. Therefore,
+inflationary expectations in Transportation prices are prevalent across the supply chains, both
+Upstream and Downstream. 
+LOGISTICS
+MANAGERS'
+INDEX
+  
+ 
+HOME ABOUT CONTACT
+LMI SURVEY MORE...
+2/3/26, 4:22 PM January 2026 Logistics Managers' Index - LOGISTICS MANAGERS' INDEX
+https://www.the-lmi.com/january-2026-logistics-managers-index.html 22/28
+About This Report
+The data presented herein are obtained from a survey of logistics supply executives based on
+information they have collected within their respective organizations. LMI® makes no representation,
+other than that stated within this release, regarding the individual company data collection
+procedures. The data should be compared to all other economic data sources when used in decision
+making.
+Data and Method of Presentation
+Data for the Logistics Manager’s Index is collected in a monthly survey of leading logistics
+professionals. The respondents are CSCMP members working at the director-level or above. Upper
+level managers are preferable as they are more likely to have macro-level information on trends in
+Inventory, Warehousing Transportation trends within their firm. Data is also collected from
+subscribers to both DC Velocity and Supply Chain Exchange as well. Respondents hail from firms
+working on all six continents, with the majority of them working at firms with annual revenues over a
+billion dollars. The industries represented in this respondent pool include, but are not limited to:
+Apparel, Automotive, Consumer Goods, Electronics, Food & Drug, Home Furnishings, Logistics,
+Shipping & Transportation, and Warehousing.
+Respondents are asked to identify the monthly change across each of the eight metrics collected in
+and 
+LOGISTICS
+MANAGERS'
+INDEX
+  
+ 
+HOME ABOUT CONTACT
+LMI SURVEY MORE...
+2/3/26, 4:22 PM January 2026 Logistics Managers' Index - LOGISTICS MANAGERS' INDEX
+https://www.the-lmi.com/january-2026-logistics-managers-index.html 23/28
+2/3/26, 4:22 PM
+January 2026 Logistics Managers' Index - LOGISTICS MANAGERS' INDEX
+LOGISTICS
+MANAGERS'
+INDEX 
+HOME
+ABOUT
+LMI SURVEY
+CONTACT
+MORE...
+this survey (Inventory Levels, Inventory Costs, Warehousing Capacity, Warehousing Utilization,
+Warehousing Prices, Transportation Capacity, Transportation Utilization, and Transportation Prices). In
+addition, they also forecast future trends for each metric ranging over the next 12 months. The raw
+data is then analyzed using a diffusion index. Diffusion Indexes measure how widely something is
+diffused or spread across a group. The Bureau of Labor Statistics has been using a diffusion index for
+the Current Employment Statics program since 1974, and the Institute for Supply Management (ISM)
+has been using a diffusion index to compute the Purchasing Managers Index since 1948. The ISM
+Index of New Orders is considered a Leading Economic Indicator.
+We compute the Diffusion Index as follows:
+PD = Percentage of respondents saying the category is Declining,
+PU = Percentage of respondents saying the category is Unchanged,
+PI = Percentage of respondents saying the category is Increasing,
+Diffusion Index = 0.0 * PD + 0.5 * PU + 1.0 * PI
+For example, if 25 say the category is declining, 38 say it is unchanged, and 37 say it is increasing, we
+would calculate an index value of 0*0.25 + 0.5*0.38 + 1.0*0.37 = 0 + 0.19 + 0.37 = 0.56, and the index is
+increasing overall. For an index value above 0.5 indicates the category is increasing, a value below 0.5
+indicates it is decreasing, and a value of 0.5 means the category is unchanged. When a full year’s
+worth of data has been collected, adjustments will be made for seasonal factors as well.
+Logistics Managers Index
+Requests for permission to reproduce or distribute Logistics Managers Index Content can be made by
+contacting in writing at: Dale S. Rogers, WP Carey School of Business, Tempe, Arizona 85287, or by
+emailing  
+dale.rogers@asu.edu
+Subject: Content Request.
+The authors of the Logistics Managers Index shall not have any liability, duty, or obligation for or
+relating to the Logistics Managers Index Content or other information contained herein, any errors,
+inaccuracies, omissions, or delays in providing any Logistics Managers Index Content, or for any
+actions taken in reliance thereon. In no event shall the authors of the Logistics Managers Index be
+liable for any special, incidental, or consequential damages, arising out of the use of the Logistics
+Managers Index. Logistics Managers’ Index, and LMI® are registered trademarks. 
+About The Logistics Manager’s Index®
+The Logistics Manager’s Index (LMI) is a joint project between researchers from Arizona State
+University, Colorado State University, University of Nevada, Reno, Florida Atlantic University, and
+Rutgers University, supported by CSCMP. It is authored by Zac Rogers Ph.D., Steven Carnovale Ph.D.,
+Shen Yeniyurt Ph.D., Ron Lembke Ph.D., and Dale Rogers Ph.D.
+https://www.the-lmi.com/january-2026-logistics-managers-index.html
+24/28
+2/3/26, 4:22 PM
+.
+January 2026 Logistics Managers' Index - LOGISTICS MANAGERS' INDEX
+LOGISTICS
+MANAGERS'
+INDEX 
+HOME
+ABOUT
+LMI SURVEY
+CONTACT
+[1] Timiraos, N. (2026, January 28). Fed Holds Rates Steady for First Time Since July. 
+https://www.wsj.com/economy/central-banking/fed-holds-rates-steady-for-first-time-since-july
+e5622f03
+Wall Street Journal
+MORE...
+The New York Times
+[2] Ember, S., & Smith, C. (2026, January 31). Kevin Warsh Has a Tough Job Ahead. It’s Not the First
+Time. 
+. https://www.nytimes.com/2026/01/31/business/kevin-warsh-fed-chair.html
+[3] Vieira, P. (2026, January 28). Bank of Canada Stands Pat on Rates, Warns of Heightened
+Uncertainty. 
+Wall Street Journal
+. https://www.wsj.com/articles/bank-of-canada-stands-pat-on-rates
+warns-of-heightened-uncertainty-b2fae2b2
+[4] Eavis, P. (2026, January 27). UPS Says It Is Cutting Up to 30,000 Jobs. 
+The New York Times
+https://www.nytimes.com/2026/01/27/business/ups-jobs-layoffs-2026.html
+[5] Chan, K. (2026, January 28). 
+.
+Amazon cuts about 16,000 corporate jobs in the latest round of layoffs
+AP News. https://apnews.com/article/amazon-layoffs-job-cuts-tech
+74387fae2313ff7b0b1e638c00863443
+Nike to cut 775 employees as it accelerates
+“automation” at U.S. distribution centers
+.
+[6] Eisen, S., Fonrouge, G., & Golden, J. (2026, January 26). 
+. CNBC. https://www.cnbc.com/2026/01/26/nike-to-lay-off-775
+employees-at-us-distribution-centers.html
+[7] Ott, M. (2026, January 29). 
+209,000 last week.
+US applications for jobless benefits, a proxy for layoffs, tick down to
+AP News. https://apnews.com/article/unemployment-benefits-jobless-claims
+layoffs-labor-21ccf4e6ebbcabbc424e2feb56f0fee7
+[8] Grantham-Phillips, W. (2026, January 29). 
+market stagnates | AP News
+Workers feel anxious as layoffs pile up and the job
+. AP NEWS. https://apnews.com/article/amazon-ups-layoffs-economy
+washington-71bfde72b358fddb9a22c15aa13fe848
+[9] Miller, N. G. (2026, January 29). 
+—WSJ
+Mastercard to Cut 4% of Full-Time Employees After Business Review
+. The Wall Street Journal. https://www.wsj.com/business/retail/mastercard-quarterly-profit-rises
+as-consumers-continue-to-spend-33e82314?
+gaa_at=eafs&gaa_n=AWEtsqf_PujEg5l0f724QeHQAkq1jWDnHZGWQ8wcnHgaXih2SjrSMWAZ5P9NzF
+m4rdA%3D&gaa_ts=697c1226&gaa_sig=Fs7_JfXJI2VKzwlOJ0pPAkU5_glMOJ7oz7SeIwQtoR1lyCkDGbhJj
+_EqXMoEtH_-c0VWvoPgnvcVweY_nlAO7A%3D%3D
+[10] Mena, B. (2026, January 27). 
+Consumer confidence collapses to lowest level since 2014
+. CNN.
+https://www.msn.com/en-us/money/markets/consumer-confidence-collapses-to-lowest-level-since
+2014/ar-AA1V5E97?
+ocid=msedgntp&pc=U531&cvid=6977c4274c024b8684836747997ffcfb&cvpid=5ba6e9b0df0f475396a9b
+b0b9a5fae99&ei=11
+https://www.the-lmi.com/january-2026-logistics-managers-index.html
+25/28
+2/3/26, 4:22 PM
+. Survey of Consumers - January 2026.
+January 2026 Logistics Managers' Index - LOGISTICS MANAGERS' INDEX
+LOGISTICS
+[11] Hsu, J. (2026, January 27). 
+https://www.sca.isr.umich.edu/
+MANAGERS'
+INDEX 
+HOME
+ABOUT
+Surveys of Consumers
+LMI SURVEY
+CONTACT
+MORE...
+New York Times
+[12] Bhasin, K., & June, S. (2026, January 26). Goodwill Thrives as Americans Stretch Their Dollars. 
+. https://www.nytimes.com/2026/01/26/business/goodwill-sales-economy.html
+[13] Mena, B. (2026, January 27). 
+Consumer confidence collapses to lowest level since 2014
+The
+. CNN.
+https://www.msn.com/en-us/money/markets/consumer-confidence-collapses-to-lowest-level-since
+2014/ar-AA1V5E97?
+ocid=msedgntp&pc=U531&cvid=6977c4274c024b8684836747997ffcfb&cvpid=5ba6e9b0df0f475396a9b
+b0b9a5fae99&ei=11
+[14] Mutikani, L. (2026, January 29). 
+November
+US trade deficit widens by the most in nearly 34 years in
+. Reuters. https://www.msn.com/en-us/money/markets/us-trade-deficit-widens-by-the
+most-in-nearly-34-years-in-november/ar-AA1VfQ9P?
+ocid=msedgntp&pc=U531&cvid=697ba6744bfe4be197be53e135bf4ba6&ei=71
+York Times
+[15] Ewing, J. (2026, January 24). U.S. Automakers’ Foreign Troubles Now Extend to Canada. 
+. https://www.nytimes.com/2026/01/24/business/general-motors-ford-canada-china.html
+The New
+[16] Mackrael, K., & Hancock, E. (2026, January 9). In a Boost for Free Trade, EU Backs Controversial
+Pact With South Americans. 
+Wall Street Journal
+. https://www.wsj.com/world/europe/eu-approves
+long-awaited-south-american-trade-deal-sources-say-2b498fbe
+[17] Travelli, A., & Nelson, E. (2026, January 27). In Trump’s Shadow, India and the European Union
+Expand Trade Ties. 
+The New York Times
+trade-tariffs-trump.html
+[18] Wayland, M. (2026, January 27). 
+$4 billion in tariff costs
+. https://www.nytimes.com/2026/01/27/business/india-europe
+GM expects to top Ford in U.S. vehicle production as it faces up to
+. CNBC. https://www.cnbc.com/2026/01/27/gm-plans-to-top-ford-in-us
+production-amid-trumps-tariff.html
+[19] Coacci, J. (2026, January 29). U.S. Factory Orders Rose in November. 
+Wall Street Journal
+https://www.wsj.com/economy/u-s-factory-orders-rose-in-november-977a5fb5
+[20] Parker, H., & Kopack, S. (2026, January 30). 
+consumers
+.
+Companies are getting hit by rising prices, just like
+. NBC News. https://www.nbcnews.com/business/economy/inflation-consumer-businesses
+higher-prices-ppi-december-rcna256712
+FreightWaves
+[21] Kulisch, E. (2026, January 27). American Eagle, Office Depot pull plug on third-party logistics
+services. 
+. https://www.freightwaves.com/news/american-eagle-office-depot-pull-plug
+on-third-party-logistics-services
+https://www.the-lmi.com/january-2026-logistics-managers-index.html
+26/28
+2/3/26, 4:22 PM
+January 2026 Logistics Managers' Index - LOGISTICS MANAGERS' INDEX
+LOGISTICS
+HOME
+[22] Mass Market Retailers. (2026, January 28). 
+MANAGERS'
+INDEX 
+ABOUT
+CONTACT
+December caps breakout year for online grocery
+. Mass
+Market Retailers. https://massmarketretailers.com/december-caps-breakout-year-for-online-grocery/
+LMI SURVEY
+MORE...
+Street Journal
+[23] Young, L. (2026, January 11). Walmart Expanding Drone Delivery to Hundreds More Stores. 
+. https://www.wsj.com/articles/walmart-expanding-drone-delivery-to-hundreds-more
+stores-696165f7
+[24] Funk, J. (2026, January 29). 
+uncertainty
+Wall
+Norfolk Southern’s profit slips 12% amid merger costs and economic
+. AP News. https://apnews.com/article/norfolk-southern-railroad-profit-up-merger
+03131ca7a5f6e2e27fc8a1e1a28dd532
+FreightWaves
+[25] Trains com Staff. (2026, January 28). BNSF announces $3.6 billion capital plan for
+2026. 
+. https://www.freightwaves.com/news/bnsf-announces-3-6-billion-capital-plan-for
+2026
+[26] U.S. Energy Information Administration. (2026, January 27). 
+January 27, 2026
+Gasoline and Diesel Fuel Update—
+. PETROLEUM & OTHER LIQUIDS. https://www.eia.gov/petroleum/gasdiesel/index.php
+[27] Borenstein, S. (2026, January 26). 
+how much?
+Paralyzing winter storms put a big chill on the US economy, but
+AP News. https://apnews.com/article/winter-storm-snow-ice-damage-costs-climate
+billions-b7f1812797d72215f7a37dc36d47de9e
+[28] Hampstead, J. P. (2026, January 28). Winter Storm Fern tightens U.S. trucking capacity,
+prolonging holiday season rate surge. 
+FreightWaves
+. https://www.freightwaves.com/news/winter
+storm-fern-tightens-u-s-trucking-capacity-prolonging-holiday-season-rate-surge
+[29] Young, L., & Miller, N. G. (2026, January 21). Prologis Revenue Climbs as Warehouse Demand
+Rebounds. 
+Wall Street Journal
+demand-rebounds-a4c19fdc
+. https://www.wsj.com/articles/prologis-revenue-rises-as-warehouse
+[30] Williams, J. (2026, January 21). How This AI-Infused Warehouse Sorts Real Louis Vuitton Bags
+From Fakes. 
+Wall Street Journal
+. https://www.wsj.com/articles/how-this-ai-infused-warehouse-sorts
+real-louis-vuitton-bags-from-fakes-61c92eb5
+[31] V2X Inc. (2026, January 29). 
+Logistics Automation
+V2X and Amazon to Partner on Smart Warehousing and Global
+. PR Newswire. https://www.prnewswire.com/news-releases/v2x-and-amazon-to
+partner-on-smart-warehousing-and-global-logistics-automation-302674152.html
+https://www.the-lmi.com/january-2026-logistics-managers-index.html
+27/28
+2/3/26, 4:22 PM
+January 2026 Logistics Managers' Index - LOGISTICS MANAGERS' INDEX
+LOGISTICS
+MANAGERS'
+INDEX 
+HOME
+ABOUT
+LMI SURVEY
+CONTACT
+MORE...
+https://www.the-lmi.com/january-2026-logistics-managers-index.html
+Proudly powered by Weebly
+28/28
