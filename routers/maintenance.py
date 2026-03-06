@@ -8,6 +8,7 @@ Handles:
   POST /maintenance/lmi/analyze     — Stream AI bullet-point takeaways via Ollama
 """
 
+import csv
 import json
 import re
 from datetime import datetime
@@ -25,6 +26,9 @@ templates = Jinja2Templates(directory="templates")
 
 # Directory containing LMI source documents
 _LMI_DIR = Path(__file__).parent.parent / "raw_data" / "lmi"
+
+# Pre-computed LMI scores CSV
+_LMI_SCORES_CSV = Path(__file__).parent.parent / "raw_data" / "lmi_scores.csv"
 
 # Supported file extensions for LMI analysis
 _SUPPORTED_EXTS = {".pdf", ".docx", ".xlsx", ".txt", ".csv"}
@@ -177,9 +181,23 @@ async def lmi_page(request: Request) -> HTMLResponse:
     # Pre-select current month's file; fall back to the last (most recent) file
     month_str = datetime.now().strftime("%B %Y")  # e.g. "March 2026"
     default_file = next((f for f in files if month_str in f), files[-1] if files else None)
+
+    # Load historical LMI scores for the line chart
+    lmi_scores: list[dict] = []
+    if _LMI_SCORES_CSV.exists():
+        with _LMI_SCORES_CSV.open(newline="", encoding="utf-8") as f:
+            for row in csv.DictReader(f):
+                lmi_scores.append({"date": row["date"], "lmi_score": float(row["lmi_score"])})
+
     return templates.TemplateResponse(
         "maintenance/lmi.html",
-        {"request": request, "active_page": "lmi", "files": files, "default_file": default_file},
+        {
+            "request": request,
+            "active_page": "lmi",
+            "files": files,
+            "default_file": default_file,
+            "lmi_scores": lmi_scores,
+        },
     )
 
 

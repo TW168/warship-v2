@@ -28,6 +28,13 @@ def connect_to_database(dbms: str = "mysql") -> Engine:
     # Build the connection string using the specified DBMS and mysql-connector-python driver
     connection_string = f"{dbms}+mysqlconnector://{user}:{password}@{host}:{port}/{database}"
 
-    # Create and return the SQLAlchemy engine
-    engine = create_engine(connection_string)
+    # pool_pre_ping=True: test each pooled connection before use; silently reconnects
+    # if MySQL closed it (e.g. after wait_timeout). Prevents the "works after reload"
+    # 500-error pattern caused by stale connections in the pool.
+    # pool_recycle=1800: force-recycle connections older than 30 min as an extra safeguard.
+    engine = create_engine(
+        connection_string,
+        pool_pre_ping=True,
+        pool_recycle=1800,
+    )
     return engine

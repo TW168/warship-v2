@@ -14,11 +14,9 @@ Includes:
 
 from collections import defaultdict
 from pathlib import Path
-import time
-
 import openpyxl
 from fastapi import APIRouter, Query, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import text
 
@@ -113,6 +111,22 @@ _MEETING_REPORT_SQL = text("""
 """)
 
 
+_ASSETS_DIR = Path(__file__).parent.parent / "static" / "assets"
+_NO_CACHE = {"Cache-Control": "no-store, no-cache, must-revalidate"}
+
+
+@router.get("/weather/maxt1", include_in_schema=False)
+async def weather_maxt1() -> FileResponse:
+    """Serve the MaxT1 CONUS image with no-cache headers so the browser always fetches fresh."""
+    return FileResponse(_ASSETS_DIR / "MaxT1_conus.png", headers=_NO_CACHE)
+
+
+@router.get("/weather/national", include_in_schema=False)
+async def weather_national() -> FileResponse:
+    """Serve the national forecast image with no-cache headers."""
+    return FileResponse(_ASSETS_DIR / "national_forecast.jpg", headers=_NO_CACHE)
+
+
 @router.get(
     "/",
     response_class=HTMLResponse,
@@ -123,7 +137,7 @@ async def home(request: Request) -> HTMLResponse:
     """Render the home page."""
     return templates.TemplateResponse(
         "home/index.html",
-        {"request": request, "active_page": "home", "img_ts": int(time.time())},
+        {"request": request, "active_page": "home"},
     )
 
 

@@ -12,9 +12,32 @@
     </ol>
   </nav>
 
-  <h1 class="page-header h3 mb-1">
+  <h1 class="page-header h3 mb-4">
     <i class="bi bi-robot me-2" aria-hidden="true"></i>LMI Document Analysis
   </h1>
+
+  {% if lmi_scores %}
+  <!-- ── LMI Score Trend chart ──────────────────────────────── -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-header fw-semibold d-flex align-items-center justify-content-between"
+         style="background:#154e9a; color:#fff;">
+      <span>
+        <i class="bi bi-graph-up me-2" aria-hidden="true"></i>LMI Score Trend
+      </span>
+      <span id="chartSpinner"
+            class="spinner-border spinner-border-sm"
+            role="status" aria-hidden="true"
+            style="width:1rem;height:1rem;"></span>
+    </div>
+    <div class="card-body p-2">
+      <div id="lmiChart" style="height:300px;"></div>
+    </div>
+    <div class="card-footer text-muted" style="font-size:0.75rem;">
+      Source: <code>raw_data/lmi_scores.csv</code> · Above 50 = logistics expanding · Below 50 = contracting
+    </div>
+  </div>
+  {% endif %}
+
   <p class="text-muted small mb-4">
     AI-powered bullet-point takeaways for each Logistics Managers Index report.
     Powered by <strong>deepseek-r1:8b</strong> via local Ollama.
@@ -27,66 +50,60 @@
   </div>
   {% else %}
 
-  <div class="row justify-content-center">
-    <div class="col-12 col-lg-9">
+  <!-- Report selector -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <label for="reportSelect" class="form-label fw-semibold">Select LMI Report</label>
+      <div class="d-flex gap-2">
+        <select id="reportSelect" class="form-select">
+          {% for filename in files %}
+          <option value="{{ filename }}"
+            {% if filename == default_file %}selected{% endif %}>
+            {{ filename }}
+          </option>
+          {% endfor %}
+        </select>
+        <button class="btn btn-primary text-nowrap" id="analyzeBtn" onclick="runAnalysis()">
+          <i class="bi bi-play-fill me-1"></i>Analyze
+        </button>
+      </div>
+    </div>
+  </div>
 
-      <!-- Report selector -->
-      <div class="card shadow-sm mb-4">
-        <div class="card-body">
-          <label for="reportSelect" class="form-label fw-semibold">Select LMI Report</label>
-          <div class="d-flex gap-2">
-            <select id="reportSelect" class="form-select">
-              {% for filename in files %}
-              <option value="{{ filename }}"
-                {% if filename == default_file %}selected{% endif %}>
-                {{ filename }}
-              </option>
-              {% endfor %}
-            </select>
-            <button class="btn btn-primary text-nowrap" id="analyzeBtn" onclick="runAnalysis()">
-              <i class="bi bi-play-fill me-1"></i>Analyze
-            </button>
-          </div>
+  <!-- Result card -->
+  <div class="card shadow-sm">
+    <div class="card-header fw-semibold d-flex align-items-center justify-content-between"
+         style="background:#154e9a; color:#fff;">
+      <span id="resultTitle">
+        <i class="bi bi-file-earmark-pdf me-2" aria-hidden="true"></i>
+        <span id="resultFilename">{{ default_file or '' }}</span>
+      </span>
+      <span id="headerSpinner" class="spinner-border spinner-border-sm d-none"
+            role="status" aria-hidden="true"
+            style="width:1rem;height:1rem;"></span>
+    </div>
+    <div class="card-body">
+      <!-- Status line -->
+      <div id="statusLine" class="text-muted small mb-2 d-none">
+        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+        Reading document and generating takeaways…
+      </div>
+      <!-- Result area -->
+      <div id="resultArea" class="d-none">
+        <ul id="bulletsList" class="mb-2" style="line-height:1.8; padding-left:1.25rem;"></ul>
+        <div class="d-flex gap-2 mt-2">
+          <button class="btn btn-outline-secondary btn-sm" onclick="copyResults()">
+            <i class="bi bi-clipboard me-1"></i>Copy
+          </button>
+          <button class="btn btn-outline-primary btn-sm" onclick="runAnalysis()">
+            <i class="bi bi-arrow-clockwise me-1"></i>Re-analyze
+          </button>
         </div>
       </div>
-
-      <!-- Result card -->
-      <div class="card shadow-sm">
-        <div class="card-header fw-semibold d-flex align-items-center justify-content-between"
-             style="background:#154e9a; color:#fff;">
-          <span id="resultTitle">
-            <i class="bi bi-file-earmark-pdf me-2" aria-hidden="true"></i>
-            <span id="resultFilename">{{ default_file or '' }}</span>
-          </span>
-          <span id="headerSpinner" class="spinner-border spinner-border-sm d-none"
-                role="status" aria-hidden="true"
-                style="width:1rem;height:1rem;"></span>
-        </div>
-        <div class="card-body">
-          <!-- Status line -->
-          <div id="statusLine" class="text-muted small mb-2 d-none">
-            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-            Reading document and generating takeaways…
-          </div>
-          <!-- Result area -->
-          <div id="resultArea" class="d-none">
-            <ul id="bulletsList" class="mb-2" style="line-height:1.8; padding-left:1.25rem;"></ul>
-            <div class="d-flex gap-2 mt-2">
-              <button class="btn btn-outline-secondary btn-sm" onclick="copyResults()">
-                <i class="bi bi-clipboard me-1"></i>Copy
-              </button>
-              <button class="btn btn-outline-primary btn-sm" onclick="runAnalysis()">
-                <i class="bi bi-arrow-clockwise me-1"></i>Re-analyze
-              </button>
-            </div>
-          </div>
-          <!-- Empty placeholder -->
-          <div id="emptyPlaceholder" class="text-muted small">
-            Select a report and click <strong>Analyze</strong> to generate takeaways.
-          </div>
-        </div>
+      <!-- Empty placeholder -->
+      <div id="emptyPlaceholder" class="text-muted small">
+        Select a report and click <strong>Analyze</strong> to generate takeaways.
       </div>
-
     </div>
   </div>
 
@@ -95,7 +112,70 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 <script>
+  /* ── LMI Score Trend chart ─────────────────────────────────── */
+  (function () {
+    const scores = {{ lmi_scores | tojson }};
+    if (!scores.length) return;
+
+    const dates  = scores.map(function (r) { return r.date; });
+    const values = scores.map(function (r) { return r.lmi_score; });
+
+    // Color each point: blue if ≥50 (expanding), orange if <50 (contracting)
+    const colors = values.map(function (v) { return v >= 50 ? '#154e9a' : '#ffa726'; });
+
+    Plotly.newPlot('lmiChart', [
+      // 50-baseline reference area (shaded below)
+      {
+        x: dates.concat([dates[dates.length - 1], dates[0]]),
+        y: values.map(function () { return 50; }).concat([0, 0]),
+        fill: 'tozeroy',
+        fillcolor: 'rgba(255,167,38,0.08)',
+        line: { width: 0 },
+        hoverinfo: 'skip',
+        showlegend: false,
+        type: 'scatter',
+      },
+      // 50 reference line
+      {
+        x: [dates[0], dates[dates.length - 1]],
+        y: [50, 50],
+        mode: 'lines',
+        line: { color: '#adb5bd', width: 1, dash: 'dash' },
+        hoverinfo: 'skip',
+        showlegend: false,
+        type: 'scatter',
+      },
+      // LMI score line + markers
+      {
+        x: dates,
+        y: values,
+        mode: 'lines+markers',
+        type: 'scatter',
+        name: 'LMI',
+        line: { color: '#154e9a', width: 2.5 },
+        marker: { color: colors, size: 8, line: { color: '#fff', width: 1.5 } },
+        hovertemplate: '<b>%{x}</b><br>LMI: %{y:.1f}<extra></extra>',
+      },
+    ], {
+      yaxis: {
+        title: 'LMI Score',
+        range: [45, 70],
+        gridcolor: '#e9ecef',
+        zeroline: false,
+      },
+      xaxis: { gridcolor: '#e9ecef', tickangle: -30 },
+      plot_bgcolor:  '#ffffff',
+      paper_bgcolor: '#ffffff',
+      font: { family: 'Open Sans, sans-serif', size: 11 },
+      margin: { t: 10, r: 20, b: 60, l: 55 },
+      showlegend: false,
+    }, { responsive: true, displayModeBar: false });
+
+    document.getElementById('chartSpinner').style.display = 'none';
+  })();
+
   /**
    * runAnalysis — reads the selected filename from the dropdown and streams
    * bullet-point takeaways from the backend into the single result panel.
