@@ -17,7 +17,7 @@ echo "Building image..."
 docker build -t $IMAGE .
 
 echo "Starting container..."
-docker run -d --network host --name $CONTAINER $IMAGE
+docker run -d --network host --name $CONTAINER --env-file .env $IMAGE
 
 echo "Done. Checking health..."
 sleep 2

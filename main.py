@@ -4,8 +4,14 @@ main.py — Warship application entry point.
 Creates the FastAPI app, registers all routers, and mounts static files.
 """
 
+from pathlib import Path
+
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+
+# Load .env from the same directory as main.py — works regardless of cwd
+load_dotenv(Path(__file__).parent / ".env")
 
 from routers import health, home, warehouse, shipping, tsr_prep, maintenance, about
 

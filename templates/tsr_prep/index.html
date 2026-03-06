@@ -4,150 +4,589 @@
 {% block content %}
 <div class="container-fluid px-4 py-4">
 
+  <!-- Page header -->
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="page-header h3 mb-0">
-      <i class="bi bi-clipboard-check me-2" aria-hidden="true"></i>TSR Prep
+      <i class="bi bi-truck me-2" aria-hidden="true"></i>TSR Prep
     </h1>
-    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#newTsrModal">
-      <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>New TSR
+    <button class="btn btn-outline-primary btn-sm"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#uploadCard"
+            aria-expanded="true"
+            aria-controls="uploadCard">
+      <i class="bi bi-upload me-1"></i>Upload
     </button>
   </div>
 
-  <!-- Summary stats -->
-  <div class="row g-3 mb-4">
-    <div class="col-sm-6 col-xl-3">
-      <div class="card shadow-sm">
-        <div class="card-body d-flex align-items-center gap-3">
-          <div class="rounded-3 p-3 bg-primary bg-opacity-10">
-            <i class="bi bi-clipboard-data fs-3 text-primary" aria-hidden="true"></i>
-          </div>
-          <div>
-            <div class="text-muted small">Total TSRs</div>
-            <div class="fw-bold fs-4">—</div>
-          </div>
+  <!-- Upload card (collapsible) -->
+  <div class="collapse show mb-4" id="uploadCard">
+    <div class="card shadow-sm">
+      <div class="card-header fw-semibold" style="background:#154e9a; color:#fff;">
+        <i class="bi bi-file-earmark-excel me-2" aria-hidden="true"></i>
+        Upload IPG EZ Report
+      </div>
+      <div class="card-body">
+        <p class="text-muted small mb-3">
+          Upload an <em>AmTopp Current Pickup Detail Report as of&nbsp;YYYY-M-D&nbsp;HhMm.xlsx</em> file.
+          Duplicate files are detected automatically.
+        </p>
+        <div class="d-flex gap-2 align-items-center flex-wrap">
+          <input type="file"
+                 id="uploadInput"
+                 accept=".xlsx,.xls"
+                 class="form-control"
+                 style="max-width:480px;"
+                 aria-label="Choose IPG EZ Excel file">
+          <button class="btn btn-primary" id="uploadBtn" onclick="uploadFile()">
+            <span id="uploadSpinner"
+                  class="spinner-border spinner-border-sm me-1 d-none"
+                  role="status" aria-hidden="true"></span>
+            <i class="bi bi-cloud-upload me-1" id="uploadIcon"></i>Submit
+          </button>
         </div>
+        <div id="uploadMsg" class="mt-2 small d-none"></div>
       </div>
     </div>
-    <div class="col-sm-6 col-xl-3">
-      <div class="card shadow-sm">
-        <div class="card-body d-flex align-items-center gap-3">
-          <div class="rounded-3 p-3 bg-warning bg-opacity-10">
-            <i class="bi bi-hourglass fs-3 text-warning" aria-hidden="true"></i>
-          </div>
-          <div>
-            <div class="text-muted small">Pending</div>
-            <div class="fw-bold fs-4">—</div>
-          </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-body py-3">
+      <div class="row g-2 align-items-end">
+        <div class="col-sm-6 col-md-3 col-lg-2">
+          <label for="selSite" class="form-label form-label-sm fw-semibold mb-1">Site</label>
+          <select id="selSite" class="form-select form-select-sm">
+            <option value="">— choose —</option>
+          </select>
         </div>
-      </div>
-    </div>
-    <div class="col-sm-6 col-xl-3">
-      <div class="card shadow-sm">
-        <div class="card-body d-flex align-items-center gap-3">
-          <div class="rounded-3 p-3 bg-info bg-opacity-10">
-            <i class="bi bi-arrow-repeat fs-3 text-info" aria-hidden="true"></i>
-          </div>
-          <div>
-            <div class="text-muted small">In Progress</div>
-            <div class="fw-bold fs-4">—</div>
-          </div>
+        <div class="col-sm-6 col-md-3 col-lg-2">
+          <label for="selGroup" class="form-label form-label-sm fw-semibold mb-1">Product Group</label>
+          <select id="selGroup" class="form-select form-select-sm">
+            <option value="">— choose —</option>
+          </select>
         </div>
-      </div>
-    </div>
-    <div class="col-sm-6 col-xl-3">
-      <div class="card shadow-sm">
-        <div class="card-body d-flex align-items-center gap-3">
-          <div class="rounded-3 p-3 bg-success bg-opacity-10">
-            <i class="bi bi-check-circle fs-3 text-success" aria-hidden="true"></i>
-          </div>
-          <div>
-            <div class="text-muted small">Completed</div>
-            <div class="fw-bold fs-4">—</div>
-          </div>
+        <div class="col-sm-6 col-md-3 col-lg-2">
+          <label for="selDate" class="form-label form-label-sm fw-semibold mb-1">Report Date</label>
+          <select id="selDate" class="form-select form-select-sm">
+            <option value="">— choose —</option>
+          </select>
+        </div>
+        <div class="col-sm-6 col-md-3 col-lg-2">
+          <label for="selTime" class="form-label form-label-sm fw-semibold mb-1">Report Time</label>
+          <select id="selTime" class="form-select form-select-sm">
+            <option value="09:00:00">09:00 AM</option>
+            <option value="12:00:00">12:00 PM</option>
+            <option value="16:00:00">04:00 PM</option>
+          </select>
+        </div>
+        <div class="col-auto">
+          <button class="btn btn-primary btn-sm" onclick="applyFilters()">
+            <i class="bi bi-funnel me-1"></i>Apply
+          </button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- TSR table -->
-  <div class="card shadow-sm">
-    <div class="card-header d-flex justify-content-between align-items-center">
-      <span class="fw-semibold"><i class="bi bi-table me-2"></i>Technical Support Requests</span>
-      <input type="search" class="form-control form-control-sm w-auto"
-             placeholder="Search TSRs…" aria-label="Search TSRs" />
+  <!-- Summary bar (acts as collapse toggle for the ship list table) -->
+  <div id="summaryBar"
+       class="d-none mb-2 d-flex justify-content-between align-items-center flex-wrap gap-2 rounded px-3 py-2"
+       style="background:#f0f4f8; cursor:pointer;"
+       role="button"
+       data-bs-toggle="collapse"
+       data-bs-target="#shipListCollapse"
+       aria-expanded="false"
+       aria-controls="shipListCollapse">
+    <div class="fw-semibold">
+      <i class="bi bi-boxes me-1 text-primary"></i>
+      Available to ship: <span id="totalWgt" class="text-primary">0</span> lbs
+      &nbsp;·&nbsp;
+      <span id="totalRows">0</span> BL numbers
+      <i class="bi bi-chevron-down ms-2 small text-muted" id="summaryChevron"
+         style="transition:transform .2s;"></i>
     </div>
-    <div class="table-responsive">
-      <table class="table table-striped table-hover table-sm mb-0">
-        <thead>
-          <tr>
-            <th scope="col">TSR #</th>
-            <th scope="col">Title</th>
-            <th scope="col">Priority</th>
-            <th scope="col">Assigned To</th>
-            <th scope="col">Created</th>
-            <th scope="col">Status</th>
-            <th scope="col" class="text-end">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td colspan="7" class="text-center text-muted py-5">
-              <i class="bi bi-clipboard display-6 d-block mb-2" aria-hidden="true"></i>
-              No TSRs yet. Connect the database to populate this table.
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <button class="btn btn-outline-secondary btn-sm" onclick="downloadCsv(); event.stopPropagation();">
+      <i class="bi bi-download me-1"></i>Download CSV
+    </button>
+  </div>
+
+  <!-- Ship list table (collapsed by default) -->
+  <div class="collapse mb-4" id="shipListCollapse">
+  <div class="card shadow-sm" id="tableCard">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-striped table-hover table-sm mb-0">
+          <thead class="sticky-top" style="background:#154e9a; color:#fff;">
+            <tr>
+              <th>BL Number</th>
+              <th>Customer</th>
+              <th>City</th>
+              <th>State</th>
+              <th class="text-end">Weight (lbs)</th>
+              <th class="text-end">Pallets</th>
+              <th>CSR</th>
+            </tr>
+          </thead>
+          <tbody id="shipTableBody"></tbody>
+        </table>
+      </div>
     </div>
   </div>
+  </div><!-- /shipListCollapse -->
+
+  <!-- Map card -->
+  <div class="card shadow-sm mb-4 d-none" id="mapCard">
+    <div class="card-header fw-semibold d-flex align-items-center justify-content-between"
+         style="background:#154e9a; color:#fff;">
+      <span><i class="bi bi-map me-2" aria-hidden="true"></i>Shipment Map</span>
+      <div class="d-flex align-items-center gap-3" style="font-size:0.85rem; font-weight:400;">
+        <label for="radiusSlider" class="mb-0 text-white-50">Radius:</label>
+        <input type="range" id="radiusSlider"
+               min="10" max="500" step="10" value="100"
+               class="form-range"
+               style="width:140px;"
+               oninput="onRadiusChange(this.value)">
+        <span id="radiusLabel" class="text-white fw-semibold" style="min-width:60px;">100 mi</span>
+      </div>
+    </div>
+    {% if not maps_key %}
+    <div class="alert alert-warning m-3 mb-0">
+      <i class="bi bi-exclamation-triangle me-2"></i>
+      <strong>GOOGLE_MAPS_API_KEY</strong> environment variable is not set.
+      Start the server with <code>export GOOGLE_MAPS_API_KEY=your_key</code>.
+    </div>
+    {% endif %}
+    <div id="gmap" style="height:700px; width:100%;"></div>
+    <div class="card-footer text-muted" style="font-size:0.75rem;">
+      <i class="bi bi-circle me-1"></i>Circle radius = adjustable miles around each shipment &nbsp;·&nbsp;
+      <i class="bi bi-diagram-3 me-1"></i>Lines = nearest ≤3 neighbors within radius
+    </div>
+  </div>
+
+  <!-- Distance table toggle bar -->
+  <div id="distBar"
+       class="d-none mb-2 d-flex justify-content-between align-items-center rounded px-3 py-2"
+       style="background:#f0f4f8; cursor:pointer;"
+       role="button"
+       data-bs-toggle="collapse"
+       data-bs-target="#distCollapse"
+       aria-expanded="false"
+       aria-controls="distCollapse">
+    <div class="fw-semibold">
+      <i class="bi bi-rulers me-1 text-primary"></i>
+      Nearest-Neighbor Distances
+      <i class="bi bi-chevron-down ms-2 small text-muted" id="distChevron"
+         style="transition:transform .2s;"></i>
+    </div>
+  </div>
+
+  <!-- Distance table (collapsed by default) -->
+  <div class="collapse" id="distCollapse">
+  <div class="card shadow-sm" id="distCard">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-sm table-striped table-hover mb-0">
+          <thead style="background:#f0f4f8;">
+            <tr>
+              <th>BL Number</th>
+              <th>Customer</th>
+              <th>Neighbor BL</th>
+              <th>Neighbor Customer</th>
+              <th class="text-end">Distance (mi)</th>
+            </tr>
+          </thead>
+          <tbody id="distTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  </div><!-- /distCollapse -->
 
 </div>
+{% endblock %}
 
-<!-- New TSR Modal -->
-<div class="modal fade" id="newTsrModal" tabindex="-1" aria-labelledby="newTsrModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header" style="background-color: #154e9a; color: white;">
-        <h2 class="modal-title h5" id="newTsrModalLabel">
-          <i class="bi bi-clipboard-plus me-2"></i>New TSR
-        </h2>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <form>
-          <div class="mb-3">
-            <label for="tsrTitle" class="form-label fw-semibold">Title <span class="text-danger">*</span></label>
-            <input type="text" class="form-control" id="tsrTitle" placeholder="Brief description of the request" required />
-          </div>
-          <div class="mb-3">
-            <label for="tsrDesc" class="form-label fw-semibold">Description</label>
-            <textarea class="form-control" id="tsrDesc" rows="3" placeholder="Detailed description…"></textarea>
-          </div>
-          <div class="row g-3">
-            <div class="col">
-              <label for="tsrPriority" class="form-label fw-semibold">Priority</label>
-              <select class="form-select" id="tsrPriority">
-                <option value="low">Low</option>
-                <option value="medium" selected>Medium</option>
-                <option value="high">High</option>
-                <option value="critical">Critical</option>
-              </select>
-            </div>
-            <div class="col">
-              <label for="tsrAssignee" class="form-label fw-semibold">Assigned To</label>
-              <input type="text" class="form-control" id="tsrAssignee" placeholder="Name or team" />
-            </div>
-          </div>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-primary btn-sm"
-                onclick="bootstrap.Modal.getInstance(document.getElementById('newTsrModal')).hide(); showToast('TSR created!', 'success')">
-          <i class="bi bi-save me-1"></i>Submit TSR
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
+{% block scripts %}
+<!-- Google Maps JavaScript API -->
+{% if maps_key %}
+<script>
+  /* Google Maps is loaded after initMap is defined — see bottom of this block */
+  window._mapsReady = false;
+  window._pendingMapData = null;
+
+  function initMap() {
+    window._mapsReady = true;
+    window._map = new google.maps.Map(document.getElementById('gmap'), {
+      center: { lat: 39.8, lng: -98.6 },   // geographic center of the contiguous US
+      zoom: 4,
+      mapTypeId: 'roadmap',
+    });
+    window._infoWindow = new google.maps.InfoWindow();
+    // If data arrived before the map was ready, render it now
+    if (window._pendingMapData) {
+      renderMap(window._pendingMapData);
+      window._pendingMapData = null;
+    }
+  }
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{ maps_key }}&callback=initMap&loading=async"
+        async defer></script>
+{% endif %}
+
+<script>
+  /* ── State ──────────────────────────────────────────────────────────────── */
+  let _currentRows = [];          // last loaded ship list rows
+  let _markers     = [];          // google.maps.Marker instances
+  let _circles     = [];          // google.maps.Circle instances
+  let _polylines   = [];          // google.maps.Polyline instances
+  let _radiusMi    = 100;         // current radius in miles
+
+  /* ── Haversine great-circle distance (miles) ───────────────────────────── */
+  function haversine(lat1, lon1, lat2, lon2) {
+    const R = 3958.8;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) ** 2
+            + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180)
+            * Math.sin(dLon / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+
+  /* ── Compute nearest ≤3 neighbors within radius for each mappable point ── */
+  function computeNeighbors(rows, radiusMi) {
+    /*
+     * Returns an array of { from, to, dist } objects (each pair stored once).
+     * 'from' and 'to' are row objects from the ship list.
+     */
+    const mappable = rows.filter(r => r.lat != null && r.lon != null);
+    const pairs = [];
+    const seen = new Set();
+
+    for (let i = 0; i < mappable.length; i++) {
+      const a = mappable[i];
+      const neighbors = [];
+
+      for (let j = 0; j < mappable.length; j++) {
+        if (i === j) continue;
+        const b = mappable[j];
+        const d = haversine(a.lat, a.lon, b.lat, b.lon);
+        if (d <= radiusMi) {
+          neighbors.push({ row: b, dist: d });
+        }
+      }
+
+      // Keep only the nearest 3
+      neighbors.sort((x, y) => x.dist - y.dist);
+      neighbors.slice(0, 3).forEach(n => {
+        const key = [a.bl_number, n.row.bl_number].sort().join('|');
+        if (!seen.has(key)) {
+          seen.add(key);
+          pairs.push({ from: a, to: n.row, dist: n.dist });
+        }
+      });
+    }
+
+    return pairs;
+  }
+
+  /* ── Clear all map overlays ─────────────────────────────────────────────── */
+  function clearMapOverlays() {
+    _markers.forEach(m => m.setMap(null));
+    _circles.forEach(c => c.setMap(null));
+    _polylines.forEach(p => p.setMap(null));
+    _markers = []; _circles = []; _polylines = [];
+  }
+
+  /* ── Render markers, circles, and distance polylines ───────────────────── */
+  function renderMap(rows) {
+    if (!window._mapsReady) {
+      window._pendingMapData = rows;
+      return;
+    }
+
+    clearMapOverlays();
+    const map = window._map;
+    const radiusMeters = _radiusMi * 1609.344;
+    const bounds = new google.maps.LatLngBounds();
+    let hasPoints = false;
+
+    rows.forEach(r => {
+      if (r.lat == null || r.lon == null) return;
+      hasPoints = true;
+      const pos = { lat: r.lat, lng: r.lon };
+      bounds.extend(pos);
+
+      // Marker
+      const marker = new google.maps.Marker({
+        position: pos,
+        map: map,
+        title: r.bl_number,
+      });
+      marker.addListener('click', () => {
+        window._infoWindow.setContent(
+          `<div style="font-family:Open Sans,sans-serif; font-size:13px; line-height:1.6;">
+            <strong>${r.bl_number}</strong><br>
+            ${r.customer}<br>
+            ${r.city}, ${r.state}<br>
+            <span class="text-muted">${r.wgt.toLocaleString()} lbs · ${r.plt} pallets</span>
+          </div>`
+        );
+        window._infoWindow.open(map, marker);
+      });
+      _markers.push(marker);
+
+      // Radius circle
+      const circle = new google.maps.Circle({
+        map: map,
+        center: pos,
+        radius: radiusMeters,
+        strokeColor: '#154e9a',
+        strokeOpacity: 0.5,
+        strokeWeight: 1,
+        fillColor: '#154e9a',
+        fillOpacity: 0.05,
+      });
+      _circles.push(circle);
+    });
+
+    if (hasPoints) {
+      map.fitBounds(bounds);
+    }
+
+    // Draw nearest-neighbor polylines
+    const pairs = computeNeighbors(rows, _radiusMi);
+    pairs.forEach(p => {
+      const line = new google.maps.Polyline({
+        path: [
+          { lat: p.from.lat, lng: p.from.lon },
+          { lat: p.to.lat,   lng: p.to.lon   },
+        ],
+        map: map,
+        geodesic: true,
+        strokeColor: '#e65100',
+        strokeOpacity: 0.7,
+        strokeWeight: 1.5,
+        icons: [{
+          icon: { path: 'M 0,-1 0,1', strokeOpacity: 1, scale: 3 },
+          offset: '0',
+          repeat: '20px',
+        }],
+      });
+      _polylines.push(line);
+    });
+  }
+
+  /* ── Render the nearest-neighbor distance table ─────────────────────────── */
+  function renderDistanceTable(rows) {
+    const pairs    = computeNeighbors(rows, _radiusMi);
+    const tbody    = document.getElementById('distTableBody');
+    const bar      = document.getElementById('distBar');
+    const collapse = document.getElementById('distCollapse');
+
+    if (pairs.length === 0) {
+      bar.classList.add('d-none');
+      bootstrap.Collapse.getOrCreateInstance(collapse, { toggle: false }).hide();
+      return;
+    }
+
+    bar.classList.remove('d-none');
+    pairs.sort((a, b) => a.dist - b.dist);
+    tbody.innerHTML = pairs.map(p => `
+      <tr>
+        <td>${p.from.bl_number}</td>
+        <td class="text-truncate" style="max-width:180px;" title="${p.from.customer}">${p.from.customer}</td>
+        <td>${p.to.bl_number}</td>
+        <td class="text-truncate" style="max-width:180px;" title="${p.to.customer}">${p.to.customer}</td>
+        <td class="text-end fw-semibold">${p.dist.toFixed(1)}</td>
+      </tr>
+    `).join('');
+  }
+
+  /* ── Radius slider handler ──────────────────────────────────────────────── */
+  function onRadiusChange(val) {
+    _radiusMi = parseInt(val, 10);
+    document.getElementById('radiusLabel').textContent = _radiusMi + ' mi';
+    if (_currentRows.length) {
+      renderMap(_currentRows);
+      renderDistanceTable(_currentRows);
+    }
+  }
+
+  /* ── Upload Excel file ──────────────────────────────────────────────────── */
+  async function uploadFile() {
+    const input = document.getElementById('uploadInput');
+    const msgEl = document.getElementById('uploadMsg');
+    const btn   = document.getElementById('uploadBtn');
+    const spin  = document.getElementById('uploadSpinner');
+    const icon  = document.getElementById('uploadIcon');
+
+    if (!input.files.length) {
+      msgEl.className = 'mt-2 small text-warning';
+      msgEl.textContent = 'Please choose a file first.';
+      msgEl.classList.remove('d-none');
+      return;
+    }
+
+    const fd = new FormData();
+    fd.append('file', input.files[0]);
+
+    btn.disabled = true;
+    spin.classList.remove('d-none');
+    icon.classList.add('d-none');
+    msgEl.classList.add('d-none');
+
+    try {
+      const res = await fetch('/api/tsr-prep/upload', { method: 'POST', body: fd });
+      const data = await res.json();
+
+      if (!res.ok) {
+        msgEl.className = 'mt-2 small text-danger';
+        msgEl.textContent = data.error || 'Upload failed.';
+      } else if (data.status === 'duplicate') {
+        msgEl.className = 'mt-2 small text-warning';
+        msgEl.textContent = 'This file has already been uploaded.';
+      } else {
+        msgEl.className = 'mt-2 small text-success';
+        msgEl.textContent = `Uploaded successfully — ${data.rows_inserted.toLocaleString()} rows inserted.`;
+        // Collapse the upload panel and refresh filter options
+        bootstrap.Collapse.getOrCreateInstance(
+          document.getElementById('uploadCard')
+        ).hide();
+        await loadFilterOptions();
+      }
+    } catch (err) {
+      msgEl.className = 'mt-2 small text-danger';
+      msgEl.textContent = 'Network error: ' + err.message;
+    } finally {
+      msgEl.classList.remove('d-none');
+      btn.disabled = false;
+      spin.classList.add('d-none');
+      icon.classList.remove('d-none');
+    }
+  }
+
+  /* ── Load filter dropdown options from the API ──────────────────────────── */
+  async function loadFilterOptions() {
+    try {
+      const res  = await fetch('/api/tsr-prep/filter-options');
+      const data = await res.json();
+
+      const fill = (id, values, current) => {
+        const sel = document.getElementById(id);
+        const prev = current || sel.value;
+        sel.innerHTML = '<option value="">— choose —</option>'
+          + values.map(v => `<option value="${v}"${v === prev ? ' selected' : ''}>${v}</option>`).join('');
+      };
+
+      fill('selSite',  data.sites,  null);
+      fill('selGroup', data.groups, null);
+      fill('selDate',  data.dates,  null);
+    } catch (_) { /* silently skip if DB is not yet populated */ }
+  }
+
+  /* ── Fetch ship list and update all components ──────────────────────────── */
+  async function applyFilters() {
+    const site  = document.getElementById('selSite').value;
+    const group = document.getElementById('selGroup').value;
+    const date  = document.getElementById('selDate').value;
+    const time  = document.getElementById('selTime').value;
+
+    if (!site || !group || !date || !time) {
+      showToast('Please select Site, Group, Date, and Time before applying.', 'warning');
+      return;
+    }
+
+    const params = new URLSearchParams({ site, product_group: group, rpt_date: date, rpt_time: time });
+    let rows;
+    try {
+      const res = await fetch('/api/tsr-prep/avail-to-ship?' + params);
+      if (!res.ok) {
+        const err = await res.json();
+        showToast('Error: ' + (err.error || res.status), 'danger');
+        return;
+      }
+      rows = await res.json();
+    } catch (err) {
+      showToast('Network error: ' + err.message, 'danger');
+      return;
+    }
+
+    _currentRows = rows;
+    renderTable(rows);
+    renderMap(rows);
+    renderDistanceTable(rows);
+  }
+
+  /* ── Populate the ship list table ───────────────────────────────────────── */
+  function renderTable(rows) {
+    const tbody    = document.getElementById('shipTableBody');
+    const summary  = document.getElementById('summaryBar');
+    const mapCard  = document.getElementById('mapCard');
+    const collapse = document.getElementById('shipListCollapse');
+
+    if (!rows.length) {
+      tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">No shipments found for the selected filters.</td></tr>`;
+      summary.classList.add('d-none');
+      mapCard.classList.add('d-none');
+      document.getElementById('distCard').classList.add('d-none');
+      // Also hide the collapse if visible
+      bootstrap.Collapse.getOrCreateInstance(collapse, { toggle: false }).hide();
+    } else {
+      const totalWgt = rows.reduce((s, r) => s + r.wgt, 0);
+      document.getElementById('totalWgt').textContent  = totalWgt.toLocaleString(undefined, { maximumFractionDigits: 0 });
+      document.getElementById('totalRows').textContent = rows.length;
+      summary.classList.remove('d-none');
+      mapCard.classList.remove('d-none');
+
+      tbody.innerHTML = rows.map(r => `
+        <tr>
+          <td class="font-monospace small">${r.bl_number}</td>
+          <td>${r.customer}</td>
+          <td>${r.city}</td>
+          <td>${r.state}</td>
+          <td class="text-end">${r.wgt.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
+          <td class="text-end">${r.plt}</td>
+          <td class="text-muted small">${r.csr || ''}</td>
+        </tr>
+      `).join('');
+    }
+  }
+
+  /* ── Chevron rotation on collapse toggles ───────────────────────────────── */
+  document.addEventListener('DOMContentLoaded', () => {
+    [
+      { colId: 'shipListCollapse', chevId: 'summaryChevron' },
+      { colId: 'distCollapse',     chevId: 'distChevron'    },
+    ].forEach(({ colId, chevId }) => {
+      const colEl   = document.getElementById(colId);
+      const chevron = document.getElementById(chevId);
+      if (colEl && chevron) {
+        colEl.addEventListener('show.bs.collapse', () => chevron.style.transform = 'rotate(180deg)');
+        colEl.addEventListener('hide.bs.collapse', () => chevron.style.transform = 'rotate(0deg)');
+      }
+    });
+  });
+
+  /* ── Generate and download CSV from current data ───────────────────────── */
+  function downloadCsv() {
+    if (!_currentRows.length) return;
+    const header = ['BL Number', 'Customer', 'City', 'State', 'Weight (lbs)', 'Pallets', 'CSR', 'Lat', 'Lon'];
+    const lines  = _currentRows.map(r =>
+      [r.bl_number, r.customer, r.city, r.state, r.wgt, r.plt, r.csr || '', r.lat ?? '', r.lon ?? '']
+        .map(v => `"${String(v).replace(/"/g, '""')}"`)
+        .join(',')
+    );
+    const csv  = [header.join(','), ...lines].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = 'TSR_Prep_List.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  /* ── Init ───────────────────────────────────────────────────────────────── */
+  document.addEventListener('DOMContentLoaded', () => { loadFilterOptions(); });
+</script>
 {% endblock %}

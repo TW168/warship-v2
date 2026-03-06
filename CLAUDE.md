@@ -119,7 +119,7 @@ The `connect_to_database()` function returns a SQLAlchemy `Engine`.
 | Unit Freight Cost John | `GET /api/analytics/unit-frt-cost-john` | JSON — all rows from `unit_frt_cost_john`: id, yyyy, mm, division, product, wt_lbs, freight |
 | Freight Cost by Plant | `GET /api/analytics/freight-cost-by-plant` | JSON — annual YTD freight cost ($) by plant (BP, SW, CT, YA, Total) for 2019–2026; reads Excel workbook `AMJK Frt cost breakdown by plants-26.02.03.xlsx` |
 | Press | `GET /press` | Sub-page of Home |
-| Warehouse | `GET /warehouse` | |
+| Warehouse | `GET /warehouse` | UDC hourly bar chart, UDC history line chart, ASH event heatmap — all data proxied from `http://172.17.15.228:8000` via `/api/warehouse/*` routes using httpx |
 | Shipping | `GET /shipping` | |
 | TSR Prep | `GET /tsr-prep` | |
 | Maintenance Input | `GET /maintenance/input` | |
