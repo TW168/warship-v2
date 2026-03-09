@@ -27,7 +27,7 @@
 
 ### 1.1 Purpose
 
-This document specifies the software requirements for **Warship**, an internal full-stack web application that centralizes warehouse inventory management, shipping logistics, freight analytics, and Technical Support Request (TSR) workflows into a single platform.
+This document specifies the software requirements for **Warship**, an internal full-stack web application that centralizes warehouse inventory management, shipping logistics, freight analytics, and Truck Service Request (TSR) workflows into a single platform.
 
 ### 1.2 Scope
 
@@ -39,7 +39,7 @@ Warship replaces a collection of standalone Streamlit scripts with a unified Fas
 |------|-----------|
 | UDC | Unit Distribution Center — warehouse movement unit |
 | ASH | Automated Sorting/Handling — warehouse event classification system |
-| TSR | Technical Support Request — internal ticket for shipment issues |
+| TSR | Truck Service Request — internal ticket for shipment issues |
 | IPG EZ | IPG EZ Report — Excel export from the AS/400 shipping system |
 | BL | Bill of Lading — shipping document number |
 | FTL | Full Truckload |

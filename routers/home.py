@@ -3,6 +3,7 @@ routers/home.py — Home, Meeting Report, and Briefing page routes.
 
 Includes:
   GET /                                      — Home page (weather images)
+  GET /api/gas-prices                        — Latest gas prices from DB (JSON)
   GET /meeting-report                        — Meeting Report page (filter form)
   GET /api/meeting-report/results            — HTMX partial: query results as cards
   GET /briefing                              — VIP Operations Briefing sub-page
@@ -125,6 +126,70 @@ async def weather_maxt1() -> FileResponse:
 async def weather_national() -> FileResponse:
     """Serve the national forecast image with no-cache headers."""
     return FileResponse(_ASSETS_DIR / "national_forecast.jpg", headers=_NO_CACHE)
+
+
+@router.get(
+    "/api/gas-prices",
+    summary="Latest gas prices",
+    description="Return the most recent national average gas prices scraped from AAA.",
+)
+async def gas_prices() -> JSONResponse:
+    """Read the two most recent scrape dates and return today vs previous for comparison."""
+    with _engine.connect() as conn:
+        # Get the two most recent distinct scrape timestamps (date-level)
+        dates_result = conn.execute(
+            text("SELECT DISTINCT DATE(scraped_at) AS d FROM gas_prices ORDER BY d DESC LIMIT 2")
+        )
+        dates = [r.d for r in dates_result]
+
+        if not dates:
+            return JSONResponse([])
+
+        latest_date = dates[0]
+        prev_date = dates[1] if len(dates) > 1 else None
+
+        # Fetch latest prices
+        latest_result = conn.execute(
+            text(
+                "SELECT fuel_type, price, scraped_at FROM gas_prices"
+                " WHERE DATE(scraped_at) = :d ORDER BY id DESC"
+            ),
+            {"d": latest_date},
+        )
+        # Keep only the most recent row per fuel type (in case of multiple runs same day)
+        latest = {}
+        scraped_at = None
+        for r in latest_result:
+            if r.fuel_type not in latest:
+                latest[r.fuel_type] = float(r.price)
+                if scraped_at is None:
+                    scraped_at = r.scraped_at.strftime("%Y-%m-%d %H:%M:%S")
+
+        # Fetch previous day prices for comparison
+        prev = {}
+        if prev_date:
+            prev_result = conn.execute(
+                text(
+                    "SELECT fuel_type, price FROM gas_prices"
+                    " WHERE DATE(scraped_at) = :d ORDER BY id DESC"
+                ),
+                {"d": prev_date},
+            )
+            for r in prev_result:
+                if r.fuel_type not in prev:
+                    prev[r.fuel_type] = float(r.price)
+
+    rows = [
+        {
+            "fuel_type": fuel,
+            "price": latest[fuel],
+            "prev_price": prev.get(fuel),
+            "scraped_at": scraped_at,
+        }
+        for fuel in ["Regular", "Mid-Grade", "Premium", "Diesel", "E85"]
+        if fuel in latest
+    ]
+    return JSONResponse(rows)
 
 
 @router.get(

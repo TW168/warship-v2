@@ -73,6 +73,8 @@ warship-v2/
 │   ├── tsr_prep/
 │   ├── maintenance/
 │   └── about/
+├── scripts/
+│   └── scrape_gas_prices.py # Cron job: scrape AAA gas prices → MySQL
 ├── schemas/                 # Pydantic request/response models (one file per domain)
 ├── static/
 │   └── assets/              # Images: MaxT1_conus.png, national_forecast.jpg
@@ -110,7 +112,8 @@ The `connect_to_database()` function returns a SQLAlchemy `Engine`.
 
 | Page | Route | Notes |
 |------|-------|-------|
-| Home | `GET /` | Opens with `MaxT1_conus.png` and `national_forecast.jpg` side by side |
+| Home | `GET /` | Opens with weather images + gas prices card + quick access nav |
+| Gas Prices | `GET /api/gas-prices` | JSON — latest national avg gas prices from `gas_prices` table (scraped from AAA via cron at 7:30 AM) |
 | Meeting Report | `GET /meeting-report` | Sub-page of Home; filter form (site, product_group, date) |
 | Meeting Report Results | `GET /api/meeting-report/results` | HTMX partial — runs aggregated shipping query, returns cards |
 | Briefing | `GET /briefing` | VIP Operations Briefing — printable snapshot of ops metrics |
@@ -120,7 +123,8 @@ The `connect_to_database()` function returns a SQLAlchemy `Engine`.
 | Freight Cost by Plant | `GET /api/analytics/freight-cost-by-plant` | JSON — annual YTD freight cost ($) by plant (BP, SW, CT, YA, Total) for 2019–2026; reads Excel workbook `AMJK Frt cost breakdown by plants-26.02.03.xlsx` |
 | Press | `GET /press` | Sub-page of Home |
 | Warehouse | `GET /warehouse` | UDC hourly bar chart, UDC history line chart, ASH event heatmap — all data proxied from `http://172.17.15.228:8000` via `/api/warehouse/*` routes using httpx |
-| Shipping | `GET /shipping` | |
+| Shipping | `GET /shipping` | Filter bar (date range, site, product group) drives Carrier Cost Analysis card |
+| Carrier Cost Analysis | `GET /api/carrier-cost-analysis` | JSON — calls `sp_carrier_cost_per_pound`; params: `date_from`, `date_to`, `site`, `product_group` (all optional); returns carrier_id, bl_count, total_weight, total_pallets, total_freight_cost, cost_per_pound. Card embedded at bottom of `/shipping` page with Plotly bubble chart + sortable table. |
 | TSR Prep | `GET /tsr-prep` | |
 | Maintenance Input | `GET /maintenance/input` | |
 | Software Architectural | `GET /maintenance/architectural` | Markdown → HTML via Pygments; JS-generated Bootstrap scrollspy TOC sidebar |
@@ -207,6 +211,7 @@ Managed via `pyproject.toml` / `uv.lock`:
 | `pygments` | Syntax highlighting for Software Architectural page |
 | `markdown` | Markdown → HTML for Software Architectural page |
 | `openpyxl` | Read Excel workbooks (`.xlsx`) for freight cost analytics |
+| `beautifulsoup4` | HTML parsing for gas price scraper (`scripts/scrape_gas_prices.py`) |
 
 ---
 

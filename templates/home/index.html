@@ -43,6 +43,53 @@
     </div>
   </div>
 
+  <!-- National Gas Prices -->
+  <div class="row g-3 mb-4">
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <span>
+            <i class="bi bi-fuel-pump me-2" aria-hidden="true"></i>National Gas Prices
+          </span>
+          <small class="text-muted" id="gas-scraped-at"></small>
+        </div>
+        <div class="card-body py-2">
+          <div id="gas-spinner" class="text-center py-3">
+            <div class="spinner-border spinner-border-sm text-primary" role="status">
+              <span class="visually-hidden">Loading…</span>
+            </div>
+          </div>
+          <div id="gas-error" class="alert alert-warning d-none small mb-0"></div>
+          <div class="table-responsive d-none" id="gas-table-wrap">
+            <table class="table table-sm table-striped mb-0 text-center">
+              <thead>
+                <tr>
+                  <th>Regular</th>
+                  <th>Mid-Grade</th>
+                  <th>Premium</th>
+                  <th>Diesel</th>
+                  <th>E85</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td id="gp-regular">—</td>
+                  <td id="gp-mid-grade">—</td>
+                  <td id="gp-premium">—</td>
+                  <td id="gp-diesel">—</td>
+                  <td id="gp-e85">—</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card-footer text-muted" style="font-size:0.75rem;">
+          Source: <a href="https://gasprices.aaa.com/" target="_blank" rel="noopener">AAA</a> · Updated daily at 7:30 AM
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Quick navigation cards -->
   <h2 class="h5 text-muted mb-3">Quick Access</h2>
   <div class="row g-3">
@@ -77,7 +124,7 @@
           <div class="card-body text-center py-4">
             <i class="bi bi-clipboard-check display-5 text-primary mb-2 d-block" aria-hidden="true"></i>
             <h3 class="h6 fw-semibold mb-1">TSR Prep</h3>
-            <p class="text-muted small mb-0">Technical support preparation</p>
+            <p class="text-muted small mb-0">Truck Service Request preparation</p>
           </div>
         </div>
       </a>
@@ -110,4 +157,50 @@
     box-shadow: 0 6px 18px rgba(0,0,0,0.1) !important;
   }
 </style>
+<script>
+(function () {
+  const slugMap = {
+    "Regular": "gp-regular",
+    "Mid-Grade": "gp-mid-grade",
+    "Premium": "gp-premium",
+    "Diesel": "gp-diesel",
+    "E85": "gp-e85",
+  };
+
+  fetch("/api/gas-prices")
+    .then(r => { if (!r.ok) throw new Error(r.statusText); return r.json(); })
+    .then(rows => {
+      document.getElementById("gas-spinner").classList.add("d-none");
+      if (!rows.length) {
+        const err = document.getElementById("gas-error");
+        err.textContent = "No gas price data available.";
+        err.classList.remove("d-none");
+        return;
+      }
+      rows.forEach(r => {
+        const el = document.getElementById(slugMap[r.fuel_type]);
+        if (!el) return;
+        let arrow = "";
+        if (r.prev_price !== null && r.prev_price !== undefined) {
+          if (r.price > r.prev_price) {
+            arrow = ' <i class="bi bi-arrow-up-short text-danger" aria-label="higher than previous"></i>';
+          } else if (r.price < r.prev_price) {
+            arrow = ' <i class="bi bi-arrow-down-short text-success" aria-label="lower than previous"></i>';
+          }
+        }
+        el.innerHTML = "$" + r.price.toFixed(3) + arrow;
+      });
+      document.getElementById("gas-table-wrap").classList.remove("d-none");
+      // Show last scraped timestamp
+      const ts = rows[0].scraped_at;
+      document.getElementById("gas-scraped-at").textContent = "as of " + ts;
+    })
+    .catch(err => {
+      document.getElementById("gas-spinner").classList.add("d-none");
+      const el = document.getElementById("gas-error");
+      el.textContent = "Failed to load gas prices.";
+      el.classList.remove("d-none");
+    });
+})();
+</script>
 {% endblock %}
