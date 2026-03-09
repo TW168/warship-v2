@@ -5,49 +5,10 @@
 <div class="container-fluid px-4 py-4">
 
   <!-- Page header -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
+  <div class="mb-4">
     <h1 class="page-header h3 mb-0">
       <i class="bi bi-truck me-2" aria-hidden="true"></i>TSR Prep
     </h1>
-    <button class="btn btn-outline-primary btn-sm"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#uploadCard"
-            aria-expanded="true"
-            aria-controls="uploadCard">
-      <i class="bi bi-upload me-1"></i>Upload
-    </button>
-  </div>
-
-  <!-- Upload card (collapsible) -->
-  <div class="collapse show mb-4" id="uploadCard">
-    <div class="card shadow-sm">
-      <div class="card-header fw-semibold" style="background:#154e9a; color:#fff;">
-        <i class="bi bi-file-earmark-excel me-2" aria-hidden="true"></i>
-        Upload IPG EZ Report
-      </div>
-      <div class="card-body">
-        <p class="text-muted small mb-3">
-          Upload an <em>AmTopp Current Pickup Detail Report as of&nbsp;YYYY-M-D&nbsp;HhMm.xlsx</em> file.
-          Duplicate files are detected automatically.
-        </p>
-        <div class="d-flex gap-2 align-items-center flex-wrap">
-          <input type="file"
-                 id="uploadInput"
-                 accept=".xlsx,.xls"
-                 class="form-control"
-                 style="max-width:480px;"
-                 aria-label="Choose IPG EZ Excel file">
-          <button class="btn btn-primary" id="uploadBtn" onclick="uploadFile()">
-            <span id="uploadSpinner"
-                  class="spinner-border spinner-border-sm me-1 d-none"
-                  role="status" aria-hidden="true"></span>
-            <i class="bi bi-cloud-upload me-1" id="uploadIcon"></i>Submit
-          </button>
-        </div>
-        <div id="uploadMsg" class="mt-2 small d-none"></div>
-      </div>
-    </div>
   </div>
 
   <!-- Filters -->
@@ -85,8 +46,21 @@
             <i class="bi bi-funnel me-1"></i>Apply
           </button>
         </div>
+        {% if maps_key %}
+        <div class="col-auto">
+          <button id="btnOptimize" class="btn btn-success btn-sm" onclick="optimizeLoads()" disabled>
+            <i class="bi bi-boxes me-1"></i>Optimize Loads
+          </button>
+        </div>
+        {% endif %}
       </div>
     </div>
+  </div>
+
+  <!-- Optimization progress indicator -->
+  <div id="optimizeProgress" class="d-none alert alert-info d-flex align-items-center gap-2 mb-3 py-2">
+    <div class="spinner-border spinner-border-sm flex-shrink-0" role="status" aria-hidden="true"></div>
+    <span id="optimizeProgressText">Initializing...</span>
   </div>
 
   <!-- Summary bar (acts as collapse toggle for the ship list table) -->
@@ -135,12 +109,95 @@
   </div>
   </div><!-- /shipListCollapse -->
 
+  <!-- Truck load summary stats (shown after optimization) -->
+  <div id="truckSummarySection" class="d-none mb-3">
+    <div class="row g-3">
+      <div class="col-6 col-md-3">
+        <div class="card shadow-sm text-center border-success border-top border-3">
+          <div class="card-body py-2">
+            <div class="h4 fw-bold text-success mb-0" id="truckCount">0</div>
+            <div class="small text-muted">Trucks</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card shadow-sm text-center border-primary border-top border-3">
+          <div class="card-body py-2">
+            <div class="h4 fw-bold text-primary mb-0" id="truckAvgWgt">0</div>
+            <div class="small text-muted">Avg lbs / Truck</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card shadow-sm text-center border-primary border-top border-3">
+          <div class="card-body py-2">
+            <div class="h4 fw-bold text-primary mb-0" id="truckAvgPlt">0</div>
+            <div class="small text-muted">Avg Pallets / Truck</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card shadow-sm text-center border-primary border-top border-3">
+          <div class="card-body py-2">
+            <div class="h4 fw-bold text-primary mb-0" id="truckTotalBls">0</div>
+            <div class="small text-muted">Total BLs</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Truck assignments table (collapsible) -->
+  <div id="truckLoadsSection" class="d-none mb-4">
+    <div class="mb-2 d-flex justify-content-between align-items-center rounded px-3 py-2"
+         style="background:#f0f4f8; cursor:pointer;"
+         role="button"
+         data-bs-toggle="collapse"
+         data-bs-target="#truckLoadsCollapse"
+         aria-expanded="false"
+         aria-controls="truckLoadsCollapse">
+      <div class="fw-semibold">
+        <i class="bi bi-box-seam me-1 text-success"></i>
+        Truck Load Assignments
+        <i class="bi bi-chevron-down ms-2 small text-muted" id="truckLoadsChevron"
+           style="transition:transform .2s;"></i>
+      </div>
+    </div>
+    <div class="collapse" id="truckLoadsCollapse">
+      <div class="card shadow-sm">
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-sm mb-0">
+              <thead style="background:#f0f4f8;">
+                <tr>
+                  <th>Truck / BL</th>
+                  <th>Customer</th>
+                  <th>City, State</th>
+                  <th class="text-end">Weight (lbs)</th>
+                  <th class="text-end">Pallets</th>
+                </tr>
+              </thead>
+              <tbody id="truckLoadsTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /truckLoadsSection -->
+
   <!-- Map card -->
   <div class="card shadow-sm mb-4 d-none" id="mapCard">
     <div class="card-header fw-semibold d-flex align-items-center justify-content-between"
          style="background:#154e9a; color:#fff;">
       <span><i class="bi bi-map me-2" aria-hidden="true"></i>Shipment Map</span>
-      <div class="d-flex align-items-center gap-3" style="font-size:0.85rem; font-weight:400;">
+      <div class="d-flex align-items-center gap-3 flex-wrap" style="font-size:0.85rem; font-weight:400;">
+        <!-- View toggle (shown after optimization) -->
+        <div id="viewToggle" class="btn-group btn-group-sm d-none" role="group" aria-label="Map view">
+          <button id="btnStdView" type="button" class="btn btn-light btn-sm"
+                  onclick="setView('standard')">Standard</button>
+          <button id="btnTruckView" type="button" class="btn btn-outline-light btn-sm"
+                  onclick="setView('trucks')">Truck Loads</button>
+        </div>
         <label for="radiusSlider" class="mb-0 text-white-50">Radius:</label>
         <input type="range" id="radiusSlider"
                min="10" max="500" step="10" value="100"
@@ -159,8 +216,18 @@
     {% endif %}
     <div id="gmap" style="height:700px; width:100%;"></div>
     <div class="card-footer text-muted" style="font-size:0.75rem;">
-      <i class="bi bi-circle me-1"></i>Circle radius = adjustable miles around each shipment &nbsp;·&nbsp;
-      <i class="bi bi-diagram-3 me-1"></i>Lines = nearest ≤3 neighbors within radius
+      <span id="mapFooterStd">
+        <i class="bi bi-circle me-1"></i>Circle radius = adjustable miles around each shipment
+        &nbsp;·&nbsp;
+        <i class="bi bi-diagram-3 me-1"></i>Lines = nearest ≤3 neighbors within radius
+      </span>
+      <span id="mapFooterTruck" class="d-none">
+        <i class="bi bi-square-fill me-1"></i>Colors = truck groups
+        &nbsp;·&nbsp;
+        <i class="bi bi-arrow-right me-1"></i>Lines = delivery order from plant
+        &nbsp;·&nbsp;
+        <i class="bi bi-p-circle-fill me-1"></i>Blue circle = plant origin
+      </span>
     </div>
   </div>
 
@@ -234,14 +301,37 @@
 {% endif %}
 
 <script>
+  /* ── Constants ──────────────────────────────────────────────────────────── */
+  const TRUCK_COLORS = [
+    '#e6194b','#3cb44b','#4363d8','#f58231','#911eb4',
+    '#00bcd4','#f032e6','#8bc34a','#ff5722','#9c27b0',
+    '#009688','#ffc107','#607d8b','#e91e63','#795548',
+  ];
+
+  /* Plant origin coordinates and city label per site code */
+  const PLANT_ORIGINS = {
+    'AMJK': { label: 'Lolita, TX',      lat: 28.832, lon: -96.550 },
+    'TXAS': { label: 'Houston, TX',     lat: 29.760, lon: -95.370 },
+    'AMIN': { label: 'Remington, IN',   lat: 40.762, lon: -87.147 },
+    'AMAZ': { label: 'Phoenix, AZ',     lat: 33.449, lon: -112.074 },
+  };
+
   /* ── State ──────────────────────────────────────────────────────────────── */
   let _currentRows = [];          // last loaded ship list rows
   let _markers     = [];          // google.maps.Marker instances
   let _circles     = [];          // google.maps.Circle instances
   let _polylines   = [];          // google.maps.Polyline instances
   let _radiusMi    = 100;         // current radius in miles
+  let _trucks      = [];          // truck groups after optimization
+  let _currentView = 'standard';  // 'standard' | 'trucks'
+  let _distCache   = {};          // driving distance cache: key → miles
 
-  /* ── Haversine great-circle distance (miles) ───────────────────────────── */
+  /* ── Helper: sorted cache key for a city pair ───────────────────────────── */
+  function distKey(a, b) {
+    return [a, b].sort().join('|||');
+  }
+
+  /* ── Haversine great-circle distance (miles) ────────────────────────────── */
   function haversine(lat1, lon1, lat2, lon2) {
     const R = 3958.8;
     const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -252,7 +342,13 @@
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   }
 
-  /* ── Compute nearest ≤3 neighbors within radius for each mappable point ── */
+  /* ── Get plant origin object for the currently selected site ────────────── */
+  function getPlantOrigin() {
+    const site = document.getElementById('selSite').value;
+    return PLANT_ORIGINS[site] || null;
+  }
+
+  /* ── Compute nearest ≤3 neighbors within radius for each mappable point ─── */
   function computeNeighbors(rows, radiusMi) {
     /*
      * Returns an array of { from, to, dist } objects (each pair stored once).
@@ -289,6 +385,43 @@
     return pairs;
   }
 
+  /* ── Jitter overlapping pins that share the exact same lat/lon ─────────── */
+  function jitterPositions(rows) {
+    /*
+     * When two+ customers in the same city share identical geocoords they stack
+     * into a single pin. Spread them evenly in a small circle so each gets its
+     * own clickable marker. Returns an array of { lat, lng } aligned to rows[];
+     * entries for rows without coordinates are null.
+     */
+    const OFFSET = 0.012; // ~1.3 km — visibly separates pins at city zoom (zoom 11+)
+    const groups = new Map();
+    rows.forEach((r, i) => {
+      if (r.lat == null || r.lon == null) return;
+      const key = `${r.lat}|${r.lon}`;
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(i);
+    });
+
+    const positions = rows.map(r =>
+      r.lat != null ? { lat: r.lat, lng: r.lon } : null
+    );
+
+    groups.forEach(indices => {
+      if (indices.length <= 1) return;
+      const n = indices.length;
+      indices.forEach((rowIdx, k) => {
+        const r = rows[rowIdx];
+        const angle = (2 * Math.PI * k) / n;
+        positions[rowIdx] = {
+          lat: r.lat + OFFSET * Math.sin(angle),
+          lng: r.lon + OFFSET * Math.cos(angle),
+        };
+      });
+    });
+
+    return positions;
+  }
+
   /* ── Clear all map overlays ─────────────────────────────────────────────── */
   function clearMapOverlays() {
     _markers.forEach(m => m.setMap(null));
@@ -297,7 +430,7 @@
     _markers = []; _circles = []; _polylines = [];
   }
 
-  /* ── Render markers, circles, and distance polylines ───────────────────── */
+  /* ── Render standard markers, circles, and distance polylines ───────────── */
   function renderMap(rows) {
     if (!window._mapsReady) {
       window._pendingMapData = rows;
@@ -310,10 +443,12 @@
     const bounds = new google.maps.LatLngBounds();
     let hasPoints = false;
 
-    rows.forEach(r => {
+    const jittered = jitterPositions(rows);
+
+    rows.forEach((r, ri) => {
       if (r.lat == null || r.lon == null) return;
       hasPoints = true;
-      const pos = { lat: r.lat, lng: r.lon };
+      const pos = jittered[ri];
       bounds.extend(pos);
 
       // Marker
@@ -328,7 +463,7 @@
             <strong>${r.bl_number}</strong><br>
             ${r.customer}<br>
             ${r.city}, ${r.state}<br>
-            <span class="text-muted">${r.wgt.toLocaleString()} lbs · ${r.plt} pallets</span>
+            <span style="color:#666;">${r.wgt.toLocaleString()} lbs · ${r.plt} pallets</span>
           </div>`
         );
         window._infoWindow.open(map, marker);
@@ -407,61 +542,510 @@
     _radiusMi = parseInt(val, 10);
     document.getElementById('radiusLabel').textContent = _radiusMi + ' mi';
     if (_currentRows.length) {
-      renderMap(_currentRows);
-      renderDistanceTable(_currentRows);
+      if (_currentView === 'standard') {
+        renderMap(_currentRows);
+        renderDistanceTable(_currentRows);
+      }
     }
   }
 
-  /* ── Upload Excel file ──────────────────────────────────────────────────── */
-  async function uploadFile() {
-    const input = document.getElementById('uploadInput');
-    const msgEl = document.getElementById('uploadMsg');
-    const btn   = document.getElementById('uploadBtn');
-    const spin  = document.getElementById('uploadSpinner');
-    const icon  = document.getElementById('uploadIcon');
+  /* ── Build distance matrix using Google Maps Distance Matrix Service ─────── */
+  async function buildDistMatrix(locs, updateProgress) {
+    /*
+     * locs: array of { label: "City, ST", lat: float|null, lon: float|null }
+     * Returns symmetric n×n matrix (miles). Infinity = no route or haversine-filtered.
+     * Uses _distCache to avoid redundant API calls across optimization runs.
+     */
+    const n = locs.length;
+    const dist = Array.from({ length: n }, () => new Array(n).fill(Infinity));
+    for (let i = 0; i < n; i++) dist[i][i] = 0;
 
-    if (!input.files.length) {
-      msgEl.className = 'mt-2 small text-warning';
-      msgEl.textContent = 'Please choose a file first.';
-      msgEl.classList.remove('d-none');
+    // Determine which pairs need API calls
+    const pending = []; // [i, j] with i < j
+    for (let i = 0; i < n; i++) {
+      for (let j = i + 1; j < n; j++) {
+        const key = distKey(locs[i].label, locs[j].label);
+        if (_distCache[key] !== undefined) {
+          dist[i][j] = dist[j][i] = _distCache[key];
+          continue;
+        }
+        // Haversine pre-filter: pairs > 130 mi straight-line can't be ≤ 100 driving miles
+        if (locs[i].lat != null && locs[j].lat != null) {
+          const h = haversine(locs[i].lat, locs[i].lon, locs[j].lat, locs[j].lon);
+          if (h > 130) {
+            dist[i][j] = dist[j][i] = Infinity;
+            _distCache[key] = Infinity;
+            continue;
+          }
+        }
+        pending.push([i, j]);
+      }
+    }
+
+    if (!pending.length) return dist;
+
+    // Get unique indices involved in pending pairs
+    const involvedSet = new Set();
+    pending.forEach(([i, j]) => { involvedSet.add(i); involvedSet.add(j); });
+    const involved = [...involvedSet];
+
+    // Chunk into groups of 25 (Distance Matrix API limit)
+    const CHUNK = 25;
+    const chunks = [];
+    for (let k = 0; k < involved.length; k += CHUNK) {
+      chunks.push(involved.slice(k, k + CHUNK));
+    }
+
+    const svc = new google.maps.DistanceMatrixService();
+    let batchDone = 0;
+    const totalBatches = chunks.length * chunks.length;
+
+    for (const origChunk of chunks) {
+      for (const destChunk of chunks) {
+        const origins = origChunk.map(i => locs[i].label);
+        const dests   = destChunk.map(j => locs[j].label);
+
+        updateProgress(++batchDone, totalBatches);
+
+        const resp = await new Promise(resolve => {
+          svc.getDistanceMatrix({
+            origins,
+            destinations: dests,
+            travelMode: google.maps.TravelMode.DRIVING,
+          }, (result, status) => resolve({ result, status }));
+        });
+
+        if (resp.status !== 'OK') {
+          showToast('Distance Matrix API error — some pairs treated as unreachable.', 'warning');
+          continue;
+        }
+
+        origChunk.forEach((gi, ii) => {
+          destChunk.forEach((gj, jj) => {
+            if (gi === gj) return;
+            const key = distKey(locs[gi].label, locs[gj].label);
+            if (_distCache[key] !== undefined) {
+              // Already cached (may have been set by symmetric call)
+              dist[gi][gj] = dist[gj][gi] = _distCache[key];
+              return;
+            }
+            const el = resp.result.rows[ii].elements[jj];
+            const miles = el.status === 'OK' ? el.distance.value / 1609.344 : Infinity;
+            dist[gi][gj] = miles;
+            dist[gj][gi] = miles;
+            _distCache[key] = miles;
+          });
+        });
+      }
+    }
+
+    return dist;
+  }
+
+  /* ── Greedy bin-packing algorithm ─────────────────────────────────────────── */
+  function greedyBinPack(rows, dist, locs) {
+    /*
+     * Assigns each shipment to a truck respecting:
+     *   - Max weight: 40,000 lbs
+     *   - Max pallets: 52
+     *   - Max drops: 3 (a "drop" = unique city+state)
+     *   - Max driving distance between any two drops on same truck: 100 mi
+     * Ties broken by highest resulting truck weight (fullest truck first).
+     */
+    const locIdx = {};
+    locs.forEach((l, i) => { locIdx[l.label] = i; });
+
+    const plantOrigin = getPlantOrigin();
+    const plantIdx    = plantOrigin !== null ? locIdx[plantOrigin.label] : null;
+
+    // Sort heaviest first for better packing
+    const sorted = [...rows].sort((a, b) => b.wgt - a.wgt);
+    const trucks = [];
+
+    sorted.forEach(r => {
+      const dropLabel = `${r.city}, ${r.state}`;
+      const dropIdx   = locIdx[dropLabel];
+
+      // Oversize shipment: force solo truck with warning flag
+      if (r.wgt > 40000 || r.plt > 52) {
+        trucks.push({
+          shipments: [r],
+          drops:     [dropLabel],
+          dropSet:   new Set([dropLabel]),
+          totalWgt:  r.wgt,
+          totalPlt:  r.plt,
+          overweight: r.wgt > 40000,
+          overpallet: r.plt > 52,
+        });
+        return;
+      }
+
+      let bestTruck  = null;
+      let bestWeight = -1;
+
+      for (const T of trucks) {
+        if (T.overweight || T.overpallet)   continue;
+        if (T.totalWgt + r.wgt > 40000)    continue;
+        if (T.totalPlt + r.plt > 52)        continue;
+
+        const isNewDrop = !T.dropSet.has(dropLabel);
+        if (isNewDrop && T.drops.length >= 3) continue;
+
+        // Distance: new drop must be within 100 driving miles of all existing drops
+        if (isNewDrop && dropIdx !== undefined) {
+          let distOk = true;
+          for (const d of T.drops) {
+            const dIdx = locIdx[d];
+            if (dIdx !== undefined && dist[dropIdx][dIdx] > 100) {
+              distOk = false;
+              break;
+            }
+          }
+          if (!distOk) continue;
+        }
+
+        const projWeight = T.totalWgt + r.wgt;
+        if (projWeight > bestWeight) {
+          bestWeight = projWeight;
+          bestTruck  = T;
+        }
+      }
+
+      if (bestTruck) {
+        bestTruck.shipments.push(r);
+        bestTruck.totalWgt += r.wgt;
+        bestTruck.totalPlt += r.plt;
+        if (!bestTruck.dropSet.has(dropLabel)) {
+          bestTruck.dropSet.add(dropLabel);
+          bestTruck.drops.push(dropLabel);
+        }
+      } else {
+        trucks.push({
+          shipments: [r],
+          drops:     [dropLabel],
+          dropSet:   new Set([dropLabel]),
+          totalWgt:  r.wgt,
+          totalPlt:  r.plt,
+          overweight: false,
+          overpallet: false,
+        });
+      }
+    });
+
+    // Order drops within each truck: closest → farthest from plant
+    trucks.forEach(T => {
+      if (plantIdx !== null && T.drops.length > 1) {
+        T.drops.sort((a, b) => {
+          const ai = locIdx[a], bi = locIdx[b];
+          const da = ai !== undefined ? dist[plantIdx][ai] : Infinity;
+          const db = bi !== undefined ? dist[plantIdx][bi] : Infinity;
+          return da - db;
+        });
+      }
+    });
+
+    return trucks;
+  }
+
+  /* ── Render truck load map (colored markers + route polylines) ───────────── */
+  function renderTruckMap(trucks) {
+    if (!window._mapsReady) return;
+    clearMapOverlays();
+
+    const map         = window._map;
+    const plantOrigin = getPlantOrigin();
+    const bounds      = new google.maps.LatLngBounds();
+    let hasPoints     = false;
+
+    // Plant origin marker
+    if (plantOrigin) {
+      const pos = { lat: plantOrigin.lat, lng: plantOrigin.lon };
+      bounds.extend(pos);
+      hasPoints = true;
+      const pm = new google.maps.Marker({
+        position: pos,
+        map,
+        title: 'Plant Origin: ' + plantOrigin.label,
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          fillColor: '#154e9a',
+          fillOpacity: 1,
+          strokeColor: '#ffffff',
+          strokeWeight: 2,
+          scale: 12,
+        },
+        label: { text: 'P', color: '#fff', fontWeight: 'bold', fontSize: '12px' },
+        zIndex: 1000,
+      });
+      pm.addListener('click', () => {
+        window._infoWindow.setContent(
+          `<div style="font-family:Open Sans,sans-serif;font-size:13px;">
+            <strong>Plant Origin</strong><br>${plantOrigin.label}
+          </div>`
+        );
+        window._infoWindow.open(map, pm);
+      });
+      _markers.push(pm);
+    }
+
+    // Jitter markers across all trucks so same-city customers get separate pins
+    const allShipments = trucks.flatMap(T => T.shipments);
+    const jitteredAll  = jitterPositions(allShipments);
+    const jitteredMap  = {};
+    allShipments.forEach((r, i) => { if (jitteredAll[i]) jitteredMap[r.bl_number] = jitteredAll[i]; });
+
+    trucks.forEach((T, ti) => {
+      const color    = TRUCK_COLORS[ti % TRUCK_COLORS.length];
+      const truckNum = ti + 1;
+
+      // Build route path: plant → drops in delivery order (using original lat/lon for route accuracy)
+      const routePath = [];
+      if (plantOrigin) {
+        routePath.push({ lat: plantOrigin.lat, lng: plantOrigin.lon });
+      }
+      T.drops.forEach(dropLabel => {
+        const row = T.shipments.find(r => `${r.city}, ${r.state}` === dropLabel);
+        if (row && row.lat != null && row.lon != null) {
+          routePath.push({ lat: row.lat, lng: row.lon });
+        }
+      });
+
+      // Draw delivery route polyline
+      if (routePath.length >= 2) {
+        const line = new google.maps.Polyline({
+          path: routePath,
+          map,
+          geodesic: true,
+          strokeColor: color,
+          strokeOpacity: 0.85,
+          strokeWeight: 2.5,
+          icons: [{
+            icon: {
+              path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+              scale: 3,
+              fillColor: color,
+              fillOpacity: 1,
+              strokeColor: color,
+            },
+            offset: '100%',
+          }],
+        });
+        _polylines.push(line);
+      }
+
+      // Markers for each shipment on this truck (jittered so same-city pins don't stack)
+      T.shipments.forEach(r => {
+        const pos = jitteredMap[r.bl_number];
+        if (!pos) return;
+        bounds.extend(pos);
+        hasPoints = true;
+
+        const marker = new google.maps.Marker({
+          position: pos,
+          map,
+          title: r.bl_number,
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            fillColor: color,
+            fillOpacity: 0.9,
+            strokeColor: '#ffffff',
+            strokeWeight: 1.5,
+            scale: 9,
+          },
+          label: {
+            text: String(truckNum),
+            color: '#fff',
+            fontWeight: 'bold',
+            fontSize: '10px',
+          },
+        });
+
+        const warnings = [];
+        if (T.overweight) warnings.push('⚠️ Overweight');
+        if (T.overpallet) warnings.push('⚠️ Over pallets');
+
+        marker.addListener('click', () => {
+          window._infoWindow.setContent(
+            `<div style="font-family:Open Sans,sans-serif;font-size:13px;line-height:1.6;">
+              <div style="background:${color};color:#fff;padding:2px 8px;border-radius:3px;margin-bottom:5px;font-weight:600;">
+                Truck ${truckNum}${warnings.length ? ' · ' + warnings.join(' ') : ''}
+              </div>
+              <strong>${r.bl_number}</strong><br>
+              ${r.customer}<br>
+              ${r.city}, ${r.state}<br>
+              <span style="color:#666;">${r.wgt.toLocaleString()} lbs · ${r.plt} pallets</span>
+            </div>`
+          );
+          window._infoWindow.open(map, marker);
+        });
+        _markers.push(marker);
+      });
+    });
+
+    if (hasPoints) map.fitBounds(bounds);
+  }
+
+  /* ── Render truck summary stats and assignments table ───────────────────── */
+  function renderTruckTable(trucks) {
+    const summarySection = document.getElementById('truckSummarySection');
+    const loadsSection   = document.getElementById('truckLoadsSection');
+
+    if (!trucks.length) {
+      summarySection.classList.add('d-none');
+      loadsSection.classList.add('d-none');
       return;
     }
 
-    const fd = new FormData();
-    fd.append('file', input.files[0]);
+    // Summary stats
+    const totalBls = trucks.reduce((s, T) => s + T.shipments.length, 0);
+    const totalWgt = trucks.reduce((s, T) => s + T.totalWgt, 0);
+    const totalPlt = trucks.reduce((s, T) => s + T.totalPlt, 0);
 
-    btn.disabled = true;
-    spin.classList.remove('d-none');
-    icon.classList.add('d-none');
-    msgEl.classList.add('d-none');
+    document.getElementById('truckCount').textContent    = trucks.length;
+    document.getElementById('truckAvgWgt').textContent   = Math.round(totalWgt / trucks.length).toLocaleString();
+    document.getElementById('truckAvgPlt').textContent   = (totalPlt / trucks.length).toFixed(1);
+    document.getElementById('truckTotalBls').textContent = totalBls;
+
+    summarySection.classList.remove('d-none');
+    loadsSection.classList.remove('d-none');
+
+    // Build truck assignments table
+    const tbody = document.getElementById('truckLoadsTableBody');
+    const rows  = [];
+
+    trucks.forEach((T, ti) => {
+      const color    = TRUCK_COLORS[ti % TRUCK_COLORS.length];
+      const truckNum = ti + 1;
+
+      const warnings = [];
+      if (T.overweight) warnings.push('<span class="badge bg-danger ms-1">Overweight</span>');
+      if (T.overpallet) warnings.push('<span class="badge bg-warning text-dark ms-1">Over Pallets</span>');
+
+      // Truck group header row
+      rows.push(`
+        <tr style="background:${color}22; border-left:4px solid ${color};">
+          <td colspan="3" class="fw-semibold py-2">
+            <span style="color:${color}; font-size:1.1em;">■</span>
+            Truck ${truckNum}
+            ${warnings.join('')}
+            <span class="text-muted small ms-2">${T.drops.length} drop${T.drops.length !== 1 ? 's' : ''}</span>
+          </td>
+          <td class="text-end fw-semibold py-2">${T.totalWgt.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
+          <td class="text-end fw-semibold py-2">${T.totalPlt}</td>
+        </tr>
+      `);
+
+      // Sort shipments by drop delivery order
+      const dropOrder = {};
+      T.drops.forEach((d, i) => { dropOrder[d] = i; });
+      const ordered = [...T.shipments].sort((a, b) => {
+        const da = dropOrder[`${a.city}, ${a.state}`] ?? 99;
+        const db = dropOrder[`${b.city}, ${b.state}`] ?? 99;
+        return da - db;
+      });
+
+      // Child rows for each BL
+      ordered.forEach(r => {
+        rows.push(`
+          <tr>
+            <td class="ps-4 font-monospace small">${r.bl_number}</td>
+            <td>${r.customer}</td>
+            <td>${r.city}, ${r.state}</td>
+            <td class="text-end">${r.wgt.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
+            <td class="text-end">${r.plt}</td>
+          </tr>
+        `);
+      });
+    });
+
+    tbody.innerHTML = rows.join('');
+  }
+
+  /* ── Toggle between standard view and truck loads view ──────────────────── */
+  function setView(view) {
+    _currentView = view;
+    const btnStd   = document.getElementById('btnStdView');
+    const btnTruck = document.getElementById('btnTruckView');
+    const footerStd   = document.getElementById('mapFooterStd');
+    const footerTruck = document.getElementById('mapFooterTruck');
+
+    if (view === 'standard') {
+      btnStd.className   = 'btn btn-light btn-sm';
+      btnTruck.className = 'btn btn-outline-light btn-sm';
+      footerStd.classList.remove('d-none');
+      footerTruck.classList.add('d-none');
+      renderMap(_currentRows);
+    } else {
+      btnTruck.className = 'btn btn-light btn-sm';
+      btnStd.className   = 'btn btn-outline-light btn-sm';
+      footerStd.classList.add('d-none');
+      footerTruck.classList.remove('d-none');
+      renderTruckMap(_trucks);
+    }
+  }
+
+  /* ── Main truck load optimization entry point ───────────────────────────── */
+  async function optimizeLoads() {
+    if (!_currentRows.length) return;
+    if (!window._mapsReady) {
+      showToast('Google Maps is not loaded. Cannot compute driving distances.', 'danger');
+      return;
+    }
+
+    const plantOrigin = getPlantOrigin();
+    if (!plantOrigin) {
+      showToast('No plant origin defined for the selected site.', 'warning');
+      return;
+    }
+
+    const progressEl   = document.getElementById('optimizeProgress');
+    const progressText = document.getElementById('optimizeProgressText');
+    const btnOptimize  = document.getElementById('btnOptimize');
+
+    progressEl.classList.remove('d-none');
+    btnOptimize.disabled = true;
 
     try {
-      const res = await fetch('/api/tsr-prep/upload', { method: 'POST', body: fd });
-      const data = await res.json();
+      // 1. Build deduplicated location list: plant + unique city+state from rows
+      progressText.textContent = 'Collecting shipment locations...';
+      const locMap = new Map();
+      locMap.set(plantOrigin.label, { label: plantOrigin.label, lat: plantOrigin.lat, lon: plantOrigin.lon });
 
-      if (!res.ok) {
-        msgEl.className = 'mt-2 small text-danger';
-        msgEl.textContent = data.error || 'Upload failed.';
-      } else if (data.status === 'duplicate') {
-        msgEl.className = 'mt-2 small text-warning';
-        msgEl.textContent = 'This file has already been uploaded.';
-      } else {
-        msgEl.className = 'mt-2 small text-success';
-        msgEl.textContent = `Uploaded successfully — ${data.rows_inserted.toLocaleString()} rows inserted.`;
-        // Collapse the upload panel and refresh filter options
-        bootstrap.Collapse.getOrCreateInstance(
-          document.getElementById('uploadCard')
-        ).hide();
-        await loadFilterOptions();
-      }
+      _currentRows.forEach(r => {
+        const label = `${r.city}, ${r.state}`;
+        if (!locMap.has(label)) {
+          locMap.set(label, { label, lat: r.lat ?? null, lon: r.lon ?? null });
+        } else if (locMap.get(label).lat == null && r.lat != null) {
+          // Fill lat/lon if first entry lacked it
+          locMap.get(label).lat = r.lat;
+          locMap.get(label).lon = r.lon;
+        }
+      });
+      const locs = [...locMap.values()];
+
+      // 2. Build driving distance matrix (with caching + haversine pre-filter)
+      const updateProgress = (done, total) => {
+        progressText.textContent = `Computing driving distances… (${done}/${total} batches)`;
+      };
+      const dist = await buildDistMatrix(locs, updateProgress);
+
+      // 3. Greedy bin-packing
+      progressText.textContent = 'Grouping shipments into truck loads…';
+      await new Promise(r => setTimeout(r, 15)); // allow UI repaint
+      _trucks = greedyBinPack(_currentRows, dist, locs);
+
+      // 4. Show results
+      renderTruckTable(_trucks);
+      document.getElementById('viewToggle').classList.remove('d-none');
+      setView('trucks');
+
+      showToast(`Optimization complete — ${_trucks.length} truck${_trucks.length !== 1 ? 's' : ''} planned.`, 'success');
     } catch (err) {
-      msgEl.className = 'mt-2 small text-danger';
-      msgEl.textContent = 'Network error: ' + err.message;
+      showToast('Optimization failed: ' + err.message, 'danger');
+      console.error(err);
     } finally {
-      msgEl.classList.remove('d-none');
-      btn.disabled = false;
-      spin.classList.add('d-none');
-      icon.classList.remove('d-none');
+      progressEl.classList.add('d-none');
+      btnOptimize.disabled = false;
     }
   }
 
@@ -512,6 +1096,16 @@
     }
 
     _currentRows = rows;
+
+    // Reset truck optimization state
+    _trucks      = [];
+    _currentView = 'standard';
+    document.getElementById('truckSummarySection').classList.add('d-none');
+    document.getElementById('truckLoadsSection').classList.add('d-none');
+    document.getElementById('viewToggle').classList.add('d-none');
+    document.getElementById('mapFooterStd').classList.remove('d-none');
+    document.getElementById('mapFooterTruck').classList.add('d-none');
+
     renderTable(rows);
     renderMap(rows);
     renderDistanceTable(rows);
@@ -523,20 +1117,22 @@
     const summary  = document.getElementById('summaryBar');
     const mapCard  = document.getElementById('mapCard');
     const collapse = document.getElementById('shipListCollapse');
+    const btnOpt   = document.getElementById('btnOptimize');
 
     if (!rows.length) {
       tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">No shipments found for the selected filters.</td></tr>`;
       summary.classList.add('d-none');
       mapCard.classList.add('d-none');
       document.getElementById('distCard').classList.add('d-none');
-      // Also hide the collapse if visible
       bootstrap.Collapse.getOrCreateInstance(collapse, { toggle: false }).hide();
+      if (btnOpt) btnOpt.disabled = true;
     } else {
       const totalWgt = rows.reduce((s, r) => s + r.wgt, 0);
       document.getElementById('totalWgt').textContent  = totalWgt.toLocaleString(undefined, { maximumFractionDigits: 0 });
       document.getElementById('totalRows').textContent = rows.length;
       summary.classList.remove('d-none');
       mapCard.classList.remove('d-none');
+      if (btnOpt) btnOpt.disabled = false;
 
       tbody.innerHTML = rows.map(r => `
         <tr>
@@ -555,8 +1151,9 @@
   /* ── Chevron rotation on collapse toggles ───────────────────────────────── */
   document.addEventListener('DOMContentLoaded', () => {
     [
-      { colId: 'shipListCollapse', chevId: 'summaryChevron' },
-      { colId: 'distCollapse',     chevId: 'distChevron'    },
+      { colId: 'shipListCollapse',  chevId: 'summaryChevron'    },
+      { colId: 'distCollapse',      chevId: 'distChevron'       },
+      { colId: 'truckLoadsCollapse', chevId: 'truckLoadsChevron' },
     ].forEach(({ colId, chevId }) => {
       const colEl   = document.getElementById(colId);
       const chevron = document.getElementById(chevId);
@@ -567,7 +1164,7 @@
     });
   });
 
-  /* ── Generate and download CSV from current data ───────────────────────── */
+  /* ── Generate and download CSV from current data ────────────────────────── */
   function downloadCsv() {
     if (!_currentRows.length) return;
     const header = ['BL Number', 'Customer', 'City', 'State', 'Weight (lbs)', 'Pallets', 'CSR', 'Lat', 'Lon'];
