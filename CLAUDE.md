@@ -122,7 +122,7 @@ The `connect_to_database()` function returns a SQLAlchemy `Engine`.
 | Unit Freight Cost John | `GET /api/analytics/unit-frt-cost-john` | JSON — all rows from `unit_frt_cost_john`: id, yyyy, mm, division, product, wt_lbs, freight |
 | Freight Cost by Plant | `GET /api/analytics/freight-cost-by-plant` | JSON — annual YTD freight cost ($) by plant (BP, SW, CT, YA, Total) for 2019–2026; reads Excel workbook `AMJK Frt cost breakdown by plants-26.02.03.xlsx` |
 | Press | `GET /press` | Sub-page of Home |
-| Warehouse | `GET /warehouse` | UDC hourly bar chart, UDC history line chart, ASH event heatmap — all data proxied from `http://172.17.15.228:8000` via `/api/warehouse/*` routes using httpx |
+| Warehouse | `GET /warehouse` | UDC hourly bar chart, UDC history line chart, ASH event heatmap — queries `udc_hourly_ash`, `udc_ash`, `event_ash` tables directly via SQLAlchemy |
 | Shipping | `GET /shipping` | Filter bar (date range, site, product group) drives Carrier Cost Analysis card |
 | Carrier Cost Analysis | `GET /api/carrier-cost-analysis` | JSON — calls `sp_carrier_cost_per_pound`; params: `date_from`, `date_to`, `site`, `product_group` (all optional); returns carrier_id, bl_count, total_weight, total_pallets, total_freight_cost, cost_per_pound. Card embedded at bottom of `/shipping` page with Plotly bubble chart + sortable table. |
 | TSR Prep | `GET /tsr-prep` | Available-to-ship BL list + Google Map with nearest-neighbor lines and radius circles. Same-city customers are jittered so each gets a separate pin. |
