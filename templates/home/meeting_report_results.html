@@ -103,7 +103,7 @@
             <div class="text-muted small mb-1">📊 Avg ¢/lb</div>
             <div class="fw-bold fs-5">
               {% if row.Avg_Freight_per_lb is not none %}
-                {{ "{:.4f}".format(row.Avg_Freight_per_lb) }}¢
+                {{ "{:.2f}".format(row.Avg_Freight_per_lb) }}¢
               {% else %}—{% endif %}
             </div>
           </div>
@@ -165,7 +165,7 @@
       </div>
       <div class="col">
         <div class="text-muted small mb-1">📊 Avg ¢/lb</div>
-        <div class="fw-bold fs-5">{{ "{:.4f}".format(avg_per_lb) }}¢</div>
+        <div class="fw-bold fs-5">{{ "{:.2f}".format(avg_per_lb) }}¢</div>
       </div>
     </div>
   </div>
