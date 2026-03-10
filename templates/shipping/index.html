@@ -274,7 +274,7 @@
   /* ── Format helpers ── */
   function fmtNum(n) { return n.toLocaleString(); }
   function fmtCost(n) { return '$' + n.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}); }
-  function fmtCpp(n)  { return (n * 100).toFixed(2) + '¢/lb'; }
+  function fmtCpp(n)  { return n.toFixed(2) + '¢/lb'; }
 
   /* ── Build the badge label ── */
   function buildBadge() {
@@ -289,7 +289,7 @@
   function renderSummary(data) {
     var totalFreight = data.reduce(function (s, r) { return s + r.total_freight_cost; }, 0);
     var totalWeight  = data.reduce(function (s, r) { return s + r.total_weight; }, 0);
-    var avgCpp       = totalWeight > 0 ? totalFreight / totalWeight : 0;
+    var avgCpp       = totalWeight > 0 ? (totalFreight / totalWeight) * 100 : 0;
 
     document.getElementById('cc-total-carriers').textContent = data.length;
     document.getElementById('cc-total-freight').textContent  = fmtCost(totalFreight);
@@ -305,7 +305,7 @@
     var maxFreight = Math.max.apply(null, data.map(function (d) { return d.total_freight_cost; }));
     var trace = {
       x:    data.map(function (d) { return d.total_weight; }),
-      y:    data.map(function (d) { return d.cost_per_pound * 100; }),
+      y:    data.map(function (d) { return d.cost_per_pound; }),
       text: data.map(function (d) { return d.carrier_id; }),
       mode: 'markers+text',
       textposition: 'top center',
@@ -315,7 +315,7 @@
         sizemode:   'area',
         sizeref:    2.0 * maxFreight / (80 * 80),
         sizemin:    8,
-        color:      data.map(function (d) { return d.cost_per_pound * 100; }),
+        color:      data.map(function (d) { return d.cost_per_pound; }),
         colorscale: 'RdYlGn_r',
         colorbar:   { title: '¢/lb', titleside: 'right' },
         line:       { width: 1, color: '#333' },
@@ -376,7 +376,7 @@
     var totWeight  = data.reduce(function (s, r) { return s + r.total_weight; }, 0);
     var totPallets = data.reduce(function (s, r) { return s + r.total_pallets; }, 0);
     var totBl      = data.reduce(function (s, r) { return s + r.bl_count; }, 0);
-    var wtdAvg     = totWeight > 0 ? totFreight / totWeight : 0;
+    var wtdAvg     = totWeight > 0 ? (totFreight / totWeight) * 100 : 0;
 
     document.getElementById('carrier-tfoot').innerHTML =
       '<tr>' +
