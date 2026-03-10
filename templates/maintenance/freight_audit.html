@@ -1,0 +1,406 @@
+{% extends "base.html" %}
+{% block title %}Freight ¢/lb Audit{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+
+  <!-- Page header -->
+  <div class="mb-4">
+    <h1 class="page-header h3 mb-0">
+      <i class="bi bi-clipboard-check me-2" aria-hidden="true"></i>Freight ¢/lb Calculation Audit
+    </h1>
+    <p class="text-muted small mt-1 mb-0">
+      Cross-checks freight cost-per-pound calculations across all pages using independent formulas.
+    </p>
+  </div>
+
+  <!-- Formula Reference Card -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-header fw-semibold">
+      <i class="bi bi-book me-2"></i>Formula Reference — How Each Page Computes ¢/lb
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-sm table-striped mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Page</th>
+              <th>What It Shows</th>
+              <th>Formula</th>
+              <th>Data Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Meeting Report</strong></td>
+              <td>Per-pound shipping rate</td>
+              <td><code>SUM(Unit_Freight × Pick_Weight) / SUM(Pick_Weight)</code></td>
+              <td><code>vw_bl_lbs_cnt_carrier_customer</code></td>
+            </tr>
+            <tr>
+              <td><strong>Carrier Cost (Shipping)</strong></td>
+              <td>Per-pound shipping rate</td>
+              <td><code>SUM(Unit_Freight × Pick_Weight) / SUM(Pick_Weight)</code></td>
+              <td><code>sp_carrier_cost_per_pound</code> → <code>ipg_ez</code></td>
+            </tr>
+            <tr>
+              <td><strong>Briefing Snapshot</strong></td>
+              <td>All-in cost per pound</td>
+              <td><code>(Frt_Amt_$ / Weight_lbs) × 100</code></td>
+              <td>Excel workbook (includes surcharges)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card-footer small">
+      <div class="row">
+        <div class="col-md-6">
+          <strong>Unit_Freight</strong> = per-pound rate in ¢/lb from IPG EZ Excel column "Unit Freight (cent/Lb)"
+        </div>
+        <div class="col-md-6">
+          <strong>Freight_Amount</strong> = total BL freight in $ from "Freight Amount ($)" — includes surcharges, fuel, etc.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-body py-3">
+      <form class="row g-2 align-items-end" id="audit-filter-form">
+        <div class="col-sm-6 col-md-2">
+          <label for="audit-site" class="form-label form-label-sm fw-semibold mb-1">Site</label>
+          <select id="audit-site" class="form-select form-select-sm" aria-label="Site">
+            <option value="">All</option>
+            <option value="AMAZ">AMAZ</option>
+            <option value="AMIN">AMIN</option>
+            <option value="AMJK" selected>AMJK</option>
+            <option value="AMSC">AMSC</option>
+            <option value="PFCH">PFCH</option>
+            <option value="TXAS">TXAS</option>
+            <option value="VAMT">VAMT</option>
+          </select>
+        </div>
+        <div class="col-sm-6 col-md-2">
+          <label for="audit-pg" class="form-label form-label-sm fw-semibold mb-1">Product Group</label>
+          <select id="audit-pg" class="form-select form-select-sm" aria-label="Product group">
+            <option value="">All</option>
+            <option value="SW" selected>SW</option>
+            <option value="BP">BP</option>
+            <option value="CT">CT</option>
+          </select>
+        </div>
+        <div class="col-sm-6 col-md-2">
+          <label for="audit-from" class="form-label form-label-sm fw-semibold mb-1">Date From</label>
+          <input type="date" id="audit-from" class="form-control form-control-sm" aria-label="Date from">
+        </div>
+        <div class="col-sm-6 col-md-2">
+          <label for="audit-to" class="form-label form-label-sm fw-semibold mb-1">Date To</label>
+          <input type="date" id="audit-to" class="form-control form-control-sm" aria-label="Date to">
+        </div>
+        <div class="col-auto">
+          <button type="submit" class="btn btn-primary btn-sm">
+            <i class="bi bi-play-fill me-1"></i>Run Audit
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Loading spinner -->
+  <div id="audit-loading" class="text-center py-4 d-none">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Running audit...</span>
+    </div>
+    <p class="text-muted small mt-2">Running audit queries...</p>
+  </div>
+
+  <!-- Results container -->
+  <div id="audit-results" class="d-none">
+
+    <!-- Data scope summary -->
+    <div class="card shadow-sm mb-4">
+      <div class="card-header fw-semibold">
+        <i class="bi bi-database me-2"></i>Data Scope (deduplicated — latest snapshot per BL)
+      </div>
+      <div class="card-body">
+        <div class="row text-center g-3">
+          <div class="col">
+            <div class="text-muted small mb-1">Rows</div>
+            <div class="fw-bold fs-5" id="audit-row-count">—</div>
+          </div>
+          <div class="col">
+            <div class="text-muted small mb-1">Distinct BLs</div>
+            <div class="fw-bold fs-5" id="audit-bl-count">—</div>
+          </div>
+          <div class="col">
+            <div class="text-muted small mb-1">Total Weight (lbs)</div>
+            <div class="fw-bold fs-5" id="audit-total-weight">—</div>
+          </div>
+          <div class="col">
+            <div class="text-muted small mb-1">SUM(Freight_Amount) $</div>
+            <div class="fw-bold fs-5" id="audit-total-frt">—</div>
+          </div>
+          <div class="col">
+            <div class="text-muted small mb-1">SUM(UF × PW) ¢·lbs</div>
+            <div class="fw-bold fs-5" id="audit-uf-x-pw">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Method comparison -->
+    <div class="card shadow-sm mb-4">
+      <div class="card-header fw-semibold">
+        <i class="bi bi-calculator me-2"></i>¢/lb Cross-Check — Three Independent Calculations
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th style="width:60px;">Method</th>
+                <th>Formula</th>
+                <th>What It Measures</th>
+                <th class="text-end" style="width:120px;">Result (¢/lb)</th>
+                <th class="text-center" style="width:80px;">Status</th>
+              </tr>
+            </thead>
+            <tbody id="audit-methods-tbody"></tbody>
+            <tfoot id="audit-methods-tfoot"></tfoot>
+          </table>
+        </div>
+      </div>
+      <div class="card-footer small" id="audit-verdict"></div>
+    </div>
+
+    <!-- SP per-carrier breakdown -->
+    <div class="card shadow-sm mb-4">
+      <div class="card-header fw-semibold">
+        <i class="bi bi-truck me-2"></i>SP Per-Carrier Breakdown (top 10 by ¢/lb)
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm table-striped table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Carrier</th>
+                <th class="text-end">Weight (lbs)</th>
+                <th class="text-end">Freight_Amount ($)</th>
+                <th class="text-end">Rate ¢/lb (Unit_Freight)</th>
+                <th class="text-end">All-in ¢/lb (Frt_Amt)</th>
+                <th class="text-end">Diff</th>
+              </tr>
+            </thead>
+            <tbody id="audit-carriers-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card-footer text-muted small">
+        <strong>Rate ¢/lb</strong> = SP <code>cost_per_pound</code> (from Unit_Freight weighted avg).
+        <strong>All-in ¢/lb</strong> = Freight_Amount / Weight × 100.
+        These differ because Freight_Amount includes surcharges, fuel, etc.
+      </div>
+    </div>
+
+    <!-- Sample BL verification -->
+    <div class="card shadow-sm mb-4">
+      <div class="card-header fw-semibold">
+        <i class="bi bi-search me-2"></i>Sample BL Verification — Unit_Freight vs Freight_Amount
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm table-striped table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>BL Number</th>
+                <th class="text-end">Unit_Freight (¢/lb)</th>
+                <th class="text-end">Pick_Weight (lbs)</th>
+                <th class="text-end">UF/100 × PW ($)</th>
+                <th class="text-end">Freight_Amount ($)</th>
+                <th class="text-end">Extra ($)</th>
+              </tr>
+            </thead>
+            <tbody id="audit-samples-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card-footer text-muted small">
+        <strong>Extra</strong> = Freight_Amount − (Unit_Freight / 100 × Pick_Weight).
+        Positive values indicate surcharges, fuel, per-pallet fees, etc. beyond the base rate.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var fmt  = function (n) { return n.toLocaleString(undefined, {maximumFractionDigits: 0}); };
+  var fmt$ = function (n) { return '$' + n.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}); };
+  var fmtC = function (n) { return n.toFixed(4) + '¢'; };
+
+  document.getElementById('audit-filter-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    runAudit();
+  });
+
+  function runAudit() {
+    var params = new URLSearchParams();
+    var site = document.getElementById('audit-site').value;
+    var pg   = document.getElementById('audit-pg').value;
+    var from = document.getElementById('audit-from').value;
+    var to   = document.getElementById('audit-to').value;
+    if (site) params.set('site', site);
+    if (pg)   params.set('product_group', pg);
+    if (from) params.set('date_from', from);
+    if (to)   params.set('date_to', to);
+
+    document.getElementById('audit-loading').classList.remove('d-none');
+    document.getElementById('audit-results').classList.add('d-none');
+
+    fetch('/maintenance/api/freight-audit?' + params.toString())
+      .then(function (r) {
+        if (!r.ok) return r.json().then(function (e) { throw new Error(e.error || 'HTTP ' + r.status); });
+        return r.json();
+      })
+      .then(function (data) {
+        document.getElementById('audit-loading').classList.add('d-none');
+        renderResults(data);
+      })
+      .catch(function (err) {
+        document.getElementById('audit-loading').classList.add('d-none');
+        alert('Audit failed: ' + err.message);
+      });
+  }
+
+  function renderResults(data) {
+    var s = data.summary;
+    document.getElementById('audit-row-count').textContent    = fmt(s.row_count);
+    document.getElementById('audit-bl-count').textContent     = fmt(s.bl_count);
+    document.getElementById('audit-total-weight').textContent = fmt(s.total_weight) + ' lbs';
+    document.getElementById('audit-total-frt').textContent    = fmt$(s.total_freight_amt);
+    document.getElementById('audit-uf-x-pw').textContent      = fmt(s.uf_x_pw);
+
+    // ── Methods comparison ──────────────────────────────────────────
+    var methods = data.methods;
+    var tbody = document.getElementById('audit-methods-tbody');
+    tbody.innerHTML = '';
+
+    // A and C should match (both use Unit_Freight); B measures something different
+    var acDiff = Math.abs(methods.a.value - methods.c.value);
+    var acOk = acDiff < 0.01;
+
+    var methodList = [
+      { key: 'a', badge: 'A', compare: null },
+      { key: 'c', badge: 'C', compare: 'a' },
+      { key: 'b', badge: 'B', compare: null },
+    ];
+
+    methodList.forEach(function (item) {
+      var m = methods[item.key];
+      var tr = document.createElement('tr');
+      var ok, statusHtml;
+      if (item.compare) {
+        var diff = Math.abs(m.value - methods[item.compare].value);
+        ok = diff < 0.01;
+        statusHtml = ok
+          ? '<i class="bi bi-check-circle-fill text-success"></i>'
+          : '<i class="bi bi-exclamation-triangle-fill text-warning"></i> Δ' + diff.toFixed(4);
+      } else if (item.key === 'b') {
+        // B is a different metric — always "info"
+        statusHtml = '<i class="bi bi-info-circle-fill text-info"></i>';
+        ok = true;
+      } else {
+        statusHtml = '<i class="bi bi-check-circle-fill text-success"></i>';
+        ok = true;
+      }
+
+      var rowClass = '';
+      if (item.key === 'b') rowClass = ' class="table-light"';
+      else if (!ok) rowClass = ' style="background:#fff3cd;"';
+
+      tr.innerHTML =
+        '<td><span class="badge bg-' + (item.key === 'b' ? 'info' : ok ? 'success' : 'warning text-dark') + '">' + item.badge + '</span></td>' +
+        '<td><code class="small">' + m.label + '</code></td>' +
+        '<td class="small">' + m.description + '</td>' +
+        '<td class="text-end fw-bold fs-6">' + fmtC(m.value) + '/lb</td>' +
+        '<td class="text-center">' + statusHtml + '</td>';
+      if (rowClass) tr.setAttribute('class', rowClass.replace(' class="', '').replace('"', ''));
+      tbody.appendChild(tr);
+    });
+
+    // A vs C verdict row
+    var tfoot = document.getElementById('audit-methods-tfoot');
+    tfoot.innerHTML =
+      '<tr class="' + (acOk ? 'table-success' : 'table-warning') + '">' +
+      '<td colspan="3" class="fw-bold">A vs C (both use Unit_Freight — should match)</td>' +
+      '<td class="text-end fw-bold">Δ ' + acDiff.toFixed(4) + '¢</td>' +
+      '<td class="text-center">' +
+        (acOk ? '<i class="bi bi-check-circle-fill text-success"></i>'
+              : '<i class="bi bi-exclamation-triangle-fill text-warning"></i>') +
+      '</td></tr>' +
+      '<tr class="table-info">' +
+      '<td colspan="3" class="fw-bold">A vs B difference (rate vs all-in)</td>' +
+      '<td class="text-end fw-bold">Δ ' + Math.abs(methods.a.value - methods.b.value).toFixed(4) + '¢</td>' +
+      '<td class="text-center"><i class="bi bi-info-circle-fill text-info"></i></td></tr>';
+
+    // Verdict
+    var verdict = document.getElementById('audit-verdict');
+    if (acOk) {
+      verdict.innerHTML = '<i class="bi bi-check-circle-fill text-success me-2"></i>' +
+        '<strong class="text-success">PASS</strong> — Methods A and C agree (both use Unit_Freight). ' +
+        'Method B differs because Freight_Amount includes surcharges beyond the base per-pound rate.';
+    } else {
+      verdict.innerHTML = '<i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>' +
+        '<strong class="text-warning">WARNING</strong> — Methods A and C differ by ' + acDiff.toFixed(4) + '¢/lb. ' +
+        'This could indicate a deduplication or filtering mismatch.';
+    }
+
+    // ── SP carriers ─────────────────────────────────────────────────
+    var ctbody = document.getElementById('audit-carriers-tbody');
+    ctbody.innerHTML = '';
+    data.sp_carriers.forEach(function (c) {
+      var allIn = c.total_weight > 0 ? (c.total_freight_cost / c.total_weight * 100) : 0;
+      var diff = allIn - c.cost_per_pound;
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td>' + c.carrier_id + '</td>' +
+        '<td class="text-end">' + fmt(c.total_weight) + '</td>' +
+        '<td class="text-end">' + fmt$(c.total_freight_cost) + '</td>' +
+        '<td class="text-end fw-bold">' + c.cost_per_pound.toFixed(4) + '¢</td>' +
+        '<td class="text-end">' + allIn.toFixed(4) + '¢</td>' +
+        '<td class="text-end ' + (Math.abs(diff) < 0.5 ? 'text-success' : 'text-warning') + '">' +
+          (diff >= 0 ? '+' : '') + diff.toFixed(4) + '¢</td>';
+      ctbody.appendChild(tr);
+    });
+
+    // ── Sample BLs ──────────────────────────────────────────────────
+    var stbody = document.getElementById('audit-samples-tbody');
+    stbody.innerHTML = '';
+    data.samples.forEach(function (row) {
+      var tr = document.createElement('tr');
+      var diffClass = row.diff > 0 ? 'text-warning' : (row.diff < 0 ? 'text-danger' : 'text-success');
+      tr.innerHTML =
+        '<td>' + row.bl + '</td>' +
+        '<td class="text-end">' + row.unit_freight.toFixed(4) + '</td>' +
+        '<td class="text-end">' + fmt(row.pick_weight) + '</td>' +
+        '<td class="text-end">' + fmt$(row.computed_freight) + '</td>' +
+        '<td class="text-end">' + fmt$(row.freight_amount) + '</td>' +
+        '<td class="text-end ' + diffClass + '">' +
+          (row.diff >= 0 ? '+' : '') + fmt$(row.diff) +
+        '</td>';
+      stbody.appendChild(tr);
+    });
+
+    document.getElementById('audit-results').classList.remove('d-none');
+  }
+
+  // Auto-run on page load with defaults
+  runAudit();
+})();
+</script>
+{% endblock %}

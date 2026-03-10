@@ -120,7 +120,13 @@
 {% set total_pallets = rows | sum(attribute='Pallets') | float %}
 {% set total_weight  = rows | sum(attribute='Weight')  | float %}
 {% set total_freight = rows | sum(attribute='Freight') | float %}
-{% set avg_per_lb    = (total_freight * 100 / total_weight) | float if total_weight > 0 else 0.0 %}
+{% set _weighted_sum = namespace(val=0.0) %}
+{% for row in rows %}
+  {% if row.Avg_Freight_per_lb is not none and row.Weight is not none %}
+    {% set _weighted_sum.val = _weighted_sum.val + row.Avg_Freight_per_lb * row.Weight %}
+  {% endif %}
+{% endfor %}
+{% set avg_per_lb = (_weighted_sum.val / total_weight) if total_weight > 0 else 0.0 %}
 
 <div class="card shadow-sm border-secondary">
   <div class="card-header fw-bold bg-secondary text-white">

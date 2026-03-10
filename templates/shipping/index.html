@@ -289,7 +289,9 @@
   function renderSummary(data) {
     var totalFreight = data.reduce(function (s, r) { return s + r.total_freight_cost; }, 0);
     var totalWeight  = data.reduce(function (s, r) { return s + r.total_weight; }, 0);
-    var avgCpp       = totalWeight > 0 ? (totalFreight / totalWeight) * 100 : 0;
+    var avgCpp       = totalWeight > 0
+      ? data.reduce(function (s, r) { return s + r.cost_per_pound * r.total_weight; }, 0) / totalWeight
+      : 0;
 
     document.getElementById('cc-total-carriers').textContent = data.length;
     document.getElementById('cc-total-freight').textContent  = fmtCost(totalFreight);
@@ -376,7 +378,9 @@
     var totWeight  = data.reduce(function (s, r) { return s + r.total_weight; }, 0);
     var totPallets = data.reduce(function (s, r) { return s + r.total_pallets; }, 0);
     var totBl      = data.reduce(function (s, r) { return s + r.bl_count; }, 0);
-    var wtdAvg     = totWeight > 0 ? (totFreight / totWeight) * 100 : 0;
+    var wtdAvg     = totWeight > 0
+      ? data.reduce(function (s, r) { return s + r.cost_per_pound * r.total_weight; }, 0) / totWeight
+      : 0;
 
     document.getElementById('carrier-tfoot').innerHTML =
       '<tr>' +
