@@ -188,7 +188,7 @@
         </div>
         <div class="col-6 col-md-3">
           <div class="card border-0 bg-light text-center py-2">
-            <div class="small text-muted mb-1">Avg Cost / lb</div>
+            <div class="small text-muted mb-1">Avg Cost / lb (¢)</div>
             <div class="fw-bold fs-5" id="cc-avg-cost">—</div>
           </div>
         </div>
@@ -228,7 +228,7 @@
                 Freight Cost ($) <i class="bi bi-arrow-down-up" aria-hidden="true"></i>
               </th>
               <th scope="col" class="cc-sort-header text-end" data-col="cost_per_pound" style="cursor:pointer;">
-                Cost / lb ($) <i class="bi bi-arrow-down-up" aria-hidden="true"></i>
+                Cost / lb (¢) <i class="bi bi-arrow-down-up" aria-hidden="true"></i>
               </th>
             </tr>
           </thead>
@@ -274,7 +274,7 @@
   /* ── Format helpers ── */
   function fmtNum(n) { return n.toLocaleString(); }
   function fmtCost(n) { return '$' + n.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}); }
-  function fmtCpp(n)  { return '$' + n.toFixed(4); }
+  function fmtCpp(n)  { return (n * 100).toFixed(2) + '¢/lb'; }
 
   /* ── Build the badge label ── */
   function buildBadge() {
@@ -305,7 +305,7 @@
     var maxFreight = Math.max.apply(null, data.map(function (d) { return d.total_freight_cost; }));
     var trace = {
       x:    data.map(function (d) { return d.total_weight; }),
-      y:    data.map(function (d) { return d.cost_per_pound; }),
+      y:    data.map(function (d) { return d.cost_per_pound * 100; }),
       text: data.map(function (d) { return d.carrier_id; }),
       mode: 'markers+text',
       textposition: 'top center',
@@ -315,15 +315,15 @@
         sizemode:   'area',
         sizeref:    2.0 * maxFreight / (80 * 80),
         sizemin:    8,
-        color:      data.map(function (d) { return d.cost_per_pound; }),
+        color:      data.map(function (d) { return d.cost_per_pound * 100; }),
         colorscale: 'RdYlGn_r',
-        colorbar:   { title: '$/lb', titleside: 'right' },
+        colorbar:   { title: '¢/lb', titleside: 'right' },
         line:       { width: 1, color: '#333' },
         showscale:  true,
       },
       hovertemplate:
         '<b>%{text}</b><br>' +
-        'Cost/lb: $%{y:.4f}<br>' +
+        'Cost/lb: %{y:.2f}¢<br>' +
         'Total Weight: %{x:,.0f} lbs<br>' +
         'Freight Cost: $%{customdata[0]:,.2f}<br>' +
         'BL Count: %{customdata[1]}<br>' +
@@ -333,7 +333,7 @@
 
     Plotly.newPlot('carrier-bubble-chart', [trace], {
       xaxis:         { title: 'Total Weight (lbs)', zeroline: false, gridcolor: '#e9ecef' },
-      yaxis:         { title: 'Cost Per Pound ($)', zeroline: false, gridcolor: '#e9ecef' },
+      yaxis:         { title: 'Cost Per Pound (¢/lb)', zeroline: false, gridcolor: '#e9ecef' },
       plot_bgcolor:  '#ffffff',
       paper_bgcolor: '#ffffff',
       font:          { family: 'Open Sans, sans-serif', size: 12 },

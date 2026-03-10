@@ -100,10 +100,10 @@
 
           <!-- Avg Freight per lb -->
           <div class="col-6 p-3">
-            <div class="text-muted small mb-1">📊 Avg $/lb</div>
+            <div class="text-muted small mb-1">📊 Avg ¢/lb</div>
             <div class="fw-bold fs-5">
               {% if row.Avg_Freight_per_lb is not none %}
-                ${{ "{:.4f}".format(row.Avg_Freight_per_lb) }}
+                {{ "{:.4f}".format(row.Avg_Freight_per_lb) }}¢
               {% else %}—{% endif %}
             </div>
           </div>
@@ -120,7 +120,7 @@
 {% set total_pallets = rows | sum(attribute='Pallets') | float %}
 {% set total_weight  = rows | sum(attribute='Weight')  | float %}
 {% set total_freight = rows | sum(attribute='Freight') | float %}
-{% set avg_per_lb    = (total_freight / total_weight)  | float if total_weight > 0 else 0.0 %}
+{% set avg_per_lb    = (total_freight * 100 / total_weight) | float if total_weight > 0 else 0.0 %}
 
 <div class="card shadow-sm border-secondary">
   <div class="card-header fw-bold bg-secondary text-white">
@@ -158,8 +158,8 @@
         <div class="fw-bold fs-5 text-success">${{ "{:,.0f}".format(total_freight) }}</div>
       </div>
       <div class="col">
-        <div class="text-muted small mb-1">📊 Avg $/lb</div>
-        <div class="fw-bold fs-5">${{ "{:.4f}".format(avg_per_lb) }}</div>
+        <div class="text-muted small mb-1">📊 Avg ¢/lb</div>
+        <div class="fw-bold fs-5">{{ "{:.4f}".format(avg_per_lb) }}¢</div>
       </div>
     </div>
   </div>

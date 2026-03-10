@@ -88,7 +88,7 @@ _MEETING_REPORT_SQL = text("""
         CASE
             WHEN SUM(pick_weight) > 0
                 THEN ROUND(
-                    SUM((Unit_Freight / 100.0) * Pick_Weight) / SUM(pick_weight),
+                    SUM(Unit_Freight * Pick_Weight) / SUM(pick_weight),
                 4)
             ELSE 0
         END AS Avg_Freight_per_lb
