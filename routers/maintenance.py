@@ -2,7 +2,6 @@
 routers/maintenance.py — Maintenance sub-page routes.
 
 Handles:
-  GET /maintenance/input            — data entry form
   GET /maintenance/frt-validation   — Freight ¢/lb by Product Code validation tool
   GET /maintenance/freight-audit    — Freight ¢/lb calculation audit page
   GET /api/maintenance/freight-audit — JSON audit data
@@ -138,19 +137,6 @@ async def _stream_ollama(prompt: str):
                     yield think_buf
                     think_buf = ""
 
-
-@router.get(
-    "/input",
-    response_class=HTMLResponse,
-    summary="Maintenance Input page",
-    description="Data entry form for warehouse and shipping maintenance records.",
-)
-async def maintenance_input(request: Request) -> HTMLResponse:
-    """Render the maintenance data entry form."""
-    return templates.TemplateResponse(
-        "maintenance/input.html",
-        {"request": request, "active_page": "maintenance"},
-    )
 
 
 @router.get(

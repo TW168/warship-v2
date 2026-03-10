@@ -88,19 +88,19 @@
 
           <!-- Maintenance (dropdown) -->
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle {% if active_page in ['maintenance', 'frt_validation', 'lmi'] %}active{% endif %}"
+            <a class="nav-link dropdown-toggle {% if active_page in ['maintenance', 'frt_validation', 'freight_audit', 'lmi'] %}active{% endif %}"
                href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
               <i class="bi bi-tools me-1" aria-hidden="true"></i>Maintenance
             </a>
             <ul class="dropdown-menu">
               <li>
-                <a class="dropdown-item {% if active_page == 'maintenance' %}active{% endif %}" href="/maintenance/input">
-                  <i class="bi bi-pencil-square me-2" aria-hidden="true"></i>Input
+                <a class="dropdown-item {% if active_page == 'frt_validation' %}active{% endif %}" href="/maintenance/frt-validation">
+                  <i class="bi bi-search me-2" aria-hidden="true"></i>Frt by Product Validation
                 </a>
               </li>
               <li>
-                <a class="dropdown-item {% if active_page == 'frt_validation' %}active{% endif %}" href="/maintenance/frt-validation">
-                  <i class="bi bi-search me-2" aria-hidden="true"></i>Frt by Product Validation
+                <a class="dropdown-item {% if active_page == 'freight_audit' %}active{% endif %}" href="/maintenance/freight-audit">
+                  <i class="bi bi-clipboard-check me-2" aria-hidden="true"></i>Freight ¢/lb Audit
                 </a>
               </li>
               <li>

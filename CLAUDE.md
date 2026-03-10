@@ -126,7 +126,6 @@ The `connect_to_database()` function returns a SQLAlchemy `Engine`.
 | Shipping | `GET /shipping` | Filter bar (date range, site, product group) drives Carrier Cost Analysis card |
 | Carrier Cost Analysis | `GET /api/carrier-cost-analysis` | JSON — calls `sp_carrier_cost_per_pound`; params: `date_from`, `date_to`, `site`, `product_group` (all optional); returns carrier_id, bl_count, total_weight, total_pallets, total_freight_cost, cost_per_pound. Card embedded at bottom of `/shipping` page with Plotly bubble chart + sortable table. |
 | TSR Prep | `GET /tsr-prep` | Available-to-ship BL list + Google Map with nearest-neighbor lines and radius circles. Same-city customers are jittered so each gets a separate pin. |
-| Maintenance Input | `GET /maintenance/input` | |
 | Freight ¢/lb Audit | `GET /maintenance/freight-audit` | Cross-checks ¢/lb calculations across all pages using 3 independent methods (Unit_Freight weighted avg, Freight_Amount all-in, SP). Shows per-carrier breakdown and sample BL verification. |
 | Software Architectural | `GET /maintenance/architectural` | Markdown → HTML via Pygments; JS-generated Bootstrap scrollspy TOC sidebar |
 | About | `GET /about` | |
