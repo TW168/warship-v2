@@ -11,6 +11,43 @@
     </h1>
   </div>
 
+  <!-- IPG EZ Upload -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-header d-flex align-items-center gap-2 py-2"
+         role="button"
+         data-bs-toggle="collapse"
+         data-bs-target="#uploadCollapse"
+         aria-expanded="false"
+         aria-controls="uploadCollapse"
+         style="cursor:pointer;">
+      <i class="bi bi-upload text-primary"></i>
+      <span class="fw-semibold small">Upload IPG EZ Report</span>
+      <i class="bi bi-chevron-down ms-auto small text-muted" id="uploadChevron"
+         style="transition:transform .2s;"></i>
+    </div>
+    <div class="collapse" id="uploadCollapse">
+      <div class="card-body pt-3">
+        <div class="row g-3 align-items-end">
+          <div class="col-sm-8 col-md-6 col-lg-4">
+            <label for="ipgFile" class="form-label form-label-sm fw-semibold mb-1">
+              Select .xlsx file
+            </label>
+            <input type="file" id="ipgFile" class="form-control form-control-sm"
+                   accept=".xlsx,.xls" aria-label="IPG EZ Excel file">
+          </div>
+          <div class="col-auto">
+            <button class="btn btn-primary btn-sm" onclick="uploadFile()">
+              <i class="bi bi-cloud-upload me-1"></i>Upload
+            </button>
+          </div>
+          <div class="col-12">
+            <div id="uploadStatus" class="d-none"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Filters -->
   <div class="card shadow-sm mb-4">
     <div class="card-body py-3">
@@ -413,6 +450,53 @@
   }
 
   /* ── Load filter dropdown options from the API ──────────────────────────── */
+  // ── Upload chevron rotation ─────────────────────────────────────────────
+  document.getElementById('uploadCollapse').addEventListener('show.bs.collapse', () => {
+    document.getElementById('uploadChevron').style.transform = 'rotate(180deg)';
+  });
+  document.getElementById('uploadCollapse').addEventListener('hide.bs.collapse', () => {
+    document.getElementById('uploadChevron').style.transform = 'rotate(0deg)';
+  });
+
+  // ── IPG EZ Upload ───────────────────────────────────────────────────────
+  async function uploadFile() {
+    const input = document.getElementById('ipgFile');
+    const statusEl = document.getElementById('uploadStatus');
+    if (!input.files.length) {
+      statusEl.className = 'alert alert-warning py-2 small';
+      statusEl.textContent = 'Please select a file first.';
+      statusEl.classList.remove('d-none');
+      return;
+    }
+    const file = input.files[0];
+    const fd = new FormData();
+    fd.append('file', file);
+
+    statusEl.className = 'alert alert-info py-2 small d-flex align-items-center gap-2';
+    statusEl.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Uploading…';
+    statusEl.classList.remove('d-none');
+
+    try {
+      const resp = await fetch('/api/tsr-prep/upload', { method: 'POST', body: fd });
+      const data = await resp.json();
+      if (!resp.ok) {
+        statusEl.className = 'alert alert-danger py-2 small';
+        statusEl.textContent = data.error || 'Upload failed.';
+      } else if (data.status === 'duplicate') {
+        statusEl.className = 'alert alert-warning py-2 small';
+        statusEl.textContent = 'Duplicate file — already uploaded, no rows inserted.';
+      } else {
+        statusEl.className = 'alert alert-success py-2 small';
+        statusEl.textContent = `Uploaded successfully — ${data.rows_inserted} rows inserted.`;
+        input.value = '';
+        await loadFilterOptions();   // refresh date/site dropdowns
+      }
+    } catch (err) {
+      statusEl.className = 'alert alert-danger py-2 small';
+      statusEl.textContent = `Network error: ${err.message}`;
+    }
+  }
+
   async function loadFilterOptions() {
     try {
       const res  = await fetch('/api/tsr-prep/filter-options');
