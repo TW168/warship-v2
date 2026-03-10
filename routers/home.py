@@ -200,9 +200,11 @@ async def gas_prices() -> JSONResponse:
 )
 async def home(request: Request) -> HTMLResponse:
     """Render the home page."""
+    import datetime
+    today = datetime.date.today().strftime("%Y%m%d")
     return templates.TemplateResponse(
         "home/index.html",
-        {"request": request, "active_page": "home"},
+        {"request": request, "active_page": "home", "cache_bust": today},
     )
 
 
