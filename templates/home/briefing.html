@@ -36,6 +36,16 @@
       page-break-inside: avoid;
     }
 
+    /* Keep boxplot + explanation on one printed page */
+    .print-group-boxplot {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+    .print-group-boxplot .card {
+      break-inside: auto;
+      page-break-inside: auto;
+    }
+
     /* Let Plotly SVGs scale */
     .js-plotly-plot, .plotly { width: 100% !important; }
   }
@@ -215,8 +225,8 @@
       </div>
     </div>
 
-    <!-- 3. Freight ¢/lb by Product Code (YTD) — full width ──── -->
-    <div class="col-12">
+    <!-- 3. Freight ¢/lb by Product Code (YTD) + explanation — keep on one printed page -->
+    <div class="col-12 print-group-boxplot">
       <div class="card shadow-sm">
         <div class="card-header fw-semibold d-flex align-items-center justify-content-between"
              style="background:#154e9a; color:#fff;">
@@ -250,11 +260,9 @@
           </a>
         </div>
       </div>
-    </div>
 
-    <!-- Boxplot explanation -->
-    <div class="col-12">
-      <div class="card shadow-sm border-start border-4 border-info">
+      <!-- Boxplot explanation -->
+      <div class="card shadow-sm border-start border-4 border-info mt-4">
         <div class="card-body py-3">
           <h6 class="fw-semibold mb-2"><i class="bi bi-info-circle me-2 text-info"></i>About This Chart</h6>
           <div class="row g-4" style="font-size:0.875rem;">
