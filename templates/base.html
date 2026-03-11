@@ -45,11 +45,11 @@
       <div class="collapse navbar-collapse" id="navbarMain">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
 
-          <!-- Release (with sub-page dropdown) -->
+          <!-- Overview (with sub-page dropdown) -->
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle {% if active_page in ['meeting_report', 'briefing'] %}active{% endif %}"
                href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-              <i class="bi bi-house me-1" aria-hidden="true"></i>Release
+              <i class="bi bi-house me-1" aria-hidden="true"></i>Overview
             </a>
             <ul class="dropdown-menu">
               <li>
@@ -59,7 +59,7 @@
               </li>
               <li>
                 <a class="dropdown-item {% if active_page == 'briefing' %}active{% endif %}" href="/briefing">
-                  <i class="bi bi-file-earmark-text me-2" aria-hidden="true"></i>Snapshot
+                  <i class="bi bi-file-earmark-text me-2" aria-hidden="true"></i>Briefing
                 </a>
               </li>
             </ul>

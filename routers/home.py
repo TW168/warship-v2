@@ -244,6 +244,7 @@ async def meeting_report_results(
     rows = []
     consignment_count = 0
     custom_count = 0
+    mtd_pallets = None
     error = None
 
     try:
@@ -267,8 +268,18 @@ async def meeting_report_results(
             params = {"site": site, "product_group": product_group, "date": date}
             consignment_count = int(conn.execute(_CONSIGNMENT_COUNT_SQL, params).scalar() or 0)
             custom_count = int(conn.execute(_CUSTOM_COUNT_SQL, params).scalar() or 0)
+
+            # MTD pallets shipped: same site/product_group, 1st of month through selected date
+            mtd_pallets = int(conn.execute(text("""
+                SELECT SUM(pallet_count)
+                FROM warship.vw_bl_lbs_cnt_carrier_customer
+                WHERE site = :site
+                  AND product_group = :product_group
+                  AND Truck_Appointment_Date BETWEEN DATE_FORMAT(:date, '%Y-%m-01') AND :date
+            """), params).scalar() or 0)
     except Exception as exc:
         error = str(exc)
+        mtd_pallets = None
 
     return templates.TemplateResponse(
         "home/meeting_report_results.html",
@@ -277,6 +288,7 @@ async def meeting_report_results(
             "rows": rows,
             "consignment_count": consignment_count,
             "custom_count": custom_count,
+            "mtd_pallets": mtd_pallets,
             "error": error,
             "site": site,
             "product_group": product_group,
@@ -589,6 +601,7 @@ async def sw_transport_type_by_year() -> JSONResponse:
         for year, d in sorted(year_totals.items())
     ]
     return JSONResponse(content=result)
+
 
 
 # ── AMJK Freight Monthly Avg Comparison ──────────────────────────────────────

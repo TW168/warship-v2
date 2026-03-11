@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Snapshot{% endblock %}
+{% block title %}Briefing{% endblock %}
 
 {% block head %}
 <!-- Plotly.js for shipping weight chart -->
@@ -62,13 +62,13 @@
       <!-- Breadcrumb (screen only) -->
       <nav aria-label="breadcrumb" class="mb-1 no-print">
         <ol class="breadcrumb mb-0">
-          <li class="breadcrumb-item"><a href="/" class="text-decoration-none">Release</a></li>
-          <li class="breadcrumb-item active" aria-current="page">Snapshot</li>
+          <li class="breadcrumb-item"><a href="/" class="text-decoration-none">Overview</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Briefing</li>
         </ol>
       </nav>
 
       <h1 class="h3 fw-bold briefing-title mb-0">
-        <i class="bi bi-file-earmark-text me-2 no-print" aria-hidden="true"></i>CFP Warehouse &amp; Shipping Operations Snapshot
+        <i class="bi bi-file-earmark-text me-2 no-print" aria-hidden="true"></i>CFP Warehouse &amp; Shipping Operations Briefing
       </h1>
       <p class="text-muted small mb-0 mt-1 briefing-subtitle">
         <i class="bi bi-calendar3 me-1 no-print" aria-hidden="true"></i>
@@ -381,6 +381,42 @@
         </div>
         <div class="card-footer text-muted" style="font-size:0.75rem;">
           Source: Warship database · <code>sp_carrier_cost_per_pound</code> · AMJK · SW · YTD 2026.
+        </div>
+      </div>
+    </div>
+
+    <!-- Warehouse Pallet Entry / Exit — current month ────────── -->
+    <div class="col-md-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header fw-semibold d-flex align-items-center justify-content-between"
+             style="background:#154e9a; color:#fff;">
+          <span>
+            <i class="bi bi-box-arrow-in-right me-2" aria-hidden="true"></i>
+            Warehouse Pallet Entry / Exit
+            <span class="badge text-bg-light text-secondary fw-normal ms-1" style="font-size:0.7rem;"
+                  id="palletMonthLabel">MTD</span>
+          </span>
+          <span id="palletSpinner"
+                class="spinner-border spinner-border-sm text-white opacity-75"
+                role="status" aria-label="Loading"
+                style="width:1rem;height:1rem;"></span>
+        </div>
+        <div class="card-body d-flex align-items-center justify-content-center py-4">
+          <div class="row g-4 text-center w-100" id="palletContent" style="display:none;">
+            <div class="col-6">
+              <div class="text-muted small mb-1">📥 Entry to Date</div>
+              <div class="fw-bold" style="font-size:2rem; color:#154e9a;" id="palletEntry">—</div>
+              <div class="text-muted" style="font-size:0.75rem;">pallets</div>
+            </div>
+            <div class="col-6">
+              <div class="text-muted small mb-1">📤 Exit to Date</div>
+              <div class="fw-bold" style="font-size:2rem; color:#198754;" id="palletExit">—</div>
+              <div class="text-muted" style="font-size:0.75rem;">pallets</div>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer text-muted" style="font-size:0.75rem;">
+          Source: <code>warship.daily_shift_averages</code> · Day+Night shift in / 1st+2nd+3rd shift out.
         </div>
       </div>
     </div>
@@ -707,6 +743,34 @@
         document.getElementById('ccSpinner').style.display = 'none';
         document.getElementById('ccBubbleChart').innerHTML =
           '<div class="alert alert-warning m-3"><i class="bi bi-exclamation-triangle me-2"></i>Carrier data unavailable: ' + err.message + '</div>';
+      });
+  })();
+
+  /* ── Warehouse Pallet Entry / Exit — current month ──────────── */
+  (function () {
+    var now = new Date();
+    var y = now.getFullYear();
+    var m = String(now.getMonth() + 1).padStart(2, '0');
+    var d = String(now.getDate()).padStart(2, '0');
+    var dateFrom = y + '-' + m + '-01';
+    var dateTo   = y + '-' + m + '-' + d;
+
+    var monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    document.getElementById('palletMonthLabel').textContent = monthNames[now.getMonth()] + ' ' + y;
+
+    fetch('/api/warehouse/pallet-entry-exit?date_from=' + dateFrom + '&date_to=' + dateTo)
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        document.getElementById('palletSpinner').style.display = 'none';
+        document.getElementById('palletEntry').textContent = Number(data.entry_to_date).toLocaleString();
+        document.getElementById('palletExit').textContent  = Number(data.exit_to_date).toLocaleString();
+        document.getElementById('palletContent').style.display = 'flex';
+      })
+      .catch(function (err) {
+        document.getElementById('palletSpinner').style.display = 'none';
+        document.getElementById('palletContent').innerHTML =
+          '<div class="col-12"><div class="alert alert-warning mb-0"><i class="bi bi-exclamation-triangle me-2"></i>' + err.message + '</div></div>';
+        document.getElementById('palletContent').style.display = 'flex';
       });
   })();
 

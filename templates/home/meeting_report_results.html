@@ -171,9 +171,65 @@
   </div>
 </div>
 
+<!-- ── Pallet Entry / Exit — AMJK SW only ─────────────────────── -->
+<div class="card shadow-sm border-secondary mt-3">
+  <div class="card-header fw-bold bg-secondary text-white">
+    <i class="bi bi-box-arrow-in-right me-2"></i>Warehouse Pallet Movement
+    <span class="badge bg-light text-secondary fw-normal ms-1" style="font-size:0.7rem;" id="pmMonthLabel">MTD</span>
+  </div>
+  <div class="card-body">
+    {% if site == 'AMJK' and product_group == 'SW' %}
+    <div class="row text-center g-3">
+      <div class="col-4">
+        <div class="text-muted small mb-1">📥 Entry</div>
+        <div class="fw-bold fs-5" id="pmEntry">
+          <span class="spinner-border spinner-border-sm text-secondary" role="status"></span>
+        </div>
+        <div class="text-muted" style="font-size:0.75rem;">pallets</div>
+      </div>
+      <div class="col-4">
+        <div class="text-muted small mb-1">📤 Exit</div>
+        <div class="fw-bold fs-5" id="pmExit">
+          <span class="spinner-border spinner-border-sm text-secondary" role="status"></span>
+        </div>
+        <div class="text-muted" style="font-size:0.75rem;">pallets</div>
+      </div>
+      <div class="col-4">
+        <div class="text-muted small mb-1">🚚 Shipped</div>
+        <div class="fw-bold fs-5">{{ "{:,}".format(mtd_pallets) if mtd_pallets is not none else "—" }}</div>
+        <div class="text-muted" style="font-size:0.75rem;">pallets</div>
+      </div>
+    </div>
+    {% else %}
+    <p class="text-muted mb-0 text-center">N/A — only available for AMJK · SW</p>
+    {% endif %}
+  </div>
+</div>
+
 <script>
   document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function(el) {
     new bootstrap.Tooltip(el);
   });
+
+  {% if site == 'AMJK' and product_group == 'SW' %}
+  (function() {
+    var d = '{{ date }}';
+    var dateFrom = d.substring(0, 7) + '-01';
+    var monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    var parts = d.split('-');
+    var label = 'MTD ' + monthNames[parseInt(parts[1], 10) - 1] + ' ' + parts[0];
+    document.getElementById('pmMonthLabel').textContent = label;
+    fetch('/api/warehouse/pallet-entry-exit?date_from=' + dateFrom + '&date_to=' + d)
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        document.getElementById('pmEntry').textContent = Number(data.entry_to_date).toLocaleString();
+        document.getElementById('pmExit').textContent  = Number(data.exit_to_date).toLocaleString();
+      })
+      .catch(function() {
+        document.getElementById('pmEntry').textContent = '—';
+        document.getElementById('pmExit').textContent  = '—';
+      });
+  })();
+  {% endif %}
 </script>
 {% endif %}

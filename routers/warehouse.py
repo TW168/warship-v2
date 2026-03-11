@@ -7,6 +7,7 @@ Handles:
   GET /api/warehouse/udc-summary          — UDC daily summary from udc_ash table
   GET /api/warehouse/ash-summary          — ASH event summary from event_ash table
   GET /api/warehouse/ash-descriptions     — Distinct ASH event descriptions from event_ash table
+  GET /api/warehouse/pallet-entry-exit    — Pallet entry/exit totals from daily_shift_averages
 """
 
 from fastapi import APIRouter, Query, Request
@@ -178,3 +179,51 @@ async def ash_descriptions() -> JSONResponse:
             return JSONResponse(content={"descriptions": descriptions})
     except Exception as exc:
         return JSONResponse(status_code=500, content={"error": str(exc)})
+
+
+# ---------------------------------------------------------------------------
+# Pallet entry/exit (daily_shift_averages)
+# ---------------------------------------------------------------------------
+
+_PALLET_ENTRY_EXIT_SQL = text("""
+    SELECT
+        SUM(avg_day_shift_in) + SUM(avg_night_shift_in) AS entry_to_date,
+        SUM(avg_1st_shift_out)
+          + SUM(avg_2nd_shift_out)
+          + SUM(avg_3rd_shift_out) AS exit_to_date
+    FROM warship.daily_shift_averages
+    WHERE date BETWEEN :date_from AND :date_to
+""")
+
+
+@router.get(
+    "/api/warehouse/pallet-entry-exit",
+    summary="Pallet entry and exit totals",
+    description=(
+        "Returns pallet entry (day+night shift in) and exit (1st+2nd+3rd shift out) "
+        "totals from daily_shift_averages for a given date range."
+    ),
+)
+async def pallet_entry_exit(
+    date_from: str = Query(..., description="Start date (YYYY-MM-DD)"),
+    date_to: str = Query(..., description="End date (YYYY-MM-DD)"),
+) -> JSONResponse:
+    """Query daily_shift_averages for pallet entry/exit between two dates."""
+    try:
+        with _engine.connect() as conn:
+            row = conn.execute(
+                _PALLET_ENTRY_EXIT_SQL,
+                {"date_from": date_from, "date_to": date_to},
+            ).fetchone()
+    except Exception as exc:
+        return JSONResponse(status_code=500, content={"error": str(exc)})
+
+    entry = float(row.entry_to_date) if row and row.entry_to_date else 0
+    exit_ = float(row.exit_to_date) if row and row.exit_to_date else 0
+
+    return JSONResponse(content={
+        "entry_to_date": round(entry),
+        "exit_to_date": round(exit_),
+        "date_from": date_from,
+        "date_to": date_to,
+    })
