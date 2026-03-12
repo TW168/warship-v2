@@ -363,3 +363,53 @@ async def avail_to_ship(
         for r in rows
     ]
     return JSONResponse(content=result)
+
+
+# ---------------------------------------------------------------------------
+# Pallet sizes — from warship.Product_desc_size
+# ---------------------------------------------------------------------------
+
+@router.get(
+    "/api/tsr-prep/pallet-sizes",
+    summary="Pallet descriptions and dimensions",
+    description=(
+        "Returns all rows from warship.Product_desc_size: product description, "
+        "product code, pallet L×W×H (inches), net weight, gross weight, and roll count."
+    ),
+)
+async def pallet_sizes() -> JSONResponse:
+    """Fetch pallet dimension presets from Product_desc_size."""
+    try:
+        with _engine.connect() as conn:
+            rows = conn.execute(text("""
+                SELECT
+                    id,
+                    product_description,
+                    product,
+                    pallet_length,
+                    pallet_width,
+                    pallet_height,
+                    product_net_weight,
+                    product_groww_weight,
+                    product_rolls
+                FROM warship.Product_desc_size
+                ORDER BY product_description
+            """)).fetchall()
+    except Exception as exc:
+        return JSONResponse(status_code=500, content={"error": str(exc)})
+
+    result = [
+        {
+            "id":                  r.id,
+            "product_description": r.product_description,
+            "product":             r.product,
+            "pallet_length":       float(r.pallet_length)       if r.pallet_length       is not None else None,
+            "pallet_width":        float(r.pallet_width)        if r.pallet_width        is not None else None,
+            "pallet_height":       float(r.pallet_height)       if r.pallet_height       is not None else None,
+            "product_net_weight":  float(r.product_net_weight)  if r.product_net_weight  is not None else None,
+            "product_gross_weight": float(r.product_groww_weight) if r.product_groww_weight is not None else None,
+            "product_rolls":       r.product_rolls,
+        }
+        for r in rows
+    ]
+    return JSONResponse(content=result)

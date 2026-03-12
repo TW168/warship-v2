@@ -7,6 +7,7 @@ Handles:
   GET /api/maintenance/freight-audit — JSON audit data
   GET /maintenance/lmi              — LMI document analysis page
   POST /maintenance/lmi/analyze     — Stream AI bullet-point takeaways via Ollama
+  GET /maintenance/truck-load-map   — Interactive truck trailer load planning tool
 """
 
 import csv
@@ -424,4 +425,22 @@ async def lmi_analyze(body: AnalyzeRequest) -> StreamingResponse:
     return StreamingResponse(
         _stream_ollama(prompt),
         media_type="text/plain; charset=utf-8",
+    )
+
+
+# ---------------------------------------------------------------------------
+# Truck Load Map
+# ---------------------------------------------------------------------------
+
+@router.get(
+    "/truck-load-map",
+    response_class=HTMLResponse,
+    summary="Truck Load Map",
+    description="Interactive truck trailer load planning tool — Phase 1: basic pallet placement.",
+)
+async def truck_load_map(request: Request) -> HTMLResponse:
+    """Render the Truck Load Map planning page."""
+    return templates.TemplateResponse(
+        "maintenance/truck_load_map.html",
+        {"request": request, "active_page": "truck_load_map"},
     )

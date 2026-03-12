@@ -1,0 +1,919 @@
+{% extends "base.html" %}
+{% block title %}Truck Load Map{% endblock %}
+
+{% block head %}
+<script src="https://unpkg.com/konva@9/konva.min.js"></script>
+<style>
+  .tlm-wrap       { display:flex; min-height:calc(100vh - 56px - 57px); background:#f8f9fa; }
+  .tlm-sidebar    { width:350px; min-width:350px; flex-shrink:0; overflow-y:auto; padding:.75rem;
+                    border-right:1px solid #dee2e6; background:#fff; }
+  .tlm-main       { flex:1; min-width:0; display:flex; flex-direction:column; background:#fff; }
+  .tlm-toolbar    { background:#fff; border-bottom:1px solid #dee2e6; padding:.35rem .75rem;
+                    display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; flex-shrink:0; }
+  .tlm-canvas-wrap{ background:#eef1f5; overflow:auto; flex:1; }
+  .tlm-metrics    { background:#fff; border-top:1px solid #dee2e6; padding:.5rem 1rem; flex-shrink:0; }
+
+  .tlm-card       { border:1px solid #dee2e6; border-radius:6px; margin-bottom:.6rem; background:#fff; }
+  .tlm-card-hdr   { padding:.4rem .6rem; font-size:.72rem; font-weight:700; text-transform:uppercase;
+                    letter-spacing:.04em; color:#154e9a; border-bottom:1px solid #dee2e6;
+                    background:#f4f7fb; border-radius:6px 6px 0 0; display:flex; align-items:center; gap:.3rem; }
+  .tlm-card-body  { padding:.55rem .6rem; }
+
+  .tlm-label      { color:#6c757d; font-size:.68rem; text-transform:uppercase; letter-spacing:.03em;
+                    display:block; margin-bottom:.1rem; font-weight:600; }
+  .tlm-input      { border:1px solid #ced4da; color:#212529; border-radius:4px; font-size:.8rem;
+                    width:100%; padding:.28rem .4rem; background:#fff; }
+  .tlm-input:focus{ outline:none; border-color:#154e9a; box-shadow:0 0 0 2px rgba(21,78,154,.12); }
+  .tlm-select     { border:1px solid #ced4da; color:#212529; border-radius:4px; font-size:.8rem;
+                    width:100%; padding:.28rem .4rem; background:#fff; }
+  .tlm-select:focus{ outline:none; border-color:#154e9a; }
+
+  .tlm-gauge-row  { margin:.25rem 0; }
+  .tlm-gauge-lbl  { color:#6c757d; font-size:.65rem; display:flex; justify-content:space-between; margin-bottom:2px; }
+  .tlm-gauge      { height:8px; background:#e9ecef; border-radius:4px; overflow:hidden; }
+  .tlm-gauge-fill { height:100%; border-radius:4px; transition:width .3s,background .3s; }
+  .tlm-metric-lbl { color:#6c757d; font-size:.65rem; text-transform:uppercase; white-space:nowrap; font-weight:600; }
+  .tlm-metric-val { color:#212529; font-size:.95rem; font-weight:700; font-variant-numeric:tabular-nums; }
+
+  .tlm-plist      { max-height:150px; overflow-y:auto; }
+  .tlm-pitem      { display:flex; justify-content:space-between; align-items:center; padding:.22rem .4rem;
+                    border-radius:4px; font-size:.67rem; color:#495057; border:1px solid transparent; }
+  .tlm-pitem:hover{ background:#f4f7fb; }
+  .tlm-pitem.sel  { background:#e9f0fb; border-color:#154e9a; }
+  .tlm-pitem-rm   { background:none; border:none; color:#adb5bd; cursor:pointer; font-size:.8rem;
+                    padding:0 3px; line-height:1; flex-shrink:0; }
+  .tlm-pitem-rm:hover{ color:#dc3545; }
+  .tlm-stop-dot   { display:inline-block; width:10px; height:10px; border-radius:2px; flex-shrink:0; }
+
+  @media print {
+    .navbar, footer, .toast-container, .tlm-sidebar, .tlm-toolbar { display:none !important; }
+    .tlm-wrap   { min-height:auto !important; background:#fff !important; }
+    .tlm-main   { width:100% !important; }
+    .tlm-canvas-wrap { overflow:visible !important; background:#fff !important; }
+    .tlm-metrics { border:1px solid #dee2e6 !important; margin-top:.5rem; break-inside:avoid; }
+  }
+  @media (max-width:992px) {
+    .tlm-wrap    { flex-direction:column; }
+    .tlm-sidebar { width:100%; min-width:0; border-right:none; border-bottom:1px solid #dee2e6; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="tlm-wrap">
+
+  <!-- ── SIDEBAR ─────────────────────────────────────────────── -->
+  <div class="tlm-sidebar">
+
+    <div class="tlm-card">
+      <div class="tlm-card-hdr"><i class="bi bi-truck"></i> Trailer</div>
+      <div class="tlm-card-body">
+        <div class="mb-2">
+          <label class="tlm-label">Type</label>
+          <select class="tlm-select" id="trailerType">
+            <option value="53">53′ Dry Van</option>
+            <option value="48">48′ Dry Van</option>
+          </select>
+        </div>
+        <div class="row g-2 mb-2">
+          <div class="col-4"><label class="tlm-label">Width (in)</label>
+            <input type="number" class="tlm-input" id="trailerWidth" value="101" min="96" max="102"></div>
+          <div class="col-4"><label class="tlm-label">Height (in)</label>
+            <input type="number" class="tlm-input" id="trailerHeight" value="110" min="105" max="111"></div>
+          <div class="col-4"><label class="tlm-label">Max lbs</label>
+            <input type="number" class="tlm-input" id="maxPayload" value="45000" min="1000" step="500"></div>
+        </div>
+        <button class="btn btn-outline-primary btn-sm w-100" onclick="rebuildTrailer()">Apply</button>
+      </div>
+    </div>
+
+    <div class="tlm-card">
+      <div class="tlm-card-hdr"><i class="bi bi-geo-alt"></i> Stops</div>
+      <div class="tlm-card-body">
+        <div id="stopList"></div>
+        <div class="mt-1" style="color:#6c757d;font-size:.64rem;">
+          <i class="bi bi-info-circle me-1"></i>Stop 1 near doors (last loaded) · Stop 3 near nose (first loaded)
+        </div>
+      </div>
+    </div>
+
+    <div class="tlm-card">
+      <div class="tlm-card-hdr"><i class="bi bi-plus-square"></i> Add Pallet</div>
+      <div class="tlm-card-body">
+        <div class="mb-2">
+          <label class="tlm-label">Product</label>
+          <select class="tlm-select" id="palletProduct" onchange="onProductSelect()">
+            <option value="">— Custom —</option>
+          </select>
+        </div>
+        <div class="row g-2 mb-2">
+          <div class="col-4"><label class="tlm-label">L (in)</label>
+            <input type="number" class="tlm-input" id="palletL" value="48" min="1"></div>
+          <div class="col-4"><label class="tlm-label">W (in)</label>
+            <input type="number" class="tlm-input" id="palletW" value="40" min="1"></div>
+          <div class="col-4"><label class="tlm-label">H (in)</label>
+            <input type="number" class="tlm-input" id="palletH" value="52" min="1"></div>
+        </div>
+        <div class="row g-2 mb-2">
+          <div class="col-4"><label class="tlm-label">Weight</label>
+            <input type="number" class="tlm-input" id="palletWeight" value="1800" min="1"></div>
+          <div class="col-3"><label class="tlm-label">Qty</label>
+            <input type="number" class="tlm-input" id="palletQty" value="1" min="1" max="50"></div>
+          <div class="col-5"><label class="tlm-label">Stop</label>
+            <select class="tlm-select" id="palletStop"></select></div>
+        </div>
+        <div class="row g-2 mb-2">
+          <div class="col-8"><label class="tlm-label">Label</label>
+            <input type="text" class="tlm-input" id="palletLabel" placeholder="SKU / PO#" maxlength="30"></div>
+          <div class="col-4"><label class="tlm-label">Stack</label>
+            <select class="tlm-select" id="palletStack">
+              <option value="1">Floor</option><option value="2">Double</option>
+            </select></div>
+        </div>
+        <div id="stackWarning" class="mb-2" style="display:none;color:#dc3545;font-size:.7rem;">
+          <i class="bi bi-exclamation-triangle me-1"></i><span id="stackWarningMsg"></span>
+        </div>
+        <button class="btn btn-primary btn-sm w-100 fw-bold" onclick="addPallets()">Add to Plan</button>
+      </div>
+    </div>
+
+    <div class="tlm-card">
+      <div class="tlm-card-hdr"><i class="bi bi-grid-3x3"></i> Auto-Layout</div>
+      <div class="tlm-card-body">
+        <div class="mb-2">
+          <label class="tlm-label">Pattern</label>
+          <select class="tlm-select" id="layoutPattern">
+            <option value="straight">Straight (nose → door)</option>
+            <option value="turned">Turned 90°</option>
+            <option value="pinwheel">Pinwheel (alternating)</option>
+            <option value="weight_dist">Weight Distribution</option>
+          </select>
+        </div>
+        <div class="mb-2" style="color:#6c757d;font-size:.64rem;" id="layoutDesc"></div>
+        <button class="btn btn-outline-primary btn-sm w-100" onclick="applyAutoLayout()">Apply Layout</button>
+      </div>
+    </div>
+
+    <div class="tlm-card">
+      <div class="tlm-card-hdr">
+        <i class="bi bi-list-ul"></i> Pallets
+        <span id="palletCountBadge" class="badge bg-primary ms-auto" style="font-size:.58rem;">0</span>
+        <button class="btn btn-link btn-sm text-danger p-0 ms-2" style="font-size:.66rem;" onclick="clearAll()">Clear</button>
+      </div>
+      <div class="tlm-card-body p-0">
+        <div class="tlm-plist" id="palletList">
+          <div style="color:#adb5bd;font-size:.72rem;text-align:center;padding:.6rem;">No pallets</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── MAIN ────────────────────────────────────────────────── -->
+  <div class="tlm-main">
+    <div class="tlm-toolbar">
+      <span style="color:#6c757d;font-size:.72rem;">
+        <i class="bi bi-arrows-move me-1"></i>Drag &middot;
+        Dbl-click rotate &middot; 4″ snap
+      </span>
+      <div style="flex:1;"></div>
+      <button class="btn btn-outline-secondary btn-sm" style="font-size:.7rem;" onclick="window.print()">
+        <i class="bi bi-printer me-1"></i>Print
+      </button>
+    </div>
+
+    <div class="tlm-canvas-wrap" id="konvaContainer"></div>
+
+    <div class="tlm-metrics">
+      <div class="row g-2 align-items-center">
+        <div class="col-auto" style="min-width:50px;">
+          <div class="tlm-metric-lbl">Pallets</div>
+          <div class="tlm-metric-val" id="mPallets">0</div>
+        </div>
+        <div class="col-auto" style="min-width:50px;">
+          <div class="tlm-metric-lbl">Stacked</div>
+          <div class="tlm-metric-val" id="mStacked" style="color:#6f42c1;">0</div>
+        </div>
+        <div class="col">
+          <div class="tlm-gauge-row">
+            <div class="tlm-gauge-lbl"><span>Weight</span><span id="mWeightTxt">0 / 45,000 lbs</span></div>
+            <div class="tlm-gauge"><div class="tlm-gauge-fill" id="mWeightBar" style="width:0%;background:#198754;"></div></div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="tlm-gauge-row">
+            <div class="tlm-gauge-lbl"><span>Linear Feet</span><span id="mLinTxt">0 ft</span></div>
+            <div class="tlm-gauge"><div class="tlm-gauge-fill" id="mLinBar" style="width:0%;background:#198754;"></div></div>
+          </div>
+        </div>
+        <div class="col-auto" style="min-width:85px;">
+          <div class="tlm-metric-lbl">Total Weight</div>
+          <div class="tlm-metric-val" id="mTotalWgt">0 lbs</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/* CONSTANTS                                                                  */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+var GRID   = 4;
+var PX     = 2;      // top view px/inch
+var PX_H   = 1.2;    // side view px/inch (height)
+var PAD_T  = 28;     // top padding
+var PAD_L  = 28;     // left padding
+var CAB_W  = 95;     // cab drawing width px
+var GAP    = 12;     // gap between views
+var WHEEL_R = 10;    // wheel radius
+
+var TRAILER_DEFAULTS = {
+  '53': { length: 636, width: 101 },
+  '48': { length: 576, width:  99 },
+};
+
+var STOP_COLORS = [
+  { fill:'#154e9a', stroke:'#0d3a75', light:'#d6e4f5' },
+  { fill:'#d4782a', stroke:'#a35d1f', light:'#fce8d5' },
+  { fill:'#2e7d32', stroke:'#1b5e20', light:'#d8eed9' },
+];
+
+var LAYOUT_DESC = {
+  straight:    'Pallets placed lengthwise nose→door.',
+  turned:      'Pallets rotated 90°.',
+  pinwheel:    'Alternating 0°/90° for interlocking.',
+  weight_dist: 'Heaviest pallets near nose for axle balance.',
+};
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/* STATE                                                                      */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+var trailer     = { length:636, width:101, height:110, type:'53' };
+var pallets     = [];
+var palletSeq   = 0;
+var selectedId  = null;
+var palletSizes = [];
+var MAX_PAYLOAD = 45000;
+var stops = [
+  { id:1, name:'Stop 1', enabled:true },
+  { id:2, name:'Stop 2', enabled:false },
+  { id:3, name:'Stop 3', enabled:false },
+];
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/* LAYOUT MATH — both views share the same X axis                             */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+function OX()       { return PAD_L + CAB_W; }                     // trailer nose X (both views)
+function tvY()      { return PAD_T; }                             // top-view trailer Y
+function tvW()      { return trailer.width * PX; }                // top-view trailer height (px)
+function tvL()      { return trailer.length * PX; }               // trailer length (px)
+function svStart()  { return tvY() + tvW() + GAP; }               // side-view area start
+function svFloor()  { return svStart() + trailer.height * PX_H + 18; } // side-view floor Y
+function svCeil()   { return svFloor() - trailer.height * PX_H; } // side-view ceiling Y
+function stgW()     { return OX() + tvL() + 55; }                 // total stage width
+function stgH()     { return svFloor() + 24; }                    // total stage height
+
+function stopColor(sid) { return STOP_COLORS[(sid - 1) % STOP_COLORS.length]; }
+function canStack(h)    { return h * 2 <= trailer.height; }
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/* KONVA SETUP — single stage, both views                                     */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+var stage = new Konva.Stage({ container:'konvaContainer', width:stgW(), height:stgH() });
+var truckLayer   = new Konva.Layer(); truckLayer.listening(false);
+var palletsLayer = new Konva.Layer();
+var sideLayer    = new Konva.Layer(); sideLayer.listening(false);
+stage.add(truckLayer, palletsLayer, sideLayer);
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/* DRAW WHEEL HELPER                                                          */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+function drawWheel(ly, x, y, r) {
+  ly.add(new Konva.Circle({ x:x, y:y, radius:r, fill:'#222', stroke:'#444', strokeWidth:2 }));
+  ly.add(new Konva.Circle({ x:x, y:y, radius:r*0.38, fill:'#555' }));
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/* RENDER ALL TRUCK OUTLINES (both views)                                     */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+function renderTrailer() {
+  truckLayer.destroyChildren();
+  var ly = truckLayer;
+  var ox = OX(), L = tvL(), W = tvW();
+  var ty = tvY();
+
+  /* ─────────────── TOP VIEW ─────────────────────────────────────────────── */
+
+  // Dimension label
+  ly.add(new Konva.Text({ x:ox, y:ty-18,
+    text: trailer.type+"' Dry Van · "+trailer.width+'" W × '+trailer.height+'" H · Max '+MAX_PAYLOAD.toLocaleString()+' lbs',
+    fill:'#999', fontSize:9 }));
+
+  // "TOP VIEW" label
+  ly.add(new Konva.Text({ x:PAD_L-4, y:ty-18,
+    text:'TOP', fill:'#154e9a', fontSize:8, fontStyle:'bold' }));
+
+  // ── Top-view CAB ──
+  var cx = PAD_L;
+  var cw = CAB_W - 4; // cab body width (px)
+  var ch = W - 8;      // cab body height (slightly narrower than trailer)
+  var cy = ty + 4;
+
+  // Cab body — rounded front
+  ly.add(new Konva.Rect({ x:cx, y:cy, width:cw, height:ch,
+    fill:'#607d8b', stroke:'#455a64', strokeWidth:2, cornerRadius:[12,0,0,12] }));
+  // Hood (front 35%)
+  ly.add(new Konva.Rect({ x:cx+2, y:cy+6, width:cw*0.36, height:ch-12,
+    fill:'#546e7a', cornerRadius:[10,0,0,10] }));
+  // Windshield band
+  ly.add(new Konva.Rect({ x:cx+cw-14, y:cy+8, width:10, height:ch-16,
+    fill:'rgba(130,190,240,0.3)', stroke:'rgba(69,90,100,0.5)', strokeWidth:1 }));
+  // Mirrors
+  ly.add(new Konva.Rect({ x:cx+cw*0.5, y:cy-7, width:10, height:5, fill:'#455a64', cornerRadius:1 }));
+  ly.add(new Konva.Rect({ x:cx+cw*0.5, y:cy+ch+2, width:10, height:5, fill:'#455a64', cornerRadius:1 }));
+  // Exhaust stacks (top-down circles)
+  ly.add(new Konva.Circle({ x:cx+12, y:cy+8, radius:3, fill:'#78909c', stroke:'#546e7a', strokeWidth:1 }));
+  ly.add(new Konva.Circle({ x:cx+12, y:cy+ch-8, radius:3, fill:'#78909c', stroke:'#546e7a', strokeWidth:1 }));
+  // Steer wheels
+  drawWheel(ly, cx+cw*0.28, cy-2, 6);
+  drawWheel(ly, cx+cw*0.28, cy+ch+2, 6);
+  // Drive tandems
+  drawWheel(ly, cx+cw-5, cy-2, 6);
+  drawWheel(ly, cx+cw-5, cy+ch+2, 6);
+
+  // 5th wheel coupling
+  ly.add(new Konva.Circle({ x:ox-3, y:ty+W/2, radius:5, fill:'#b0bec5', stroke:'#78909c', strokeWidth:1.5 }));
+
+  // ── Trailer floor ──
+  ly.add(new Konva.Rect({ x:ox, y:ty, width:L, height:W, fill:'#f0ebe0', stroke:'#999', strokeWidth:2 }));
+
+  // Wall thickness
+  ly.add(new Konva.Rect({ x:ox, y:ty, width:L, height:4, fill:'#bbb' }));       // driver side
+  ly.add(new Konva.Rect({ x:ox, y:ty+W-4, width:L, height:4, fill:'#bbb' }));   // curb side
+  ly.add(new Konva.Rect({ x:ox-4, y:ty-4, width:5, height:W+8, fill:'#999' })); // nose wall
+
+  // Floor plank lines (subtle)
+  for (var fi = 12; fi < trailer.width; fi += 12) {
+    ly.add(new Konva.Line({ points:[ox, ty+fi*PX, ox+L, ty+fi*PX],
+      stroke:'rgba(0,0,0,0.04)', strokeWidth:1 }));
+  }
+
+  // Center dashed line
+  ly.add(new Konva.Line({ points:[ox, ty+W/2, ox+L, ty+W/2],
+    stroke:'rgba(0,0,0,0.06)', strokeWidth:1, dash:[8,6] }));
+
+  // ── Rear doors (swung open) ──
+  var dx = ox + L;
+  ly.add(new Konva.Rect({ x:dx-1, y:ty-4, width:6, height:W+8, fill:'#757575' })); // frame
+  // Upper door leaf
+  ly.add(new Konva.Rect({ x:dx+5, y:ty-1, width:14, height:W/2-2,
+    fill:'#e8e0d0', stroke:'#999', strokeWidth:1, cornerRadius:[0,2,2,0] }));
+  // Lower door leaf
+  ly.add(new Konva.Rect({ x:dx+5, y:ty+W/2+2, width:14, height:W/2-2,
+    fill:'#e8e0d0', stroke:'#999', strokeWidth:1, cornerRadius:[0,2,2,0] }));
+  // Latch bar
+  ly.add(new Konva.Rect({ x:dx+4, y:ty+W/2-5, width:3, height:10, fill:'#ffc107', cornerRadius:1 }));
+  // Hinges
+  [ty+W*0.15, ty+W*0.35, ty+W*0.65, ty+W*0.85].forEach(function(hy) {
+    ly.add(new Konva.Circle({ x:dx+4, y:hy, radius:2.5, fill:'#888' }));
+  });
+
+  // Tandem wheels
+  [ty+5, ty+W-5].forEach(function(wy) {
+    drawWheel(ly, dx-18, wy, 6);
+    drawWheel(ly, dx-8, wy, 6);
+  });
+
+  // Foot markers
+  for (var xi=48; xi<trailer.length; xi+=48) {
+    var px = ox + xi*PX;
+    ly.add(new Konva.Line({ points:[px, ty+4, px, ty+W-4], stroke:'rgba(0,0,0,0.05)', strokeWidth:1, dash:[3,5] }));
+    ly.add(new Konva.Text({ x:px+2, y:ty+6, text:(xi/12)+"'", fill:'rgba(0,0,0,0.18)', fontSize:8 }));
+  }
+
+  // NOSE / DOORS labels
+  ly.add(new Konva.Text({ x:ox+6, y:ty+W/2-12, text:'◀ NOSE', fill:'rgba(0,0,0,0.2)', fontSize:9, fontStyle:'bold' }));
+  ly.add(new Konva.Text({ x:dx+22, y:ty+W/2-5, text:'DOORS', fill:'rgba(0,0,0,0.25)', fontSize:8, fontStyle:'bold' }));
+
+  /* ─────────────── DIVIDER ──────────────────────────────────────────────── */
+  var divY = ty + W + GAP/2;
+  ly.add(new Konva.Line({ points:[PAD_L, divY, ox+L+30, divY],
+    stroke:'#ccc', strokeWidth:1, dash:[4,4] }));
+
+  /* ─────────────── SIDE VIEW ────────────────────────────────────────────── */
+  var sfl = svFloor(), scl = svCeil();
+  var TH = sfl - scl; // trailer height px
+
+  // "SIDE" label
+  ly.add(new Konva.Text({ x:PAD_L-4, y:scl-12,
+    text:'SIDE', fill:'#154e9a', fontSize:8, fontStyle:'bold' }));
+
+  // Ground line
+  ly.add(new Konva.Line({ points:[PAD_L-10, sfl+WHEEL_R+3, ox+L+40, sfl+WHEEL_R+3],
+    stroke:'#bbb', strokeWidth:1 }));
+
+  // ── Side-view CAB ─────────────────────────────────────────────────────
+  var scx = PAD_L;       // cab start X
+  var scw = CAB_W - 4;   // cab width
+  var hoodH  = TH * 0.42;   // hood height from floor
+  var hoodL  = scw * 0.36;  // hood length (horizontal)
+  var wsTopX = scw * 0.52;  // X where windshield meets roof
+
+  // Cab body silhouette
+  ly.add(new Konva.Line({
+    points: [
+      scx,          sfl,                // 1 bottom-front
+      scx,          sfl - hoodH,        // 2 front face up to hood
+      scx + hoodL,  sfl - hoodH,        // 3 hood top (flat)
+      scx + wsTopX, scl + 3,            // 4 windshield top → roof
+      scx + scw,    scl + 3,            // 5 roof (flat to back)
+      scx + scw,    sfl,                // 6 rear wall down
+    ],
+    closed:true, fill:'#607d8b', stroke:'#455a64', strokeWidth:2 }));
+
+  // Windshield glass
+  ly.add(new Konva.Line({
+    points: [
+      scx + hoodL + 2,  sfl - hoodH + 2,
+      scx + wsTopX - 2, scl + 6,
+      scx + wsTopX + 6, scl + 6,
+      scx + wsTopX + 6, sfl - hoodH + 2,
+    ],
+    closed:true, fill:'rgba(130,190,240,0.35)', stroke:'rgba(69,90,100,0.5)', strokeWidth:1 }));
+
+  // Side window
+  ly.add(new Konva.Rect({ x:scx+wsTopX+10, y:scl+8,
+    width:scw-wsTopX-16, height:TH*0.26,
+    fill:'rgba(130,190,240,0.2)', stroke:'rgba(69,90,100,0.35)', strokeWidth:1, cornerRadius:2 }));
+
+  // Exhaust stack
+  ly.add(new Konva.Rect({ x:scx+8, y:scl-14, width:4, height:17, fill:'#78909c', cornerRadius:[2,2,0,0] }));
+  ly.add(new Konva.Rect({ x:scx+6, y:scl-16, width:8, height:3, fill:'#90a4ae', cornerRadius:1 }));
+
+  // Bumper
+  ly.add(new Konva.Rect({ x:scx-3, y:sfl-4, width:6, height:4, fill:'#78909c', cornerRadius:1 }));
+
+  // Fuel tank
+  ly.add(new Konva.Rect({ x:scx+22, y:sfl-10, width:18, height:9,
+    fill:'#546e7a', stroke:'#455a64', strokeWidth:1, cornerRadius:2 }));
+
+  // Step
+  ly.add(new Konva.Rect({ x:scx+10, y:sfl-3, width:10, height:3, fill:'#546e7a' }));
+
+  // Steer wheel
+  drawWheel(ly, scx+16, sfl+2, WHEEL_R);
+  // Drive tandems
+  drawWheel(ly, scx+scw-10, sfl+2, WHEEL_R);
+  drawWheel(ly, scx+scw,    sfl+2, WHEEL_R);
+
+  // ── Trailer body (side) ──
+  ly.add(new Konva.Rect({ x:ox, y:scl, width:L, height:TH,
+    fill:'#f0ebe0', stroke:'#999', strokeWidth:2.5 }));
+
+  // Roof rib marks
+  for (var ri=72; ri<trailer.length; ri+=72) {
+    ly.add(new Konva.Line({ points:[ox+ri*PX, scl, ox+ri*PX, scl+5],
+      stroke:'#bbb', strokeWidth:2 }));
+  }
+
+  // Frame rail
+  ly.add(new Konva.Rect({ x:ox, y:sfl, width:L, height:4, fill:'#757575' }));
+
+  // Landing gear
+  ly.add(new Konva.Rect({ x:ox+16, y:sfl, width:4, height:12, fill:'#757575' }));
+  ly.add(new Konva.Rect({ x:ox+12, y:sfl+10, width:12, height:3, fill:'#888' }));
+
+  // Rear door (side view)
+  ly.add(new Konva.Rect({ x:ox+L-2, y:scl, width:5, height:TH, fill:'#757575' }));
+  // Open-door line
+  ly.add(new Konva.Line({ points:[ox+L+3, scl, ox+L+10, scl+6], stroke:'#a0968a', strokeWidth:3 }));
+
+  // Tandem wheels
+  drawWheel(ly, ox+L-16, sfl+2, WHEEL_R);
+  drawWheel(ly, ox+L-4,  sfl+2, WHEEL_R);
+
+  // Stack line (half height)
+  var midY = sfl - TH/2;
+  ly.add(new Konva.Line({ points:[ox, midY, ox+L, midY],
+    stroke:'rgba(111,66,193,0.22)', strokeWidth:1, dash:[5,4] }));
+  ly.add(new Konva.Text({ x:ox+4, y:midY-10,
+    text:'~'+Math.round(trailer.height/2)+'" stack line',
+    fill:'rgba(111,66,193,0.35)', fontSize:7 }));
+
+  // Height dimension
+  ly.add(new Konva.Line({ points:[ox-10, scl, ox-10, sfl], stroke:'#bbb', strokeWidth:1 }));
+  ly.add(new Konva.Line({ points:[ox-14, scl, ox-6, scl], stroke:'#bbb', strokeWidth:1 }));
+  ly.add(new Konva.Line({ points:[ox-14, sfl, ox-6, sfl], stroke:'#bbb', strokeWidth:1 }));
+  ly.add(new Konva.Text({ x:ox-25, y:scl+TH/2+12,
+    text:trailer.height+'"', fill:'#999', fontSize:8, rotation:-90 }));
+
+  // Nose/door labels
+  ly.add(new Konva.Text({ x:ox+6, y:scl+6, text:'◀ NOSE', fill:'rgba(0,0,0,0.18)', fontSize:8, fontStyle:'bold' }));
+  ly.add(new Konva.Text({ x:ox+L-55, y:scl+6, text:'DOORS ▶', fill:'rgba(0,0,0,0.18)', fontSize:8, fontStyle:'bold' }));
+
+  // Foot markers
+  for (var si=48; si<trailer.length; si+=48) {
+    ly.add(new Konva.Line({ points:[ox+si*PX, sfl, ox+si*PX, sfl+5],
+      stroke:'rgba(0,0,0,0.1)', strokeWidth:1 }));
+  }
+
+  truckLayer.batchDraw();
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/* SIDE VIEW PALLETS                                                          */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+function renderSidePallets() {
+  sideLayer.destroyChildren();
+  var ox = OX(), sfl = svFloor();
+  var floorP   = pallets.filter(function(p) { return (p.stackLevel||1) === 1; });
+  var stackedP = pallets.filter(function(p) { return (p.stackLevel||1) === 2; });
+
+  floorP.forEach(function(p) {
+    var sc = stopColor(p.stopId||1);
+    var px = ox + p.x*PX;
+    var pw = Math.max(4, p.length*PX - 1);
+    var ph = p.height * PX_H;
+    var py = sfl - ph;
+    sideLayer.add(new Konva.Rect({ x:px, y:py, width:pw, height:ph,
+      fill:sc.fill, stroke:sc.stroke, strokeWidth:1, opacity:0.85 }));
+    if (pw > 14) sideLayer.add(new Konva.Text({ x:px+1, y:py+ph/2-5, width:pw-2,
+      text:'#'+p.seq, fill:'#fff', fontSize:7, align:'center' }));
+  });
+
+  stackedP.forEach(function(p) {
+    var sc = stopColor(p.stopId||1);
+    var below = floorP.find(function(fp) {
+      return fp.x < p.x+p.length && fp.x+fp.length > p.x &&
+             fp.y < p.y+p.width  && fp.y+fp.width  > p.y;
+    });
+    var baseH = below ? below.height : 52;
+    var px = ox + p.x*PX;
+    var pw = Math.max(4, p.length*PX - 1);
+    var ph = p.height * PX_H;
+    var py = sfl - baseH*PX_H - ph;
+    sideLayer.add(new Konva.Rect({ x:px, y:py, width:pw, height:ph,
+      fill:sc.fill, stroke:'#6f42c1', strokeWidth:1.5, opacity:0.7 }));
+    if (pw > 14) sideLayer.add(new Konva.Text({ x:px+1, y:py+ph/2-5, width:pw-2,
+      text:'#'+p.seq+'↑', fill:'#fff', fontSize:7, align:'center' }));
+  });
+
+  sideLayer.batchDraw();
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/* TOP-VIEW PALLET GROUP (draggable)                                          */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+function makePalletGroup(p) {
+  var pw = p.length*PX, ph = p.width*PX;
+  var sl = p.stackLevel||1;
+  var sc = stopColor(p.stopId||1);
+  var fill = sc.fill, strk = sc.stroke;
+  var ox = OX(), ty = tvY();
+
+  var group = new Konva.Group({ id:p.id, x:ox+p.x*PX, y:ty+p.y*PX, draggable:true });
+  var rect = new Konva.Rect({ width:pw, height:ph, fill:fill, stroke:strk, strokeWidth:1.5,
+    cornerRadius:2, shadowColor:'rgba(0,0,0,0.12)', shadowBlur:3, shadowOffset:{x:1,y:1},
+    shadowOpacity:0.5, opacity: sl===2 ? 0.7 : 1 });
+  group.add(rect);
+
+  if (sl === 2) {
+    group.add(new Konva.Rect({ width:pw, height:ph, fill:'rgba(111,66,193,0.25)', cornerRadius:2, listening:false }));
+  }
+
+  if (pw > 22 && ph > 16) {
+    group.add(new Konva.Text({ x:2, y:ph/2-10, width:pw-4,
+      text:p.label||p.length+'×'+p.width, fill:'#fff',
+      fontSize:Math.min(10,ph/4), align:'center', wrap:'none', ellipsis:true }));
+    group.add(new Konva.Text({ x:2, y:ph/2+1, width:pw-4,
+      text:p.weight.toLocaleString()+' lbs',
+      fill:'rgba(255,255,255,0.65)', fontSize:Math.min(8,ph/5), align:'center' }));
+    group.add(new Konva.Text({ x:3, y:2,
+      text:'#'+p.seq+(sl===2?' ↑2':''),
+      fill:sl===2?'#e0cffc':'rgba(255,255,255,0.5)', fontSize:7 }));
+  }
+
+  group.on('dragmove', function() {
+    var maxX = ox + (trailer.length - p.length)*PX;
+    var maxY = ty  + (trailer.width  - p.width)*PX;
+    group.x(Math.max(ox, Math.min(maxX, group.x())));
+    group.y(Math.max(ty, Math.min(maxY, group.y())));
+    var col = hasCollision(group, p.id);
+    rect.stroke(col ? '#dc3545' : strk);
+    rect.fill(col ? 'rgba(220,53,69,0.3)' : fill);
+    palletsLayer.batchDraw();
+  });
+
+  group.on('dragend', function() {
+    var rawX  = Math.round(((group.x()-ox)/PX)/GRID)*GRID;
+    var rawY  = Math.round(((group.y()-ty)/PX)/GRID)*GRID;
+    var snapX = Math.max(0, Math.min(trailer.length-p.length, rawX));
+    var snapY = Math.max(0, Math.min(trailer.width -p.width,  rawY));
+    group.x(ox+snapX*PX); group.y(ty+snapY*PX);
+    if (hasCollision(group, p.id)) {
+      group.x(ox+p.x*PX); group.y(ty+p.y*PX);
+      showToast('Overlap — pallet reverted.','danger');
+    } else { p.x=snapX; p.y=snapY; }
+    rect.stroke(strk); rect.fill(fill);
+    palletsLayer.batchDraw();
+    renderSidePallets();
+    updateMetrics();
+  });
+
+  group.on('click', function() { selectedId=p.id; renderPalletList(); });
+  group.on('dblclick', function() {
+    var nL=p.width, nW=p.length;
+    if (p.x+nL<=trailer.length && p.y+nW<=trailer.width) { p.length=nL; p.width=nW; refreshPallets(); }
+    else showToast('No room to rotate.','warning');
+  });
+
+  return group;
+}
+
+function hasCollision(dg, sid) {
+  var a = dg.getClientRect();
+  for (var i=0; i<palletsLayer.children.length; i++) {
+    var n = palletsLayer.children[i];
+    if (n.id()===sid) continue;
+    var b = n.getClientRect();
+    if (a.x<b.x+b.width && a.x+a.width>b.x && a.y<b.y+b.height && a.y+a.height>b.y) return true;
+  }
+  return false;
+}
+
+function refreshPallets() {
+  palletsLayer.destroyChildren();
+  pallets.forEach(function(p) { palletsLayer.add(makePalletGroup(p)); });
+  palletsLayer.batchDraw();
+  renderSidePallets();
+  renderPalletList();
+  updateMetrics();
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/* ADD PALLETS                                                                */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+function addPallets() {
+  var L=parseFloat(document.getElementById('palletL').value)||48;
+  var W=parseFloat(document.getElementById('palletW').value)||40;
+  var H=parseFloat(document.getElementById('palletH').value)||52;
+  var wgt=parseFloat(document.getElementById('palletWeight').value)||1800;
+  var qty=Math.min(50,parseInt(document.getElementById('palletQty').value)||1);
+  var sl=parseInt(document.getElementById('palletStack').value)||1;
+  var sid=parseInt(document.getElementById('palletStop').value)||1;
+  var lbl=document.getElementById('palletLabel').value.trim();
+  if (L<=0||W<=0) { showToast('Invalid dimensions.','danger'); return; }
+  if (sl===2 && !canStack(H)) {
+    showToast('Cannot double-stack: '+H+'" × 2 exceeds '+trailer.height+'" height.','danger'); return;
+  }
+  var added=0;
+  for (var i=0; i<qty; i++) {
+    var pos=findOpenPosition(L,W);
+    if (!pos) { showToast('Only '+added+' of '+qty+' fit.','warning'); break; }
+    palletSeq++;
+    pallets.push({ id:'p'+palletSeq, seq:palletSeq, length:L, width:W, height:H,
+      weight:wgt, stackLevel:sl, stopId:sid, label:lbl||(L+'×'+W), x:pos.x, y:pos.y });
+    added++;
+  }
+  refreshPallets();
+  if (added>0) showToast('Added '+added+' pallet'+(added>1?'s':'')+'.','success');
+}
+
+function findOpenPosition(L,W) {
+  var sL=Math.max(GRID,Math.round(L/GRID)*GRID), sW=Math.max(GRID,Math.round(W/GRID)*GRID);
+  for (var x=0; x+L<=trailer.length; x+=sL)
+    for (var y=0; y+W<=trailer.width; y+=sW)
+      if (!isOccupied(x,y,L,W,null)) return {x:x,y:y};
+  return null;
+}
+
+function isOccupied(nx,ny,nl,nw,eid) {
+  for (var i=0;i<pallets.length;i++) {
+    var p=pallets[i]; if(p.id===eid) continue;
+    if (nx<p.x+p.length && nx+nl>p.x && ny<p.y+p.width && ny+nw>p.y) return true;
+  }
+  return false;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/* AUTO LAYOUT                                                                */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+document.getElementById('layoutPattern').addEventListener('change', function() {
+  document.getElementById('layoutDesc').textContent = LAYOUT_DESC[this.value]||'';
+});
+
+function applyAutoLayout() {
+  if (!pallets.length) { showToast('Add pallets first.','warning'); return; }
+  var p = document.getElementById('layoutPattern').value;
+  if (p==='pinwheel') pinwheelLayout();
+  else if (p==='weight_dist') weightLayout();
+  else columnLayout(p==='turned');
+  refreshPallets();
+  showToast('Layout applied.','success');
+}
+
+function columnLayout(turned) {
+  var x=0,y=0,cm=0;
+  pallets.forEach(function(p) {
+    var L=turned?p.width:p.length, W=turned?p.length:p.width;
+    if (y+W>trailer.width) { y=0; x+=cm; cm=0; }
+    if (x+L>trailer.length) return;
+    p.x=x; p.y=y; p.length=L; p.width=W;
+    y+=Math.round(W/GRID)*GRID;
+    cm=Math.max(cm, Math.round(L/GRID)*GRID);
+  });
+}
+
+function pinwheelLayout() {
+  var x=0,y=0,cm=0,i=0;
+  pallets.forEach(function(p) {
+    var rot=(i%2)===1;
+    var L=rot?p.width:p.length, W=rot?p.length:p.width;
+    if (y+W>trailer.width) { y=0; x+=cm; cm=0; }
+    if (x+L>trailer.length) return;
+    p.x=x; p.y=y; p.length=L; p.width=W;
+    y+=Math.round(W/GRID)*GRID;
+    cm=Math.max(cm, Math.round(L/GRID)*GRID);
+    i++;
+  });
+}
+
+function weightLayout() {
+  var sorted=[].concat(pallets).sort(function(a,b){return b.weight-a.weight;});
+  var x=0,y=0,cm=0;
+  sorted.forEach(function(sp) {
+    var p=pallets.find(function(q){return q.id===sp.id;});
+    if (y+p.width>trailer.width) { y=0; x+=cm; cm=0; }
+    if (x+p.length>trailer.length) return;
+    p.x=x; p.y=y;
+    y+=Math.round(p.width/GRID)*GRID;
+    cm=Math.max(cm, Math.round(p.length/GRID)*GRID);
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/* REMOVE / CLEAR                                                            */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+function removePallet(id) {
+  pallets=pallets.filter(function(p){return p.id!==id;});
+  if (selectedId===id) selectedId=null;
+  refreshPallets();
+}
+
+function clearAll() {
+  if (!pallets.length) return;
+  pallets=[]; palletSeq=0; selectedId=null;
+  palletsLayer.destroyChildren(); palletsLayer.batchDraw();
+  renderSidePallets(); renderPalletList(); updateMetrics();
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/* TRAILER REBUILD                                                            */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+document.getElementById('trailerType').addEventListener('change', function() {
+  var cfg=TRAILER_DEFAULTS[this.value]||TRAILER_DEFAULTS['53'];
+  document.getElementById('trailerWidth').value=cfg.width;
+  trailer.width=cfg.width; trailer.length=cfg.length; trailer.type=this.value;
+  rebuildTrailer();
+});
+
+function rebuildTrailer() {
+  trailer.width =parseFloat(document.getElementById('trailerWidth').value)||101;
+  trailer.height=parseFloat(document.getElementById('trailerHeight').value)||110;
+  MAX_PAYLOAD   =parseFloat(document.getElementById('maxPayload').value)||45000;
+  var cfg=TRAILER_DEFAULTS[document.getElementById('trailerType').value]||TRAILER_DEFAULTS['53'];
+  trailer.length=cfg.length;
+  stage.width(stgW()); stage.height(stgH());
+  renderTrailer(); refreshPallets(); updateStackWarning();
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/* STOPS                                                                      */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+function renderStops() {
+  var c=document.getElementById('stopList'); c.innerHTML='';
+  stops.forEach(function(s,i) {
+    var sc=STOP_COLORS[i];
+    var cnt=pallets.filter(function(p){return p.stopId===s.id;}).length;
+    var d=document.createElement('div');
+    d.className='d-flex align-items-center gap-2 mb-1';
+    d.innerHTML='<input type="checkbox" '+(s.enabled?'checked':'')+' style="accent-color:'+sc.fill+';"'+
+      ' onchange="toggleStop('+s.id+',this.checked)">'+
+      '<span class="tlm-stop-dot" style="background:'+sc.fill+';"></span>'+
+      '<input type="text" class="tlm-input" value="'+s.name+'" style="flex:1;font-size:.75rem;padding:.18rem .3rem;"'+
+      ' onchange="renameStop('+s.id+',this.value)">'+
+      '<span style="font-size:.66rem;color:#6c757d;min-width:24px;text-align:right;">'+cnt+'</span>';
+    c.appendChild(d);
+  });
+  var sel=document.getElementById('palletStop'), cv=sel.value;
+  sel.innerHTML='';
+  stops.filter(function(s){return s.enabled;}).forEach(function(s) {
+    var o=document.createElement('option'); o.value=s.id; o.textContent=s.name; sel.appendChild(o);
+  });
+  if (cv && sel.querySelector('option[value="'+cv+'"]')) sel.value=cv;
+}
+
+function toggleStop(id,en) { stops.find(function(s){return s.id===id;}).enabled=en; renderStops(); }
+function renameStop(id,n)  { stops.find(function(s){return s.id===id;}).name=n||'Stop '+id; renderStops(); }
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/* METRICS                                                                    */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+function updateMetrics() {
+  var cnt=pallets.length;
+  var stk=pallets.filter(function(p){return(p.stackLevel||1)===2;}).length;
+  var wgt=pallets.reduce(function(s,p){return s+p.weight;},0);
+  var mx=cnt?Math.max.apply(null,pallets.map(function(p){return p.x+p.length;})):0;
+  var lf=mx/12, tf=trailer.length/12;
+  document.getElementById('mPallets').textContent=cnt;
+  document.getElementById('mStacked').textContent=stk;
+  document.getElementById('palletCountBadge').textContent=cnt;
+  document.getElementById('mTotalWgt').textContent=wgt.toLocaleString()+' lbs';
+  document.getElementById('mWeightTxt').textContent=wgt.toLocaleString()+' / '+MAX_PAYLOAD.toLocaleString()+' lbs';
+  document.getElementById('mLinTxt').textContent=lf.toFixed(1)+' / '+tf.toFixed(0)+' ft';
+  var wp=Math.min(100,wgt/MAX_PAYLOAD*100), lp=Math.min(100,lf/tf*100);
+  function bar(el,pct) {
+    var e=document.getElementById(el);
+    e.style.width=pct+'%';
+    e.style.background=pct<80?'#198754':pct<95?'#ffc107':'#dc3545';
+  }
+  bar('mWeightBar',wp); bar('mLinBar',lp);
+  renderStops();
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/* PALLET LIST                                                                */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+function renderPalletList() {
+  var list=document.getElementById('palletList');
+  if (!pallets.length) { list.innerHTML='<div style="color:#adb5bd;font-size:.72rem;text-align:center;padding:.6rem;">No pallets</div>'; return; }
+  list.innerHTML='';
+  pallets.forEach(function(p) {
+    var sl=p.stackLevel||1, sc=stopColor(p.stopId||1);
+    var d=document.createElement('div');
+    d.className='tlm-pitem'+(p.id===selectedId?' sel':'');
+    d.innerHTML='<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;">'+
+      '<span class="tlm-stop-dot" style="background:'+sc.fill+';vertical-align:middle;"></span> '+
+      '<b>#'+p.seq+(sl===2?' ↑2':'')+'</b> '+p.label+' · '+p.length+'×'+p.width+'×'+p.height+'" · '+p.weight.toLocaleString()+'lb</span>'+
+      '<button class="tlm-pitem-rm" onclick="removePallet(\''+p.id+'\')" title="Remove">✕</button>';
+    d.addEventListener('click', function(e) { if(e.target.tagName!=='BUTTON'){selectedId=p.id;renderPalletList();} });
+    list.appendChild(d);
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/* STACKABILITY WARNING                                                       */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+function updateStackWarning() {
+  var H=parseFloat(document.getElementById('palletH').value)||52;
+  var sl=parseInt(document.getElementById('palletStack').value)||1;
+  var w=document.getElementById('stackWarning'), m=document.getElementById('stackWarningMsg');
+  if (sl===2 && !canStack(H)) { m.textContent='Height '+H+'" × 2 = '+(H*2)+'" exceeds trailer '+trailer.height+'"'; w.style.display=''; }
+  else w.style.display='none';
+}
+document.getElementById('palletH').addEventListener('input', updateStackWarning);
+document.getElementById('palletStack').addEventListener('change', updateStackWarning);
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/* PRODUCT DROPDOWN                                                           */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+function onProductSelect() {
+  var id=parseInt(document.getElementById('palletProduct').value);
+  var prod=palletSizes.find(function(p){return p.id===id;});
+  if (!prod) return;
+  document.getElementById('palletL').value=prod.pallet_length||48;
+  document.getElementById('palletW').value=prod.pallet_width||40;
+  document.getElementById('palletH').value=prod.pallet_height||52;
+  document.getElementById('palletWeight').value=prod.product_gross_weight||1800;
+  document.getElementById('palletLabel').value=prod.product||'';
+  updateStackWarning();
+}
+
+function loadPalletSizes() {
+  fetch('/api/tsr-prep/pallet-sizes').then(function(r){return r.json();}).then(function(data) {
+    palletSizes=data;
+    var sel=document.getElementById('palletProduct');
+    data.forEach(function(p) {
+      var o=document.createElement('option');
+      o.value=p.id;
+      o.textContent=p.product_description+' ('+p.pallet_length+'×'+p.pallet_width+'×'+p.pallet_height+'")';
+      sel.appendChild(o);
+    });
+  }).catch(function(){});
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/* INIT                                                                       */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+renderTrailer();
+renderSidePallets();
+renderStops();
+updateMetrics();
+loadPalletSizes();
+document.getElementById('layoutDesc').textContent = LAYOUT_DESC['straight'];
+</script>
+{% endblock %}
