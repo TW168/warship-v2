@@ -114,6 +114,7 @@ The `connect_to_database()` function returns a SQLAlchemy `Engine`.
 |------|-------|-------|
 | Home | `GET /` | Opens with weather images + gas prices card + quick access nav |
 | Gas Prices | `GET /api/gas-prices` | JSON — latest national avg gas prices from `gas_prices` table (scraped from AAA via cron at 7:30 AM) |
+| Gas Prices History | `GET /api/gas-prices/history` | JSON — full historical series from `gas_prices` (`id`, `fuel_type`, `price`, `scraped_at`) used by Home page multi-line trend chart (one line per fuel type). |
 | Meeting Report | `GET /meeting-report` | Sub-page of Home; filter form (site, product_group, date) |
 | Meeting Report Results | `GET /api/meeting-report/results` | HTMX partial — runs aggregated shipping query, returns cards |
 | Briefing | `GET /briefing` | VIP Operations Briefing — printable snapshot of ops metrics |

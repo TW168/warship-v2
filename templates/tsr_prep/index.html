@@ -332,6 +332,18 @@
     _markers = []; _circles = []; _polylines = [];
   }
 
+  function markerInfoHtml(r) {
+    const pallets = Number(r.plt || 0).toLocaleString(undefined, { maximumFractionDigits: 0 });
+    const weight = Number(r.wgt || 0).toLocaleString(undefined, { maximumFractionDigits: 0 });
+    return `<div style="font-family:Open Sans,sans-serif; font-size:13px; line-height:1.6; min-width:230px;">
+      <div><strong>Bill Number:</strong> ${r.bl_number}</div>
+      <div><strong>Customer:</strong> ${r.customer}</div>
+      <div><strong>Pallet Number:</strong> ${pallets}</div>
+      <div><strong>Weight:</strong> ${weight} lbs</div>
+      <div style="color:#666;">${r.city}, ${r.state}</div>
+    </div>`;
+  }
+
   /* ── Render markers, circles, and distance polylines ───────────────────── */
   function renderMap(rows) {
     if (!window._mapsReady) {
@@ -359,15 +371,18 @@
         map: map,
         title: r.bl_number,
       });
+
+      marker.addListener('mouseover', () => {
+        window._infoWindow.setContent(markerInfoHtml(r));
+        window._infoWindow.open(map, marker);
+      });
+
+      marker.addListener('mouseout', () => {
+        window._infoWindow.close();
+      });
+
       marker.addListener('click', () => {
-        window._infoWindow.setContent(
-          `<div style="font-family:Open Sans,sans-serif; font-size:13px; line-height:1.6;">
-            <strong>${r.bl_number}</strong><br>
-            ${r.customer}<br>
-            ${r.city}, ${r.state}<br>
-            <span style="color:#666;">${r.wgt.toLocaleString()} lbs · ${r.plt} pallets</span>
-          </div>`
-        );
+        window._infoWindow.setContent(markerInfoHtml(r));
         window._infoWindow.open(map, marker);
       });
       _markers.push(marker);

@@ -193,6 +193,35 @@ async def gas_prices() -> JSONResponse:
 
 
 @router.get(
+    "/api/gas-prices/history",
+    summary="Gas price history",
+    description=(
+        "Return historical national gas prices for all fuel types from the gas_prices table. "
+        "Designed for time-series chart rendering on the Home page."
+    ),
+)
+async def gas_prices_history() -> JSONResponse:
+    """Read full gas price history ordered by scrape timestamp for line-chart visualization."""
+    with _engine.connect() as conn:
+        result = conn.execute(
+            text(
+                "SELECT id, fuel_type, price, scraped_at FROM gas_prices "
+                "ORDER BY scraped_at ASC, id ASC"
+            )
+        )
+        rows = [
+            {
+                "id": int(r.id),
+                "fuel_type": r.fuel_type,
+                "price": float(r.price),
+                "scraped_at": r.scraped_at.strftime("%Y-%m-%d %H:%M:%S"),
+            }
+            for r in result
+        ]
+    return JSONResponse(rows)
+
+
+@router.get(
     "/",
     response_class=HTMLResponse,
     summary="Home page",
