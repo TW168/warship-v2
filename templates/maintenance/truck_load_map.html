@@ -76,7 +76,7 @@
     border-radius: 6px;
     background: #ffffff;
   }
-  .tlm-truck-img.flip { transform: scaleX(-1); }
+  .tlm-truck-wrap.flip { transform: scaleX(-1); }
   .tlm-truck-missing {
     display: none;
     padding: .7rem;
@@ -85,6 +85,41 @@
     border: 1px dashed #ced4da;
     border-radius: 6px;
     background: #f8f9fa;
+  }
+
+  /* ── Truck image wrapper + pallet overlay ── */
+  .tlm-truck-wrap {
+    position: relative;
+    display: block;
+    line-height: 0;          /* remove gap under inline img */
+  }
+  /*
+   * Trailer interior zone — percentages of the rendered image size.
+   * left/right/top/bottom trim off the cab, rear overhang, roof, and wheels.
+   * Adjust these if the image changes.
+   */
+  .tlm-trailer-overlay {
+    position: absolute;
+    left:   23%;   /* after cab connection  */
+    top:     7%;   /* below trailer roof    */
+    right:   4%;   /* before rear doors     */
+    bottom: 38%;   /* above wheels/undercarriage */
+    display: flex;
+    flex-direction: row;   /* nose (left) → doors (right) */
+    align-items: flex-end; /* pallets sit on the floor    */
+    gap: 2px;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  /* Individual pallet icon inside the trailer */
+  .pv {
+    width: 38px;         /* ~7.5% of 53-ft trailer on this scale */
+    height: auto;
+    display: block;
+    image-rendering: pixelated;
+    flex-shrink: 0;
+    border: 2px solid transparent;
+    border-radius: 2px;
   }
 
   @media print {
@@ -215,25 +250,29 @@
   <!-- ── MAIN ────────────────────────────────────────────────── -->
   <div class="tlm-main">
     <div class="tlm-truck-stage">
+      <!-- Truck facing LEFT: cab→left, trailer nose→left, doors→right -->
       <div class="tlm-truck-card">
         <div class="tlm-truck-title">Truck Facing Left</div>
-        <img
-          src="/static/assets/truck_diagram.png"
-          alt="Truck diagram facing left"
-          class="tlm-truck-img"
-          onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
-        >
-        <div class="tlm-truck-missing">Image missing: /static/assets/truck_diagram.png</div>
+        <div class="tlm-truck-wrap">
+          <img src="/static/assets/truck_diagram.png"
+               alt="Truck side view facing left"
+               class="tlm-truck-img"
+               onerror="this.style.display='none';">
+          <!-- Pallets injected here by renderTruckOverlay() — nose=left, doors=right -->
+          <div class="tlm-trailer-overlay" id="overlay-left"></div>
+        </div>
       </div>
+      <!-- Truck facing RIGHT: same image, wrapper flipped → cab→right, nose→right, doors→left -->
       <div class="tlm-truck-card">
         <div class="tlm-truck-title">Truck Facing Right</div>
-        <img
-          src="/static/assets/truck_diagram.png"
-          alt="Truck diagram facing right"
-          class="tlm-truck-img flip"
-          onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
-        >
-        <div class="tlm-truck-missing">Image missing: /static/assets/truck_diagram.png</div>
+        <div class="tlm-truck-wrap flip">
+          <img src="/static/assets/truck_diagram.png"
+               alt="Truck side view facing right"
+               class="tlm-truck-img"
+               onerror="this.style.display='none';">
+          <!-- Same overlay IDs/positions; the CSS flip mirrors them visually -->
+          <div class="tlm-trailer-overlay" id="overlay-right"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -243,6 +282,19 @@
 
 {% block scripts %}
 <script>
+// ── Product catalogue from warship.Product_desc_size (injected by FastAPI) ──
+var PRODUCTS = {{ products | tojson }};
+
+// ── Pallet image paths ─────────────────────────────────────────────────────
+var IMG_BOTTOM = '/static/assets/one_bottom_pallet.png';   // floor/single pallet
+var IMG_DOUBLE = '/static/assets/double_stacked.png';      // double-stacked pallet
+var IMG_TOP    = '/static/assets/one_top_pallet.png';      // top pallet (reference)
+
+/** Return the correct pallet image path given a stack level (1 = floor, 2 = double). */
+function palletImg(stackLevel) {
+  return stackLevel === 2 ? IMG_DOUBLE : IMG_BOTTOM;
+}
+
 var TRAILER_DEFAULTS = {
   '53': { length: 636, width: 101 },
   '48': { length: 576, width: 99 }
@@ -310,13 +362,50 @@ function renderPalletList() {
     list.innerHTML = '<div style="color:#adb5bd;font-size:.72rem;text-align:center;padding:.6rem;">No pallets</div>';
     return;
   }
-  list.innerHTML = pallets.map(function(p){
-    return '<div class="tlm-pitem">'+
-      '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;">'+
-      '<b>#'+p.seq+'</b> '+p.label+' · '+p.weight.toLocaleString()+'lb</span>'+
-      '<button class="tlm-pitem-rm" onclick="removePallet(\''+p.id+'\')" title="Remove">✕</button>'+
+  list.innerHTML = pallets.map(function(p) {
+    var img = palletImg(p.stack);
+    var stackLbl = p.stack === 2 ? 'Dbl' : 'Flr';
+    return '<div class="tlm-pitem">' +
+      '<img src="' + img + '" style="height:18px;width:auto;flex-shrink:0;margin-right:3px;image-rendering:pixelated;" title="' + stackLbl + '">' +
+      '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;">' +
+      '<b>#' + p.seq + '</b> ' + p.label + ' · ' + p.weight.toLocaleString() + ' lb</span>' +
+      '<button class="tlm-pitem-rm" onclick="removePallet(\'' + p.id + '\')" title="Remove">\u2715</button>' +
       '</div>';
   }).join('');
+}
+
+/**
+ * Render pallet sprites INSIDE the trailer overlay on both truck views.
+ *
+ * Load order: Stop 3 = nose (first loaded / last off), Stop 1 = near doors.
+ * Pallets are sorted stop-desc, then seq-asc so nose pallets appear on the
+ * left in the overlay.  The right-facing truck wrapper has CSS scaleX(-1),
+ * so the same left→right order appears visually as right→left (nose on right).
+ *
+ * Image mapping:
+ *   stack 1 (Floor)  → one_bottom_pallet.png
+ *   stack 2 (Double) → double_stacked.png
+ */
+function renderTruckOverlay() {
+  // Sort: highest stopId first (nose), then by seq
+  var sorted = pallets.slice().sort(function(a, b) {
+    if (b.stopId !== a.stopId) return b.stopId - a.stopId;
+    return a.seq - b.seq;
+  });
+
+  ['overlay-left', 'overlay-right'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    if (!sorted.length) { el.innerHTML = ''; return; }
+    el.innerHTML = sorted.map(function(p) {
+      var si    = stops.findIndex(function(s){ return s.id === p.stopId; });
+      var color = (STOP_COLORS[si] || { fill:'#999' }).fill;
+      return '<img class="pv"' +
+        ' src="'   + palletImg(p.stack) + '"' +
+        ' title="#' + p.seq + ' ' + p.label + ' · ' + p.weight.toLocaleString() + ' lb"' +
+        ' style="border-color:' + color + ';">';
+    }).join('');
+  });
 }
 
 function toggleStop(id, enabled) {
@@ -332,23 +421,26 @@ function renameStop(id, name) {
 }
 
 function addPallets() {
-  var qty = Math.min(50, parseInt(document.getElementById('palletQty').value, 10) || 1);
-  var wgt = parseFloat(document.getElementById('palletWeight').value) || 1800;
-  var sid = parseInt(document.getElementById('palletStop').value, 10) || 1;
-  var lbl = document.getElementById('palletLabel').value.trim() || 'Pallet';
+  var qty   = Math.min(50, parseInt(document.getElementById('palletQty').value, 10) || 1);
+  var wgt   = parseFloat(document.getElementById('palletWeight').value) || 1800;
+  var sid   = parseInt(document.getElementById('palletStop').value, 10) || 1;
+  var lbl   = document.getElementById('palletLabel').value.trim() || 'Pallet';
+  var stack = parseInt(document.getElementById('palletStack').value, 10) || 1;
   for (var i = 0; i < qty; i++) {
     palletSeq += 1;
-    pallets.push({ id:'p'+palletSeq, seq:palletSeq, label:lbl, weight:wgt, stopId:sid });
+    pallets.push({ id:'p'+palletSeq, seq:palletSeq, label:lbl, weight:wgt, stopId:sid, stack:stack });
   }
   renderPalletList();
   renderStops();
-  showToast(qty + ' pallet' + (qty > 1 ? 's' : '') + ' added to list.', 'success');
+  renderTruckOverlay();
+  showToast(qty + ' pallet' + (qty > 1 ? 's' : '') + ' added to plan.', 'success');
 }
 
 function removePallet(id) {
   pallets = pallets.filter(function(p){ return p.id !== id; });
   renderPalletList();
   renderStops();
+  renderTruckOverlay();
 }
 
 function clearAll() {
@@ -356,6 +448,7 @@ function clearAll() {
   palletSeq = 0;
   renderPalletList();
   renderStops();
+  renderTruckOverlay();
 }
 
 function rebuildTrailer() {
@@ -372,8 +465,32 @@ function applyAutoLayout() {
   showToast('Image layout mode: auto-layout is disabled.', 'info');
 }
 
+/** Populate the #palletProduct <select> from the PRODUCTS array loaded from DB. */
+function populateProductDropdown() {
+  var sel = document.getElementById('palletProduct');
+  // Keep the first "— Custom —" option, then append DB rows
+  sel.innerHTML = '<option value="">\u2014 Custom \u2014</option>';
+  PRODUCTS.forEach(function(p) {
+    var o = document.createElement('option');
+    o.value = p.id;
+    o.textContent = p.product_description + ' (' + p.product + ')';
+    sel.appendChild(o);
+  });
+}
+
+/** Auto-fill L/W/H and weight when a product is chosen from the dropdown. */
 function onProductSelect() {
-  // Intentionally no-op in image-only layout mode.
+  var sel = document.getElementById('palletProduct');
+  var id  = parseInt(sel.value, 10);
+  if (!id) return;  // Custom — leave fields as-is
+  var prod = PRODUCTS.find(function(p){ return p.id === id; });
+  if (!prod) return;
+  document.getElementById('palletL').value      = prod.pallet_length;
+  document.getElementById('palletW').value      = prod.pallet_width;
+  document.getElementById('palletH').value      = prod.pallet_height;
+  document.getElementById('palletWeight').value = prod.product_groww_weight;
+  document.getElementById('palletLabel').value  = prod.product;
+  updateStackWarning();
 }
 
 function updateStackWarning() {
@@ -402,8 +519,10 @@ document.getElementById('layoutPattern').addEventListener('change', function() {
 document.getElementById('palletH').addEventListener('input', updateStackWarning);
 document.getElementById('palletStack').addEventListener('change', updateStackWarning);
 
+populateProductDropdown();
 renderStops();
 renderPalletList();
+renderTruckOverlay();
 updateStackWarning();
 document.getElementById('layoutDesc').textContent = LAYOUT_DESC['straight'];
 </script>

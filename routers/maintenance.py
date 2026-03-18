@@ -436,11 +436,40 @@ async def lmi_analyze(body: AnalyzeRequest) -> StreamingResponse:
     "/truck-load-map",
     response_class=HTMLResponse,
     summary="Truck Load Map",
-    description="Interactive truck trailer load planning tool — Phase 1: basic pallet placement.",
+    description="Interactive truck trailer load planning tool — pallet placement with product catalogue from DB.",
 )
 async def truck_load_map(request: Request) -> HTMLResponse:
-    """Render the Truck Load Map planning page."""
+    """Render the Truck Load Map planning page.
+
+    Queries warship.Product_desc_size to populate the product dropdown in the
+    Add Pallet sidebar card.  If the DB is unreachable the page still loads with
+    an empty dropdown (graceful degradation).
+    """
+    products: list[dict] = []
+    try:
+        with _engine.connect() as conn:
+            rows = conn.execute(text(
+                "SELECT id, product_description, product, "
+                "pallet_length, pallet_width, pallet_height, product_groww_weight "
+                "FROM warship.Product_desc_size ORDER BY product_description"
+            )).fetchall()
+            products = [
+                {
+                    "id": r.id,
+                    "product_description": r.product_description,
+                    "product": r.product,
+                    "pallet_length": float(r.pallet_length),
+                    "pallet_width": float(r.pallet_width),
+                    "pallet_height": float(r.pallet_height),
+                    "product_groww_weight": float(r.product_groww_weight),
+                }
+                for r in rows
+            ]
+    except Exception:
+        # DB unavailable — page still loads, dropdown will be empty
+        pass
+
     return templates.TemplateResponse(
         "maintenance/truck_load_map.html",
-        {"request": request, "active_page": "truck_load_map"},
+        {"request": request, "active_page": "truck_load_map", "products": products},
     )
