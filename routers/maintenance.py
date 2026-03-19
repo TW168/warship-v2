@@ -2,6 +2,11 @@
 routers/maintenance.py — Maintenance sub-page routes.
 
 Handles:
+    GET /maintenance/shipping-status      — Shipping Status CRUD page
+    GET /maintenance/api/shipping-status  — JSON list shipping_status rows
+    POST /maintenance/api/shipping-status — JSON create shipping_status row
+    PUT /maintenance/api/shipping-status/{id} — JSON update shipping_status row
+    DELETE /maintenance/api/shipping-status/{id} — JSON delete shipping_status row
   GET /maintenance/frt-validation   — Freight ¢/lb by Product Code validation tool
   GET /maintenance/freight-audit    — Freight ¢/lb calculation audit page
   GET /api/maintenance/freight-audit — JSON audit data
@@ -26,6 +31,12 @@ from pydantic import BaseModel
 from sqlalchemy import text
 
 from database import connect_to_database
+from schemas.shipping_status import (
+    ShippingStatusCreateRequest,
+    ShippingStatusDeleteResponse,
+    ShippingStatusRow,
+    ShippingStatusUpdateRequest,
+)
 
 router = APIRouter(prefix="/maintenance", tags=["Maintenance"])
 templates = Jinja2Templates(directory="templates")
@@ -158,6 +169,257 @@ async def frt_validation(request: Request) -> HTMLResponse:
 
 
 _engine = connect_to_database()
+
+
+def _row_to_shipping_status(row) -> ShippingStatusRow:
+    """Map a SQLAlchemy row to a ShippingStatusRow model."""
+    return ShippingStatusRow(
+        id=int(row.id),
+        date=row.date,
+        customer=float(row.customer) if row.customer is not None else None,
+        con_hou=float(row.con_hou) if row.con_hou is not None else None,
+        con_rem=float(row.con_rem) if row.con_rem is not None else None,
+        con_pho=float(row.con_pho) if row.con_pho is not None else None,
+        con_cha=float(row.con_cha) if row.con_cha is not None else None,
+        total=float(row.total) if row.total is not None else None,
+        hou_ship=float(row.hou_ship) if row.hou_ship is not None else None,
+        rem_ship=float(row.rem_ship) if row.rem_ship is not None else None,
+        con=float(row.con) if row.con is not None else None,
+    )
+
+
+def _fetch_shipping_status_row(conn, row_id: int) -> ShippingStatusRow | None:
+    """Fetch one shipping_status row by id."""
+    row = conn.execute(
+        text(
+            """
+            SELECT
+                id,
+                `Date` AS date,
+                Customer AS customer,
+                Con_Hou AS con_hou,
+                Con_Rem AS con_rem,
+                Con_PHO AS con_pho,
+                Con_CHA AS con_cha,
+                Total AS total,
+                Hou_ship AS hou_ship,
+                Rem_ship AS rem_ship,
+                `Con` AS con
+            FROM shipping_status
+            WHERE id = :id
+            """
+        ),
+        {"id": row_id},
+    ).fetchone()
+    if not row:
+        return None
+    return _row_to_shipping_status(row)
+
+
+@router.get(
+    "/shipping-status",
+    response_class=HTMLResponse,
+    summary="Shipping Status CRUD Page",
+    description=(
+        "Maintenance page to create, view, update, and delete records in the "
+        "shipping_status table."
+    ),
+)
+async def shipping_status_page(request: Request) -> HTMLResponse:
+    """Render the shipping_status CRUD maintenance page."""
+    return templates.TemplateResponse(
+        "maintenance/shipping_status.html",
+        {"request": request, "active_page": "shipping_status"},
+    )
+
+
+@router.get(
+    "/api/shipping-status",
+    response_model=list[ShippingStatusRow],
+    summary="List shipping status rows",
+    description=(
+        "Returns shipping_status rows ordered by Date desc and id desc. "
+        "Optional date filters can limit the result set."
+    ),
+)
+async def shipping_status_list(
+    date_from: Optional[str] = Query(None, description="Date >= (YYYY-MM-DD)"),
+    date_to: Optional[str] = Query(None, description="Date <= (YYYY-MM-DD)"),
+    limit: int = Query(200, ge=1, le=1000, description="Maximum rows to return"),
+) -> list[ShippingStatusRow]:
+    """Return shipping_status rows with optional date filters."""
+    conditions = []
+    params: dict = {"limit": limit}
+
+    if date_from:
+        try:
+            start_date = datetime.fromisoformat(date_from.strip()).date()
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=f"Invalid date_from: {exc}") from exc
+        conditions.append("`Date` >= :date_from")
+        params["date_from"] = start_date
+
+    if date_to:
+        try:
+            end_date = datetime.fromisoformat(date_to.strip()).date()
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=f"Invalid date_to: {exc}") from exc
+        conditions.append("`Date` <= :date_to")
+        params["date_to"] = end_date
+
+    where_clause = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+
+    with _engine.connect() as conn:
+        rows = conn.execute(
+            text(
+                f"""
+                SELECT
+                    id,
+                    `Date` AS date,
+                    Customer AS customer,
+                    Con_Hou AS con_hou,
+                    Con_Rem AS con_rem,
+                    Con_PHO AS con_pho,
+                    Con_CHA AS con_cha,
+                    Total AS total,
+                    Hou_ship AS hou_ship,
+                    Rem_ship AS rem_ship,
+                    `Con` AS con
+                FROM shipping_status
+                {where_clause}
+                ORDER BY `Date` DESC, id DESC
+                LIMIT :limit
+                """
+            ),
+            params,
+        ).fetchall()
+
+    return [_row_to_shipping_status(row) for row in rows]
+
+
+@router.post(
+    "/api/shipping-status",
+    response_model=ShippingStatusRow,
+    summary="Create shipping status row",
+    description="Creates a new row in shipping_status.",
+)
+async def shipping_status_create(body: ShippingStatusCreateRequest) -> ShippingStatusRow:
+    """Create one shipping_status row and return the inserted record."""
+    with _engine.begin() as conn:
+        result = conn.execute(
+            text(
+                """
+                INSERT INTO shipping_status (
+                    `Date`, Customer, Con_Hou, Con_Rem, Con_PHO, Con_CHA,
+                    Total, Hou_ship, Rem_ship, `Con`
+                ) VALUES (
+                    :date, :customer, :con_hou, :con_rem, :con_pho, :con_cha,
+                    :total, :hou_ship, :rem_ship, :con
+                )
+                """
+            ),
+            {
+                "date": body.date,
+                "customer": body.customer,
+                "con_hou": body.con_hou,
+                "con_rem": body.con_rem,
+                "con_pho": body.con_pho,
+                "con_cha": body.con_cha,
+                "total": body.total,
+                "hou_ship": body.hou_ship,
+                "rem_ship": body.rem_ship,
+                "con": body.con,
+            },
+        )
+
+        new_id = int(result.lastrowid) if result.lastrowid is not None else None
+        if new_id is None:
+            new_id = int(conn.execute(text("SELECT LAST_INSERT_ID()")).scalar_one())
+
+        created = _fetch_shipping_status_row(conn, new_id)
+
+    if not created:
+        raise HTTPException(status_code=500, detail="Created row could not be retrieved")
+    return created
+
+
+@router.put(
+    "/api/shipping-status/{row_id}",
+    response_model=ShippingStatusRow,
+    summary="Update shipping status row",
+    description="Updates an existing shipping_status row by id.",
+)
+async def shipping_status_update(
+    row_id: int,
+    body: ShippingStatusUpdateRequest,
+) -> ShippingStatusRow:
+    """Update one shipping_status row and return the updated record."""
+    with _engine.begin() as conn:
+        exists = conn.execute(
+            text("SELECT id FROM shipping_status WHERE id = :id"),
+            {"id": row_id},
+        ).fetchone()
+        if not exists:
+            raise HTTPException(status_code=404, detail=f"Row not found: {row_id}")
+
+        conn.execute(
+            text(
+                """
+                UPDATE shipping_status
+                SET
+                    `Date` = :date,
+                    Customer = :customer,
+                    Con_Hou = :con_hou,
+                    Con_Rem = :con_rem,
+                    Con_PHO = :con_pho,
+                    Con_CHA = :con_cha,
+                    Total = :total,
+                    Hou_ship = :hou_ship,
+                    Rem_ship = :rem_ship,
+                    `Con` = :con
+                WHERE id = :id
+                """
+            ),
+            {
+                "id": row_id,
+                "date": body.date,
+                "customer": body.customer,
+                "con_hou": body.con_hou,
+                "con_rem": body.con_rem,
+                "con_pho": body.con_pho,
+                "con_cha": body.con_cha,
+                "total": body.total,
+                "hou_ship": body.hou_ship,
+                "rem_ship": body.rem_ship,
+                "con": body.con,
+            },
+        )
+
+        updated = _fetch_shipping_status_row(conn, row_id)
+
+    if not updated:
+        raise HTTPException(status_code=500, detail="Updated row could not be retrieved")
+    return updated
+
+
+@router.delete(
+    "/api/shipping-status/{row_id}",
+    response_model=ShippingStatusDeleteResponse,
+    summary="Delete shipping status row",
+    description="Deletes one row from shipping_status by id.",
+)
+async def shipping_status_delete(row_id: int) -> ShippingStatusDeleteResponse:
+    """Delete one shipping_status row by id."""
+    with _engine.begin() as conn:
+        result = conn.execute(
+            text("DELETE FROM shipping_status WHERE id = :id"),
+            {"id": row_id},
+        )
+
+    if result.rowcount == 0:
+        raise HTTPException(status_code=404, detail=f"Row not found: {row_id}")
+
+    return ShippingStatusDeleteResponse(deleted_id=row_id, message="Row deleted")
 
 
 @router.get(

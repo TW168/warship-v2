@@ -36,14 +36,41 @@
       page-break-inside: avoid;
     }
 
-    /* Keep boxplot + explanation on one printed page */
+    /* Card header titles: force dark text + visible border when bg is stripped */
+    .card-header {
+      background: #e8edf4 !important;
+      color: #154e9a !important;
+      border-bottom: 2px solid #154e9a !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+     /* Keep the boxplot section together as much as possible without forcing
+       a new page (forcing caused an extra blank page in print preview). */
     .print-group-boxplot {
       break-inside: avoid;
       page-break-inside: avoid;
     }
     .print-group-boxplot .card {
-      break-inside: auto;
-      page-break-inside: auto;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+    /* Shrink only the About This Chart text so everything fits — chart stays full height */
+    /* Shrink only the About This Chart text — chart is resized via JS beforeprint */
+    .print-group-boxplot .card.border-info .card-body { font-size: 0.68rem !important; }
+    .print-group-boxplot .card.border-info h6         { font-size: 0.73rem !important; }
+    .print-group-boxplot .card.border-info p,
+    .print-group-boxplot .card.border-info li,
+    .print-group-boxplot .card.border-info em,
+    .print-group-boxplot .card.border-info code       { font-size: 0.65rem !important; line-height: 1.25 !important; }
+    .print-group-boxplot .card.border-info .row       { --bs-gutter-y: 0.3rem !important; }
+
+    /* Print snapshot image for Freight chart: fill card width, no forced shrink */
+    #frtCplbChartPrintImage {
+      width: 100% !important;
+      max-width: 100% !important;
+      height: auto !important;
+      display: block !important;
     }
 
     /* Let Plotly SVGs scale */
@@ -78,7 +105,7 @@
     </div>
 
     <!-- Print button — hidden on print -->
-    <button class="btn btn-primary no-print" onclick="window.print()" aria-label="Print briefing">
+    <button class="btn btn-primary no-print" onclick="printBriefing()" aria-label="Print briefing">
       <i class="bi bi-printer me-2" aria-hidden="true"></i>Print
     </button>
 
@@ -262,7 +289,7 @@
       </div>
 
       <!-- Boxplot explanation -->
-      <div class="card shadow-sm border-start border-4 border-info mt-4">
+      <div class="card shadow-sm border-start border-4 border-info mt-4" style="break-inside:avoid; page-break-inside:avoid;">
         <div class="card-body py-3">
           <h6 class="fw-semibold mb-2"><i class="bi bi-info-circle me-2 text-info"></i>About This Chart</h6>
           <div class="row g-4" style="font-size:0.875rem;">
@@ -301,7 +328,7 @@
               </p>
             </div>
 
-            <div class="col-12" style="font-size:0.8rem; border-top:1px solid #dee2e6; padding-top:0.75rem;">
+            <div class="col-12" style="font-size:0.8rem; border-top:1px solid #dee2e6; padding-top:0.75rem; break-inside:avoid; page-break-inside:avoid;">
               <strong>Disclaimer:</strong><br>
               <i class="bi bi-exclamation-circle me-1 text-warning"></i>
               <em>Rates are derived from IPG-EZ Report freight cost ÷ pick weight. Outliers may reflect small loads, special handling, or data entry errors.</em><br>
@@ -773,6 +800,107 @@
         document.getElementById('palletContent').style.display = 'flex';
       });
   })();
+
+  /* ── Print pipeline for Freight ¢/lb chart ─────────────────────────────
+     Goal: never clip right-side product codes in print.
+     Before printing, render a PNG snapshot from Plotly and print that image.
+     After printing, restore the live Plotly chart. */
+  var __printChartState = {
+    imgId: 'frtCplbChartPrintImage',
+    chartId: 'frtCplbChart',
+    originalHeight: 500,
+    prepared: false,
+  };
+
+  function cleanupPrintedChartImage() {
+    var chartEl = document.getElementById(__printChartState.chartId);
+    if (!chartEl) return;
+    var parent = chartEl.parentElement;
+    if (!parent) return;
+
+    var existing = document.getElementById(__printChartState.imgId);
+    if (existing) existing.remove();
+
+    chartEl.style.display = '';
+    __printChartState.prepared = false;
+  }
+
+  function restoreChartAfterPrint() {
+    cleanupPrintedChartImage();
+    var chartEl = document.getElementById(__printChartState.chartId);
+    if (chartEl && chartEl._fullLayout) {
+      Plotly.relayout(chartEl, {
+        height: __printChartState.originalHeight,
+        xaxis: { tickangle: -45, automargin: true },
+        margin: { t: 20, r: 20, b: 140, l: 60 },
+      });
+      Plotly.Plots.resize(chartEl);
+    }
+  }
+
+  function prepareChartForPrint() {
+    var chartEl = document.getElementById(__printChartState.chartId);
+    if (!chartEl || !chartEl._fullLayout) return Promise.resolve();
+
+    __printChartState.originalHeight = chartEl._fullLayout.height || 500;
+
+    return Plotly.relayout(chartEl, {
+      height: 560,
+      xaxis: { tickangle: -35, automargin: true },
+      margin: { t: 20, r: 35, b: 130, l: 70 },
+    })
+      .then(function () {
+        return Plotly.toImage(chartEl, {
+          format: 'png',
+          width: 2200,
+          height: 1400,
+          scale: 2,
+        });
+      })
+      .then(function (dataUrl) {
+        var parent = chartEl.parentElement;
+        if (!parent) return;
+
+        cleanupPrintedChartImage();
+
+        var img = document.createElement('img');
+        img.id = __printChartState.imgId;
+        img.src = dataUrl;
+        img.alt = 'Freight cents per pound by product code chart';
+        img.style.width = '100%';
+        img.style.height = 'auto';
+        img.style.objectFit = 'contain';
+        img.style.display = 'block';
+
+        chartEl.style.display = 'none';
+        parent.appendChild(img);
+        __printChartState.prepared = true;
+      })
+      .catch(function () {
+        __printChartState.prepared = false;
+      });
+  }
+
+  function printBriefing() {
+    prepareChartForPrint().finally(function () {
+      window.print();
+      setTimeout(restoreChartAfterPrint, 250);
+    });
+  }
+
+  window.onbeforeprint = prepareChartForPrint;
+  window.onafterprint = restoreChartAfterPrint;
+
+  if (window.matchMedia) {
+    var __printMql = window.matchMedia('print');
+    __printMql.addEventListener('change', function (evt) {
+      if (evt.matches) {
+        prepareChartForPrint();
+      } else {
+        restoreChartAfterPrint();
+      }
+    });
+  }
 
 </script>
 {% endblock %}

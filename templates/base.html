@@ -88,11 +88,16 @@
 
           <!-- Maintenance (dropdown) -->
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle {% if active_page in ['maintenance', 'frt_validation', 'freight_audit', 'lmi', 'truck_load_map'] %}active{% endif %}"
+            <a class="nav-link dropdown-toggle {% if active_page in ['maintenance', 'frt_validation', 'freight_audit', 'lmi', 'truck_load_map', 'shipping_status'] %}active{% endif %}"
                href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
               <i class="bi bi-tools me-1" aria-hidden="true"></i>Maintenance
             </a>
             <ul class="dropdown-menu">
+              <li>
+                <a class="dropdown-item {% if active_page == 'shipping_status' %}active{% endif %}" href="/maintenance/shipping-status">
+                  <i class="bi bi-table me-2" aria-hidden="true"></i>Shipping Status CRUD
+                </a>
+              </li>
               <li>
                 <a class="dropdown-item {% if active_page == 'frt_validation' %}active{% endif %}" href="/maintenance/frt-validation">
                   <i class="bi bi-search me-2" aria-hidden="true"></i>Frt by Product Validation
