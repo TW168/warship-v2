@@ -113,7 +113,7 @@ async def top_customers_tree_map(
     product_group: str = Query(..., description="Product group, e.g. SW"),
     start_date: str = Query(..., description="Inclusive start date (YYYY-MM-DD)"),
     end_date: str = Query(..., description="Inclusive end date (YYYY-MM-DD)"),
-    top_n: int = Query(10, description="Number of top customers to return"),
+    top_n: int = Query(20, description="Number of top customers to return"),
 ) -> TopCustomersResponse:
     """Call sp_bl_lbs_cnt_carrier_customer and return top N customers for tree map visualization."""
     try:
@@ -132,15 +132,33 @@ async def top_customers_tree_map(
         with _engine.connect() as conn:
             dbapi_conn = conn.connection
             cursor = dbapi_conn.cursor(dictionary=True)
-            # Correct argument order: (start_date, end_date, site, product_group)
-            cursor.callproc(
-                "sp_bl_lbs_cnt_carrier_customer",
-                [str(start), str(end), str(site), str(product_group)],
-            )
             rows = []
-            for result_set in cursor.stored_results():
-                for row in result_set.fetchall():
-                    rows.append(row)
+
+            # Some DB environments define this SP with different parameter orders.
+            # Try the currently observed order first: (site, product_group, start_date, end_date).
+            try:
+                cursor.callproc(
+                    "sp_bl_lbs_cnt_carrier_customer",
+                    [str(site), str(product_group), str(start), str(end)],
+                )
+                for result_set in cursor.stored_results():
+                    for row in result_set.fetchall():
+                        rows.append(row)
+            except Exception as primary_exc:
+                # Fallback for legacy order: (start_date, end_date, site, product_group).
+                if "Incorrect date value" not in str(primary_exc):
+                    raise
+
+                rows = []
+                cursor = dbapi_conn.cursor(dictionary=True)
+                cursor.callproc(
+                    "sp_bl_lbs_cnt_carrier_customer",
+                    [str(start), str(end), str(site), str(product_group)],
+                )
+                for result_set in cursor.stored_results():
+                    for row in result_set.fetchall():
+                        rows.append(row)
+
             cursor.close()
             if not rows:
                 raise HTTPException(status_code=404, detail="No customer data returned from stored procedure.")
