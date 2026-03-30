@@ -16,6 +16,9 @@ from fastapi.templating import Jinja2Templates
 from database import connect_to_database
 from schemas.shipped_product import ShippedProductRow
 
+# Top N Customer Tree Map schema
+from schemas.top_customers import TopCustomersResponse, CustomerTreeMapItem
+
 router = APIRouter(tags=["Shipping"])
 templates = Jinja2Templates(directory="templates")
 
@@ -65,9 +68,9 @@ async def shipped_products(
         return JSONResponse(status_code=422, content={"error": f"Invalid date: {exc}"})
     try:
         with _engine.connect() as conn:
-            # Unwrap to the underlying mysql-connector-python connection
-            raw = conn.connection.driver_connection
-            cursor = raw.cursor(dictionary=True)
+            # Get the DBAPI connection from SQLAlchemy connection
+            dbapi_conn = conn.connection
+            cursor = dbapi_conn.cursor(dictionary=True)
             cursor.callproc(
                 "sp_get_all_shipped_product",
                 [str(site), str(product_group), start.isoformat(), end.isoformat()],
@@ -94,6 +97,112 @@ async def shipped_products(
         return JSONResponse(status_code=500, content={"error": str(exc)})
 
     return JSONResponse(content=rows)
+
+
+# --- Top N Customer Tree Map Endpoint ---
+from fastapi import HTTPException
+
+@router.get(
+    "/api/shipping/top-customers",
+    response_model=TopCustomersResponse,
+    summary="Top N Customers Tree Map",
+    description="Returns the top N customers by total shipped weight and freight using sp_bl_lbs_cnt_carrier_customer. Results are suitable for tree map visualization.",
+)
+async def top_customers_tree_map(
+    site: str = Query(..., description="Site code, e.g. AMJK"),
+    product_group: str = Query(..., description="Product group, e.g. SW"),
+    start_date: str = Query(..., description="Inclusive start date (YYYY-MM-DD)"),
+    end_date: str = Query(..., description="Inclusive end date (YYYY-MM-DD)"),
+    top_n: int = Query(10, description="Number of top customers to return"),
+) -> TopCustomersResponse:
+    """Call sp_bl_lbs_cnt_carrier_customer and return top N customers for tree map visualization."""
+    try:
+        start = datetime.date.fromisoformat(start_date.strip())
+        end = datetime.date.fromisoformat(end_date.strip())
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=f"Invalid date: {exc}")
+
+    if start > end:
+        raise HTTPException(status_code=400, detail="start_date must be <= end_date")
+
+    if top_n < 1:
+        raise HTTPException(status_code=422, detail="top_n must be >= 1")
+
+    try:
+        with _engine.connect() as conn:
+            dbapi_conn = conn.connection
+            cursor = dbapi_conn.cursor(dictionary=True)
+            # Correct argument order: (start_date, end_date, site, product_group)
+            cursor.callproc(
+                "sp_bl_lbs_cnt_carrier_customer",
+                [str(start), str(end), str(site), str(product_group)],
+            )
+            rows = []
+            for result_set in cursor.stored_results():
+                for row in result_set.fetchall():
+                    rows.append(row)
+            cursor.close()
+            if not rows:
+                raise HTTPException(status_code=404, detail="No customer data returned from stored procedure.")
+
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+    # Accept either aggregated SP output or BL-level output and normalize to customer totals.
+    if rows and ("Customer_Name" in rows[0] or "Customer" in rows[0]):
+        normalized = []
+        for row in rows:
+            normalized.append(
+                {
+                    "customer_name": row.get("Customer_Name") or row.get("Customer") or "Unknown",
+                    "total_weight": float(row.get("pick_weight") or 0.0),
+                    "total_freight": float(row.get("freight") or 0.0),
+                    "shipment_count": int(row.get("bl_count") or 0),
+                }
+            )
+    elif rows and "Ship_to_Customer" in rows[0]:
+        weight_by_customer: dict[str, float] = {}
+        freight_by_customer: dict[str, float] = {}
+        bls_by_customer: dict[str, set[str]] = {}
+        for row in rows:
+            customer = str(row.get("Ship_to_Customer") or "Unknown").strip() or "Unknown"
+            weight = float(row.get("pick_weight") or 0.0)
+            unit_freight_cplb = float(row.get("Unit_Freight") or 0.0)
+            bl_number = row.get("BL_Number")
+
+            if customer not in weight_by_customer:
+                weight_by_customer[customer] = 0.0
+                freight_by_customer[customer] = 0.0
+                bls_by_customer[customer] = set()
+
+            # Unit_Freight is cents/lb, so convert to dollars.
+            weight_by_customer[customer] += weight
+            freight_by_customer[customer] += (unit_freight_cplb * weight) / 100.0
+            if bl_number:
+                bls_by_customer[customer].add(str(bl_number))
+
+        normalized = []
+        for customer in weight_by_customer:
+            normalized.append(
+                {
+                    "customer_name": customer,
+                    "total_weight": weight_by_customer[customer],
+                    "total_freight": freight_by_customer[customer],
+                    "shipment_count": len(bls_by_customer[customer]),
+                }
+            )
+    else:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Unexpected columns in result: {list(rows[0].keys()) if rows else []}",
+        )
+
+    # Sort and take top N
+    normalized.sort(key=lambda x: x["total_weight"], reverse=True)
+    items = [CustomerTreeMapItem(**row) for row in normalized[:top_n]]
+    return TopCustomersResponse(items=items)
 
 
 @router.get(
@@ -138,8 +247,8 @@ async def carrier_cost_analysis(
 
     try:
         with _engine.connect() as conn:
-            raw = conn.connection.driver_connection
-            cursor = raw.cursor(dictionary=True)
+            dbapi_conn = conn.connection
+            cursor = dbapi_conn.cursor(dictionary=True)
             cursor.callproc(
                 "sp_carrier_cost_per_pound",
                 [
