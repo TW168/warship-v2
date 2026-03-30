@@ -8,6 +8,7 @@ Includes:
 """
 
 import datetime
+import re
 from typing import Optional
 
 from fastapi import APIRouter, Query, Request
@@ -23,6 +24,24 @@ router = APIRouter(tags=["Shipping"])
 templates = Jinja2Templates(directory="templates")
 
 _engine = connect_to_database()
+
+
+_EXCLUDED_TREEMAP_CUSTOMERS = {
+    "INTEPLAST GROUP CORP. (AMTOPP)",
+    "INTEPLAST GROUP CORP.(AMTOPP ( CFP)",
+    "PINNACLE FILMS",
+    "AMTOPP WAREHOUSE - HOUSTON",
+}
+
+
+def _normalize_customer_name(name: str) -> str:
+    """Normalize customer name for robust exclusion matching."""
+    return re.sub(r"\s+", " ", name.upper()).strip()
+
+
+_EXCLUDED_TREEMAP_CUSTOMERS_NORMALIZED = {
+    _normalize_customer_name(name) for name in _EXCLUDED_TREEMAP_CUSTOMERS
+}
 
 
 @router.get(
@@ -172,9 +191,13 @@ async def top_customers_tree_map(
     if rows and ("Customer_Name" in rows[0] or "Customer" in rows[0]):
         normalized = []
         for row in rows:
+            customer_name = str(row.get("Customer_Name") or row.get("Customer") or "Unknown").strip() or "Unknown"
+            if _normalize_customer_name(customer_name) in _EXCLUDED_TREEMAP_CUSTOMERS_NORMALIZED:
+                continue
+
             normalized.append(
                 {
-                    "customer_name": row.get("Customer_Name") or row.get("Customer") or "Unknown",
+                    "customer_name": customer_name,
                     "total_weight": float(row.get("pick_weight") or 0.0),
                     "total_freight": float(row.get("freight") or 0.0),
                     "shipment_count": int(row.get("bl_count") or 0),
@@ -186,6 +209,9 @@ async def top_customers_tree_map(
         bls_by_customer: dict[str, set[str]] = {}
         for row in rows:
             customer = str(row.get("Ship_to_Customer") or "Unknown").strip() or "Unknown"
+            if _normalize_customer_name(customer) in _EXCLUDED_TREEMAP_CUSTOMERS_NORMALIZED:
+                continue
+
             weight = float(row.get("pick_weight") or 0.0)
             unit_freight_cplb = float(row.get("Unit_Freight") or 0.0)
             bl_number = row.get("BL_Number")
