@@ -14,8 +14,12 @@ Includes:
 """
 
 from collections import defaultdict
+import datetime
 from pathlib import Path
+import re
+
 import openpyxl
+import pandas as pd
 from fastapi import APIRouter, Query, Request
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
@@ -114,6 +118,219 @@ _MEETING_REPORT_SQL = text("""
 
 _ASSETS_DIR = Path(__file__).parent.parent / "static" / "assets"
 _NO_CACHE = {"Cache-Control": "no-store, no-cache, must-revalidate"}
+
+_MTD_SITES = ("AMJK", "TXAS", "AMIN", "AMAZ")
+_SITE_CONSIGNMENT_CUSTOMERS = {
+    "AMJK": {
+        "INTEPLAST GROUP CORP. (AMTOPP)",
+        "INTEPLAST GROUP CORP.(AMTOPP ( CFP)",
+        "PINNACLE FILMS",
+        "AMTOPP WAREHOUSE - HOUSTON",
+    },
+    "AMIN": {
+        "INTEPLAST GROUP CORP.(AMTOPP ( CFP)",
+        "PINNACLE FILMS",
+        "AMTOPP WAREHOUSE - HOUSTON",
+        "INTEPLAST GROUP CORP.(AMTOPP)",
+    },
+    "AMAZ": {
+        "INTEPLAST GROUP CORP. (AMTOPP)",
+        "PINNACLE FILMS",
+        "INTEPLAST GROUP CORP.(AMTOPP)",
+    },
+    "TXAS": {
+        "INTEPLAST GROUP CORP. (AMTOPP)",
+        "INTEPLAST GROUP CORP.(AMTOPP ( CFP)",
+        "PINNACLE FILMS",
+        "INTEPLAST GROUP CORP.(AMTOPP)",
+    },
+    "AMSC": {
+        "INTEPLAST GROUP CORP. (AMTOPP)",
+        "INTEPLAST GROUP CORP.(AMTOPP ( CFP)",
+        "AMTOPP WAREHOUSE - HOUSTON",
+        "INTEPLAST GROUP CORP.(AMTOPP)",
+    },
+}
+
+
+def _normalize_customer_name(name: str) -> str:
+    """Normalize customer names for robust consignment matching."""
+    return re.sub(r"\s+", " ", str(name or "").upper()).strip()
+
+
+def _build_all_site_mtd_rows(
+    conn,
+    product_group: str,
+) -> list[dict[str, object]]:
+    """Build all-site MTD customer-vs-consignment totals from SP output using pandas."""
+    selected_date = datetime.date.today()
+    month_start = selected_date.replace(day=1)
+    year_month = selected_date.strftime("%Y/%m")
+
+    results: list[dict[str, object]] = []
+    dbapi_conn = conn.connection
+
+    for site_code in _MTD_SITES:
+        cursor = dbapi_conn.cursor(dictionary=True)
+        try:
+            cursor.callproc(
+                "sp_bl_lbs_cnt_carrier_customer",
+                [
+                    month_start.isoformat(),
+                    selected_date.isoformat(),
+                    site_code,
+                    product_group,
+                ],
+            )
+
+            sp_rows: list[dict[str, object]] = []
+            for result_set in cursor.stored_results():
+                for row in result_set.fetchall():
+                    sp_rows.append(
+                        {
+                            "Ship_to_Customer": row.get("Ship_to_Customer"),
+                            "pick_weight": row.get("pick_weight"),
+                            "pallet_count": row.get("pallet_count"),
+                        }
+                    )
+        finally:
+            cursor.close()
+
+        if not sp_rows:
+            results.append(
+                {
+                    "site": site_code,
+                    "year_month": year_month,
+                    "weight_to_customer": 0.0,
+                    "weight_to_consignment": 0.0,
+                    "pallet_to_customer": 0.0,
+                    "pallet_to_consignment": 0.0,
+                }
+            )
+            continue
+
+        df = pd.DataFrame(sp_rows)
+        if "Ship_to_Customer" not in df:
+            df["Ship_to_Customer"] = ""
+        if "pick_weight" not in df:
+            df["pick_weight"] = 0
+        if "pallet_count" not in df:
+            df["pallet_count"] = 0
+
+        df["pick_weight"] = pd.to_numeric(df["pick_weight"], errors="coerce").fillna(0.0)
+        df["pallet_count"] = pd.to_numeric(df["pallet_count"], errors="coerce").fillna(0.0)
+        df["_customer_norm"] = df["Ship_to_Customer"].map(_normalize_customer_name)
+
+        consignment_set = {
+            _normalize_customer_name(name)
+            for name in _SITE_CONSIGNMENT_CUSTOMERS.get(site_code, set())
+        }
+        consignment_mask = df["_customer_norm"].isin(consignment_set)
+
+        weight_to_consignment = float(df.loc[consignment_mask, "pick_weight"].sum())
+        pallet_to_consignment = float(df.loc[consignment_mask, "pallet_count"].sum())
+        weight_total = float(df["pick_weight"].sum())
+        pallet_total = float(df["pallet_count"].sum())
+
+        results.append(
+            {
+                "site": site_code,
+                "year_month": year_month,
+                "weight_to_customer": weight_total - weight_to_consignment,
+                "weight_to_consignment": weight_to_consignment,
+                "pallet_to_customer": pallet_total - pallet_to_consignment,
+                "pallet_to_consignment": pallet_to_consignment,
+            }
+        )
+
+    return results
+
+
+def _build_today_rows(
+    conn,
+    product_group: str,
+) -> list[dict[str, object]]:
+    """Build today-only customer-vs-consignment totals from SP output using pandas."""
+    today = datetime.date.today()
+    year_month = today.strftime("%Y/%m/%d")
+
+    results: list[dict[str, object]] = []
+    dbapi_conn = conn.connection
+
+    for site_code in _MTD_SITES:
+        cursor = dbapi_conn.cursor(dictionary=True)
+        try:
+            cursor.callproc(
+                "sp_bl_lbs_cnt_carrier_customer",
+                [
+                    today.isoformat(),
+                    today.isoformat(),
+                    site_code,
+                    product_group,
+                ],
+            )
+
+            sp_rows: list[dict[str, object]] = []
+            for result_set in cursor.stored_results():
+                for row in result_set.fetchall():
+                    sp_rows.append(
+                        {
+                            "Ship_to_Customer": row.get("Ship_to_Customer"),
+                            "pick_weight": row.get("pick_weight"),
+                            "pallet_count": row.get("pallet_count"),
+                        }
+                    )
+        finally:
+            cursor.close()
+
+        if not sp_rows:
+            results.append(
+                {
+                    "site": site_code,
+                    "year_month": year_month,
+                    "weight_to_customer": 0.0,
+                    "weight_to_consignment": 0.0,
+                    "pallet_to_customer": 0.0,
+                    "pallet_to_consignment": 0.0,
+                }
+            )
+            continue
+
+        df = pd.DataFrame(sp_rows)
+        if "Ship_to_Customer" not in df:
+            df["Ship_to_Customer"] = ""
+        if "pick_weight" not in df:
+            df["pick_weight"] = 0
+        if "pallet_count" not in df:
+            df["pallet_count"] = 0
+
+        df["pick_weight"] = pd.to_numeric(df["pick_weight"], errors="coerce").fillna(0.0)
+        df["pallet_count"] = pd.to_numeric(df["pallet_count"], errors="coerce").fillna(0.0)
+        df["_customer_norm"] = df["Ship_to_Customer"].map(_normalize_customer_name)
+
+        consignment_set = {
+            _normalize_customer_name(name)
+            for name in _SITE_CONSIGNMENT_CUSTOMERS.get(site_code, set())
+        }
+        consignment_mask = df["_customer_norm"].isin(consignment_set)
+
+        weight_to_consignment = float(df.loc[consignment_mask, "pick_weight"].sum())
+        pallet_to_consignment = float(df.loc[consignment_mask, "pallet_count"].sum())
+        weight_total = float(df["pick_weight"].sum())
+        pallet_total = float(df["pallet_count"].sum())
+
+        results.append(
+            {
+                "site": site_code,
+                "year_month": year_month,
+                "weight_to_customer": weight_total - weight_to_consignment,
+                "weight_to_consignment": weight_to_consignment,
+                "pallet_to_customer": pallet_total - pallet_to_consignment,
+                "pallet_to_consignment": pallet_to_consignment,
+            }
+        )
+
+    return results
 
 
 @router.get("/weather/maxt1", include_in_schema=False)
@@ -229,7 +446,6 @@ async def gas_prices_history() -> JSONResponse:
 )
 async def home(request: Request) -> HTMLResponse:
     """Render the home page."""
-    import datetime
     today = datetime.date.today().strftime("%Y%m%d")
     return templates.TemplateResponse(
         "home/index.html",
@@ -248,6 +464,80 @@ async def meeting_report(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(
         "home/meeting_report.html",
         {"request": request, "active_page": "meeting_report"},
+    )
+
+
+@router.get(
+    "/api/meeting-report/all-site-mtd",
+    response_class=HTMLResponse,
+    summary="Meeting Report All Site MTD",
+    description=(
+        "Returns the All Site Month-to-Date shipped weight and pallet summary partial. "
+        "This card is independent from Truck Appointment Date filter and always uses current month-to-date."
+    ),
+)
+async def meeting_report_all_site_mtd(
+    request: Request,
+    product_group: str = Query(..., description="Product group identifier"),
+) -> HTMLResponse:
+    """Render All Site MTD card partial independent of report date filter."""
+    all_site_mtd_rows: list[dict[str, object]] = []
+    error = None
+
+    try:
+        with _engine.connect() as conn:
+            all_site_mtd_rows = _build_all_site_mtd_rows(
+                conn=conn,
+                product_group=product_group,
+            )
+    except Exception as exc:
+        error = str(exc)
+
+    return templates.TemplateResponse(
+        "home/all_site_mtd_card.html",
+        {
+            "request": request,
+            "all_site_mtd_rows": all_site_mtd_rows,
+            "error": error,
+            "product_group": product_group,
+        },
+    )
+
+
+@router.get(
+    "/api/meeting-report/today-summary",
+    response_class=HTMLResponse,
+    summary="Meeting Report Today Summary",
+    description=(
+        "Returns the Today-Only shipped weight and pallet summary partial. "
+        "This card shows only today's data across all sites."
+    ),
+)
+async def meeting_report_today_summary(
+    request: Request,
+    product_group: str = Query(..., description="Product group identifier"),
+) -> HTMLResponse:
+    """Render Today Summary card partial."""
+    today_rows: list[dict[str, object]] = []
+    error = None
+
+    try:
+        with _engine.connect() as conn:
+            today_rows = _build_today_rows(
+                conn=conn,
+                product_group=product_group,
+            )
+    except Exception as exc:
+        error = str(exc)
+
+    return templates.TemplateResponse(
+        "home/today_summary_card.html",
+        {
+            "request": request,
+            "today_rows": today_rows,
+            "error": error,
+            "product_group": product_group,
+        },
     )
 
 
@@ -277,10 +567,23 @@ async def meeting_report_results(
     error = None
 
     try:
+        selected_date = datetime.date.fromisoformat(date.strip())
+    except ValueError as exc:
+        error = f"Invalid date: {exc}"
+        selected_date = None
+
+    try:
+        if selected_date is None:
+            raise ValueError(error)
+
         with _engine.connect() as conn:
             result = conn.execute(
                 _MEETING_REPORT_SQL,
-                {"site": site, "product_group": product_group, "date": date},
+                {
+                    "site": site,
+                    "product_group": product_group,
+                    "date": selected_date.isoformat(),
+                },
             )
             # Convert each row to a plain dict, casting Decimal → float so
             # Jinja2 arithmetic and Python number formatting work correctly.
@@ -294,7 +597,11 @@ async def meeting_report_results(
                 for row in result.fetchall()
             ]
 
-            params = {"site": site, "product_group": product_group, "date": date}
+            params = {
+                "site": site,
+                "product_group": product_group,
+                "date": selected_date.isoformat(),
+            }
             consignment_count = int(conn.execute(_CONSIGNMENT_COUNT_SQL, params).scalar() or 0)
             custom_count = int(conn.execute(_CUSTOM_COUNT_SQL, params).scalar() or 0)
 

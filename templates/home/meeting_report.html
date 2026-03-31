@@ -16,6 +16,24 @@
     <i class="bi bi-journal-text me-2" aria-hidden="true"></i>Meeting Report
   </h1>
 
+  <!-- ── All Site MTD card (independent from Truck Appointment Date) ─── -->
+  <div
+    id="allSiteMtdCard"
+    hx-get="/api/meeting-report/all-site-mtd?product_group=SW"
+    hx-trigger="load"
+    hx-swap="innerHTML"
+    class="mb-4"
+  ></div>
+
+  <!-- ── Today Summary card (independent from Truck Appointment Date) ─── -->
+  <div
+    id="todaySummaryCard"
+    hx-get="/api/meeting-report/today-summary?product_group=SW"
+    hx-trigger="load"
+    hx-swap="innerHTML"
+    class="mb-4"
+  ></div>
+
   <!-- ── Filter form ──────────────────────────────────────────── -->
   <div class="card shadow-sm mb-4">
     <div class="card-header fw-semibold">
@@ -49,7 +67,12 @@
             <label for="product_group" class="form-label fw-semibold">
               <i class="bi bi-boxes me-1 text-primary"></i>Product Group
             </label>
-            <select class="form-select" id="product_group" name="product_group" required>
+            <select
+              class="form-select"
+              id="product_group"
+              name="product_group"
+              required
+            >
               <option value="BP">BP</option>
               <option value="CT">CT</option>
               <option value="SW" selected>SW</option>

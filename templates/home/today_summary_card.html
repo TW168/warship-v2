@@ -1,0 +1,45 @@
+{% if error %}
+<div class="alert alert-danger d-flex align-items-center gap-2" role="alert">
+  <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
+  <div>
+    <strong>Database error:</strong> {{ error }}
+  </div>
+</div>
+{% else %}
+<div class="card shadow-sm border-secondary">
+  <div class="card-header fw-bold bg-secondary text-white d-flex justify-content-between align-items-center">
+    <span>Today shipped weight and pallets counts</span>
+    {% if today_rows and today_rows[0].year_month %}
+      <span class="badge bg-light text-secondary">{{ today_rows[0].year_month }}</span>
+    {% endif %}
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-striped table-hover table-sm mb-0 align-middle">
+        <thead class="table-light" style="position: sticky; top: 0; z-index: 1;">
+          <tr>
+            <th>Site</th>
+            <th>Date</th>
+            <th class="text-end">Weight to customer (lbs)</th>
+            <th class="text-end">Weight to consignment (lbs)</th>
+            <th class="text-end">Pallet to customer</th>
+            <th class="text-end">Pallet to consignment</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in today_rows %}
+          <tr>
+            <td class="fw-semibold">{{ row.site }}</td>
+            <td>{{ row.year_month }}</td>
+            <td class="text-end">{{ "{:,.0f}".format(row.weight_to_customer) }}</td>
+            <td class="text-end">{{ "{:,.0f}".format(row.weight_to_consignment) }}</td>
+            <td class="text-end">{{ "{:,.0f}".format(row.pallet_to_customer) }}</td>
+            <td class="text-end">{{ "{:,.0f}".format(row.pallet_to_consignment) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}

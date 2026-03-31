@@ -116,7 +116,9 @@ The `connect_to_database()` function returns a SQLAlchemy `Engine`.
 | Gas Prices | `GET /api/gas-prices` | JSON — latest national avg gas prices from `gas_prices` table (scraped from AAA via cron at 7:30 AM) |
 | Gas Prices History | `GET /api/gas-prices/history` | JSON — full historical series from `gas_prices` (`id`, `fuel_type`, `price`, `scraped_at`) used by Home page multi-line trend chart (one line per fuel type). |
 | Meeting Report | `GET /meeting-report` | Sub-page of Home; filter form (site, product_group, date) |
-| Meeting Report Results | `GET /api/meeting-report/results` | HTMX partial — runs aggregated shipping query, returns cards |
+| Meeting Report Results | `GET /api/meeting-report/results` | HTMX partial — runs aggregated shipping query and returns group cards + report elements for selected filters. |
+| Meeting Report All Site MTD | `GET /api/meeting-report/all-site-mtd` | HTMX partial — standalone All Site current-month MTD shipped weight/pallet table (AMJK, TXAS, AMIN, AMAZ), independent of Truck Appointment Date filter. |
+| Meeting Report Today Summary | `GET /api/meeting-report/today-summary` | HTMX partial — standalone Today-only shipped weight/pallet table (AMJK, TXAS, AMIN, AMAZ), independent of Truck Appointment Date filter. |
 | Briefing | `GET /briefing` | VIP Operations Briefing — printable snapshot of ops metrics |
 | Weight by Year | `GET /api/analytics/weight-by-year` | JSON — monthly pick_weight per year series; params: `site` (default AMJK), `product_group` (default SW) |
 | Freight Lbs by Year | `GET /api/analytics/freight-lbs-by-year-mei` | JSON — monthly lbs from `frt_cost_breakdown_mei`; param: `site` (default SW) |
@@ -216,6 +218,7 @@ Managed via `pyproject.toml` / `uv.lock`:
 | `markdown` | Markdown → HTML for Software Architectural page |
 | `openpyxl` | Read Excel workbooks (`.xlsx`) for freight cost analytics |
 | `beautifulsoup4` | HTML parsing for gas price scraper (`scripts/scrape_gas_prices.py`) |
+| `pandas` | DataFrame aggregation for Meeting Report All Site MTD shipped weight/pallet summary |
 
 ---
 
