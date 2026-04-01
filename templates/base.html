@@ -65,11 +65,24 @@
             </ul>
           </li>
 
-          <!-- Warehouse -->
-          <li class="nav-item">
-            <a class="nav-link {% if active_page == 'warehouse' %}active{% endif %}" href="/warehouse">
+          <!-- Warehouse (dropdown) -->
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle {% if active_page in ['warehouse', 'product_forecast'] %}active{% endif %}"
+               href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
               <i class="bi bi-building me-1" aria-hidden="true"></i>Warehouse
             </a>
+            <ul class="dropdown-menu">
+              <li>
+                <a class="dropdown-item {% if active_page == 'warehouse' %}active{% endif %}" href="/warehouse">
+                  <i class="bi bi-speedometer2 me-2" aria-hidden="true"></i>Dashboard
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item {% if active_page == 'product_forecast' %}active{% endif %}" href="/warehouse/product-forecast">
+                  <i class="bi bi-graph-up-arrow me-2" aria-hidden="true"></i>Product Forecast
+                </a>
+              </li>
+            </ul>
           </li>
 
           <!-- Shipping -->

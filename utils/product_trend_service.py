@@ -9,9 +9,29 @@ to identify:
 - Volume trends and anomalies
 """
 
-from datetime import datetime
+from datetime import date, datetime
 from collections import defaultdict
 from database import connect_to_database
+
+
+def _as_datetime(value) -> datetime | None:
+    """Normalize DB date values (date/datetime/ISO string) to datetime."""
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        return value
+    if isinstance(value, date):
+        return datetime.combine(value, datetime.min.time())
+    if isinstance(value, str):
+        raw = value.strip()
+        if not raw:
+            return None
+        # Supports both YYYY-MM-DD and full ISO datetime strings.
+        try:
+            return datetime.fromisoformat(raw)
+        except ValueError:
+            return None
+    return None
 
 
 def load_product_data_from_sp(
@@ -116,11 +136,10 @@ def get_monthly_trend(rows: list[dict], product_code: str = None) -> list[dict]:
         if product_code and row["Product_Code"] != product_code:
             continue
         
-        try:
-            dt = datetime.strptime(row["Truck_Appointment_Date"], "%Y-%m-%d")
-            year_month = dt.strftime("%Y-%m")
-        except:
+        dt = _as_datetime(row.get("Truck_Appointment_Date"))
+        if dt is None:
             continue
+        year_month = dt.strftime("%Y-%m")
         
         weight = row["pick_weight"]
         monthly[year_month]['total_weight'] += weight
@@ -161,11 +180,10 @@ def get_product_diversity_over_time(rows: list[dict]) -> list[dict]:
     })
     
     for row in rows:
-        try:
-            dt = datetime.strptime(row["Truck_Appointment_Date"], "%Y-%m-%d")
-            year_month = dt.strftime("%Y-%m")
-        except:
+        dt = _as_datetime(row.get("Truck_Appointment_Date"))
+        if dt is None:
             continue
+        year_month = dt.strftime("%Y-%m")
         
         monthly[year_month]['products'].add(row["Product_Code"])
         monthly[year_month]['total_weight'] += row["pick_weight"]

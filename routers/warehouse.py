@@ -8,6 +8,8 @@ Handles:
   GET /api/warehouse/ash-summary          — ASH event summary from event_ash table
   GET /api/warehouse/ash-descriptions     — Distinct ASH event descriptions from event_ash table
   GET /api/warehouse/pallet-entry-exit    — Pallet entry/exit totals from daily_shift_averages
+  GET /warehouse/product-forecast         — Product Forecast Dashboard page
+  GET /api/warehouse/product-forecast     — Product forecast JSON data
 """
 
 from fastapi import APIRouter, Query, Request
@@ -16,6 +18,7 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy import text
 
 from database import connect_to_database
+from utils.product_forecast import compute_forecast
 
 router = APIRouter(tags=["Warehouse"])
 templates = Jinja2Templates(directory="templates")
@@ -227,3 +230,46 @@ async def pallet_entry_exit(
         "date_from": date_from,
         "date_to": date_to,
     })
+
+
+# ---------------------------------------------------------------------------
+# Product Forecast Dashboard
+# ---------------------------------------------------------------------------
+
+
+@router.get(
+    "/warehouse/product-forecast",
+    response_class=HTMLResponse,
+    summary="Product Forecast Dashboard",
+    description="Interactive dashboard showing per-product trend direction, momentum, and linear regression forecast.",
+)
+async def product_forecast_page(request: Request) -> HTMLResponse:
+    """Render the Product Forecast Dashboard page."""
+    return templates.TemplateResponse(
+        "warehouse/product_forecast.html",
+        {"request": request, "active_page": "product_forecast"},
+    )
+
+
+@router.get(
+    "/api/warehouse/product-forecast",
+    summary="Product forecast data",
+    description=(
+        "Computes per-product trend direction (INCREASE/DECREASE/STABLE), momentum, "
+        "linear regression forecast, and R-squared from sp_get_all_shipped_product. "
+        "Returns months array, per-product time series, forecast metrics, and summary counts."
+    ),
+)
+async def product_forecast(
+    site: str = Query(default="AMJK", description="Site code"),
+    product_group: str = Query(default="SW", description="Product group"),
+    start_date: str = Query(default="2010-01-01", description="Start date YYYY-MM-DD"),
+    end_date: str = Query(default="2026-04-01", description="End date YYYY-MM-DD"),
+    min_months: int = Query(default=6, ge=1, description="Minimum active months to include a product"),
+) -> JSONResponse:
+    """Compute product forecast from shipped product stored procedure."""
+    try:
+        result = compute_forecast(site, product_group, start_date, end_date, min_months)
+        return JSONResponse(content=result)
+    except Exception as exc:
+        return JSONResponse(status_code=500, content={"error": str(exc)})

@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+{% block title %}Product Forecast{% endblock %}
+
+{% block head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  .fc-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 1.5rem; }
+  .fc-card { border-radius: 10px; padding: 1rem; }
+  .fc-card .fc-label { font-size: 13px; color: #666; margin-bottom: 4px; }
+  .fc-card .fc-val { font-size: 26px; font-weight: 600; }
+  .fc-total { background: #f0f0f0; }
+  .fc-inc { background: #e6f7ee; } .fc-inc .fc-val { color: #0d7a4a; }
+  .fc-dec { background: #fde8e8; } .fc-dec .fc-val { color: #c53030; }
+  .fc-stb { background: #e8f0fe; } .fc-stb .fc-val { color: #3266ad; }
+  .fc-filters { display: flex; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap; }
+  .fc-filters button { padding: 6px 16px; border: 1px solid #ddd; border-radius: 6px; background: #fff; cursor: pointer; font-size: 13px; transition: all .15s; }
+  .fc-filters button.active { background: #154e9a; color: #fff; border-color: #154e9a; }
+  .fc-filters button:hover:not(.active) { background: #f5f5f5; }
+  .dir-inc { color: #0d7a4a; font-weight: 600; }
+  .dir-dec { color: #c53030; font-weight: 600; }
+  .dir-stb { color: #666; font-weight: 500; }
+  #fc-table tr.clickable { cursor: pointer; }
+  #fc-table tr.clickable:hover { background: #f8f8f8; }
+  .chart-container { position: relative; width: 100%; height: 320px; }
+  .fc-no-data { color: #999; font-size: 14px; padding: 2rem 0; text-align: center; }
+  @media (max-width: 640px) { .fc-summary { grid-template-columns: repeat(2, 1fr); } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+
+  <!-- Page header -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="page-header h3 mb-0">
+      <i class="bi bi-graph-up-arrow me-2" aria-hidden="true"></i>Product Code Forecast
+    </h1>
+    <a href="/warehouse" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-arrow-left me-1"></i>Back to Warehouse
+    </a>
+  </div>
+  <p class="text-muted small mb-3" id="fc-subtitle">
+    <span class="spinner-border spinner-border-sm me-1" role="status"></span>Loading forecast data&hellip;
+  </p>
+
+  <!-- Summary cards -->
+  <div class="fc-summary">
+    <div class="fc-card fc-total"><div class="fc-label">Products analyzed</div><div class="fc-val" id="s-total">&mdash;</div></div>
+    <div class="fc-card fc-inc"><div class="fc-label">Increasing</div><div class="fc-val" id="s-inc">&mdash;</div></div>
+    <div class="fc-card fc-dec"><div class="fc-label">Decreasing</div><div class="fc-val" id="s-dec">&mdash;</div></div>
+    <div class="fc-card fc-stb"><div class="fc-label">Stable</div><div class="fc-val" id="s-stb">&mdash;</div></div>
+  </div>
+
+  <!-- Filter buttons -->
+  <div class="fc-filters">
+    <button id="btn-inc" onclick="setFilter('INCREASE')">Increasing &#9650;</button>
+    <button id="btn-dec" onclick="setFilter('DECREASE')">Decreasing &#9660;</button>
+    <button id="btn-stb" onclick="setFilter('STABLE')">Stable &#9644;</button>
+    <button id="btn-all" onclick="setFilter('ALL')">All products</button>
+  </div>
+
+  <!-- Search -->
+  <input type="text" id="fc-search" class="form-control mb-3"
+         placeholder="Search product code..." oninput="renderTable()"
+         aria-label="Search product code">
+
+  <!-- Table -->
+  <div class="table-responsive" id="fc-table-wrap"></div>
+
+  <!-- Chart card -->
+  <div class="card shadow-sm mt-3">
+    <div class="card-header fw-semibold" style="background:#154e9a; color:#fff;">
+      <i class="bi bi-graph-up me-2" aria-hidden="true"></i>
+      <span id="chart-label">Click any row to see its monthly trend</span>
+    </div>
+    <div class="card-body">
+      <div class="chart-container"><canvas id="trendChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Methodology -->
+  <div class="card shadow-sm mt-3">
+    <div class="card-body small text-muted">
+      <strong>Methodology:</strong> Momentum = 6-month recent avg vs prior 6-month avg
+      (denominator floored at 25% of overall avg). Capped at &plusmn;300%.
+      Direction requires positive slope AND momentum &gt;15% for INCREASE,
+      or negative slope AND momentum &lt;&minus;15% for DECREASE.
+      Products dormant 6+ months &rarr; DECREASE. Forecast via linear regression on full series.
+      <br><strong>Source:</strong> <code>warship.sp_get_all_shipped_product('AMJK', 'SW', '2010-01-01', '2026-04-01')</code>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  var DATA = null;
+  var currentFilter = 'INCREASE';
+  var chart = null;
+
+  fetch('/api/warehouse/product-forecast')
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      if (d.error) throw new Error(d.error);
+      DATA = d;
+      document.getElementById('s-total').textContent = d.summary.total;
+      document.getElementById('s-inc').textContent = d.summary.inc;
+      document.getElementById('s-dec').textContent = d.summary.dec;
+      document.getElementById('s-stb').textContent = d.summary.stb;
+
+      var n = d.forecast.length;
+      var m0 = d.months[0] || '?';
+      var m1 = d.months[d.months.length - 1] || '?';
+      document.getElementById('fc-subtitle').textContent =
+        'Based on shipment records from ' + m0 + ' \u2013 ' + m1 +
+        ' \u00b7 ' + n + ' products with 6+ months of history';
+      setFilter('INCREASE');
+    })
+    .catch(function (e) {
+      document.getElementById('fc-table-wrap').innerHTML =
+        '<div class="alert alert-danger">Failed to load forecast: ' + e.message + '</div>';
+      document.getElementById('fc-subtitle').textContent = 'Failed to load data.';
+    });
+
+  window.setFilter = function (f) {
+    currentFilter = f;
+    document.querySelectorAll('.fc-filters button').forEach(function (b) { b.classList.remove('active'); });
+    var map = { INCREASE: 'btn-inc', DECREASE: 'btn-dec', STABLE: 'btn-stb', ALL: 'btn-all' };
+    document.getElementById(map[f]).classList.add('active');
+    renderTable();
+  };
+
+  window.renderTable = function () {
+    if (!DATA) return;
+    var q = document.getElementById('fc-search').value.toUpperCase();
+    var rows = DATA.forecast.filter(function (r) {
+      if (currentFilter !== 'ALL' && r.d !== currentFilter) return false;
+      if (q && r.pc.toUpperCase().indexOf(q) === -1) return false;
+      return true;
+    });
+    rows.sort(function (a, b) {
+      if (currentFilter === 'INCREASE') return b.mp - a.mp;
+      if (currentFilter === 'DECREASE') return a.mp - b.mp;
+      return b.aw - a.aw;
+    });
+    rows = rows.slice(0, 50);
+
+    var dirCls = function (d) { return d === 'INCREASE' ? 'dir-inc' : d === 'DECREASE' ? 'dir-dec' : 'dir-stb'; };
+    var fmt = function (n) { return n != null ? n.toLocaleString() : '\u2014'; };
+    var pct = function (n) { return n != null ? (n > 0 ? '+' : '') + Math.round(n) + '%' : '\u2014'; };
+    var lastMonth = DATA.months.length > 0 ? DATA.months[DATA.months.length - 1] : 'Last';
+
+    var html = '<table class="table table-striped table-hover table-sm" id="fc-table">' +
+      '<thead class="table-light"><tr>' +
+      '<th style="width:26%">Product code</th>' +
+      '<th style="width:10%">Direction</th>' +
+      '<th class="text-end" style="width:12%">Momentum</th>' +
+      '<th class="text-end" style="width:13%">' + lastMonth + '</th>' +
+      '<th class="text-end" style="width:13%">Forecast</th>' +
+      '<th class="text-end" style="width:13%">Avg monthly</th>' +
+      '<th class="text-end" style="width:7%">R\u00b2</th>' +
+      '<th class="text-end" style="width:6%">Months</th>' +
+      '</tr></thead><tbody>';
+
+    rows.forEach(function (r) {
+      var hasTrend = !!DATA.trends[r.pc];
+      var cls = hasTrend ? 'class="clickable" onclick="showTrend(\'' + r.pc.replace(/'/g, "\\'") + '\')"' : '';
+      html += '<tr ' + cls + '>' +
+        '<td title="' + r.pc + '">' + r.pc + '</td>' +
+        '<td class="' + dirCls(r.d) + '">' + r.d + '</td>' +
+        '<td class="text-end ' + dirCls(r.d) + '">' + pct(r.mp) + '</td>' +
+        '<td class="text-end">' + fmt(r.cw) + '</td>' +
+        '<td class="text-end">' + fmt(r.fw) + '</td>' +
+        '<td class="text-end">' + fmt(r.aw) + '</td>' +
+        '<td class="text-end">' + r.r2.toFixed(2) + '</td>' +
+        '<td class="text-end">' + r.ma + '</td></tr>';
+    });
+
+    html += '</tbody></table>';
+    if (rows.length === 0) html = '<div class="fc-no-data">No products match this filter.</div>';
+    document.getElementById('fc-table-wrap').innerHTML = html;
+  };
+
+  window.showTrend = function (pc) {
+    if (!DATA || !DATA.trends[pc]) return;
+    var data = DATA.trends[pc];
+    var info = DATA.forecast.find(function (r) { return r.pc === pc; });
+    var lineColor = info && info.d === 'INCREASE' ? '#0d7a4a' :
+                    info && info.d === 'DECREASE' ? '#c53030' : '#3266ad';
+    var m0 = DATA.months[0] || '';
+    var m1 = DATA.months[DATA.months.length - 1] || '';
+    document.getElementById('chart-label').textContent =
+      pc + ' \u2014 monthly pick_weight (' + m0 + ' \u2013 ' + m1 + ')';
+
+    if (chart) chart.destroy();
+    chart = new Chart(document.getElementById('trendChart'), {
+      type: 'line',
+      data: {
+        labels: DATA.months.map(function (m) { return m.slice(2); }),
+        datasets: [{
+          label: pc,
+          data: data,
+          borderColor: lineColor,
+          backgroundColor: lineColor + '18',
+          fill: true,
+          tension: 0.3,
+          pointRadius: 2,
+          pointHoverRadius: 6,
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: function (ctx) { return ctx.parsed.y.toLocaleString() + ' lbs'; }
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: { font: { size: 11 }, maxRotation: 45, autoSkip: true, maxTicksLimit: 12 },
+            grid: { display: false }
+          },
+          y: {
+            ticks: {
+              font: { size: 11 },
+              callback: function (v) { return v >= 1000 ? (v / 1000).toFixed(0) + 'k' : v; }
+            },
+            grid: { color: 'rgba(0,0,0,0.05)' },
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  };
+})();
+</script>
+{% endblock %}
