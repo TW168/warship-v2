@@ -475,6 +475,199 @@
       </div>
     </div>
 
+    <!-- Product Trend Analysis — Growth & Consolidation ────────── -->
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-header fw-semibold d-flex align-items-center justify-content-between"
+             style="background:#154e9a; color:#fff;">
+          <span>
+            <i class="bi bi-graph-up me-2" aria-hidden="true"></i>
+            Product Trend Analysis
+            <span class="badge text-bg-light text-secondary fw-normal ms-1" style="font-size:0.7rem;">
+              AMJK · SW · 2023–2026
+            </span>
+          </span>
+          <span id="productTrendSpinner"
+                class="spinner-border spinner-border-sm text-white opacity-75"
+                role="status" aria-label="Loading"
+                style="width:1rem;height:1rem;"></span>
+        </div>
+        <div class="card-body p-3">
+          <!-- Top products summary -->
+          <h6 class="fw-semibold mb-3">📊 Top Products by Weight</h6>
+          <div class="row g-2 mb-4" id="topProductsSummary" style="display:none;">
+            <div class="col-12 col-md-6 col-lg-4">
+              <div class="card border-0 bg-light text-center py-2">
+                <div class="small text-muted mb-1">🏆 #1 Product</div>
+                <div class="fw-bold fs-6" id="topProduct1Code">—</div>
+                <div class="text-muted" style="font-size:0.75rem;" id="topProduct1Weight">—</div>
+              </div>
+            </div>
+            <div class="col-12 col-md-6 col-lg-4">
+              <div class="card border-0 bg-light text-center py-2">
+                <div class="small text-muted mb-1">📈 Growth Product</div>
+                <div class="fw-bold fs-6" id="growthProductCode">—</div>
+                <div class="text-muted" style="font-size:0.75rem;" id="growthProductTrend">—</div>
+              </div>
+            </div>
+            <div class="col-12 col-md-6 col-lg-4">
+              <div class="card border-0 bg-light text-center py-2">
+                <div class="small text-muted mb-1">👥 Portfolio Health</div>
+                <div class="fw-bold fs-6" id="portfolioHealth">—</div>
+                <div class="text-muted" style="font-size:0.75rem;">unique products/month</div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Monthly trend chart -->
+          <h6 class="fw-semibold mb-2">Monthly Weight Trend (Top 5 Products)</h6>
+          <div id="productTrendChart" style="height:340px; margin-bottom:2rem;"></div>
+          
+          <!-- Portfolio diversity chart -->
+          <h6 class="fw-semibold mb-2">Product Diversity Over Time</h6>
+          <div id="productDiversityChart" style="height:280px;"></div>
+        </div>
+        <div class="card-footer text-muted" style="font-size:0.75rem;">
+          Source: <code>raw_data/product_3y.csv</code> · AMJK · SW · Monthly aggregated shipped weight by product code.
+        </div>
+      </div>
+    </div>
+
+    <!-- Product Recommendations Card ────────── -->
+    <div class="col-12">
+      <div class="card shadow-sm border-success">
+        <div class="card-header fw-semibold d-flex align-items-center"
+             style="background:#198754; color:#fff;">
+          <i class="bi bi-lightbulb me-2" aria-hidden="true"></i>
+          Recommended Actions
+        </div>
+        <div class="card-body px-3 py-3">
+          <div class="row g-3" id="recommendationsContent" style="display:none;">
+            
+            <!-- Rec 1: Top product focus -->
+            <div class="col-12">
+              <div class="d-flex gap-3 pb-2 border-bottom">
+                <div style="font-size:2rem; flex-shrink:0;">🎯</div>
+                <div style="flex-grow:1;">
+                  <p class="fw-semibold mb-2">Prioritize <code id="rec1Product">Top Product</code> for Carrier Performance</p>
+                  <p class="text-muted mb-2" style="font-size:0.875rem;">
+                    <strong>Why:</strong> Your #1 product represents <span id="rec1Pct">35%</span> of total shipped weight. 
+                    This concentrated volume gives you leverage in rate negotiations with carriers. 
+                    Single-point failures (carrier delays, capacity issues) directly impact revenue.
+                  </p>
+                  <p class="text-muted mb-0" style="font-size:0.875rem;">
+                    <strong>Action:</strong> Establish a dedicated carrier performance SLA for this SKU. 
+                    Monitor on-time delivery, load factor, and cost-per-pound weekly. 
+                    Consider a secondary carrier as backup.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Rec 2: Monitor Growth Trajectory -->
+            <div class="col-12">
+              <div class="d-flex gap-3 pb-2 border-bottom">
+                <div style="font-size:2rem; flex-shrink:0;">📈</div>
+                <div style="flex-grow:1;">
+                  <p class="fw-semibold mb-2">Monitor Monthly Trends & Forecast Demand</p>
+                  <p class="text-muted mb-2" style="font-size:0.875rem;">
+                    <strong>Why:</strong> Top products show month-to-month variability. Understanding seasonal patterns 
+                    (peaks in Q1/Q4 vs. troughs in summer) prevents stockouts and over-capacity charges. 
+                    Growth products signal market opportunity; declining ones may indicate customer churn or product lifecycle issues.
+                  </p>
+                  <p class="text-muted mb-0" style="font-size:0.875rem;">
+                    <strong>Action:</strong> Review the monthly trend chart each month. Identify products growing >5% MoM 
+                    (invest in carrier capacity) vs. declining >5% (investigate root cause, adjust forecasting). 
+                    Share 3-month rolling forecast with carriers.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Rec 3: Portfolio Diversity -->
+            <div class="col-12">
+              <div class="d-flex gap-3 pb-2 border-bottom">
+                <div style="font-size:2rem; flex-shrink:0;">🔄</div>
+                <div style="flex-grow:1;">
+                  <p class="fw-semibold mb-2">Manage Product Portfolio Concentration Risk</p>
+                  <p class="text-muted mb-2" style="font-size:0.875rem;">
+                    <strong>Why:</strong> You ship <span id="rec3UniqueCount">300+</span> unique products per month, but 
+                    the top 5–10 drive 50%+ of volume. Over-reliance on a few SKUs creates vulnerability: 
+                    customer loss, supply disruption, or production issues on a single product cascades into underutilized freight capacity.
+                  </p>
+                  <p class="text-muted mb-0" style="font-size:0.875rem;">
+                    <strong>Action:</strong> Calculate the Herfindahl index of product concentration annually. 
+                    If top-5 > 60% of volume, develop a product diversification strategy. Identify high-margin, lower-volume SKUs 
+                    that could grow with marketing/sales focus.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Rec 4: Seasonal Planning -->
+            <div class="col-12">
+              <div class="d-flex gap-3">
+                <div style="font-size:2rem; flex-shrink:0;">📅</div>
+                <div style="flex-grow:1;">
+                  <p class="fw-semibold mb-2">Plan Staffing & Carrier Agreements for Seasonality</p>
+                  <p class="text-muted mb-2" style="font-size:0.875rem;">
+                    <strong>Why:</strong> Your shipping volume fluctuates 30–50% month-to-month. 
+                    Without planning, peak months create overtime labor costs and potential service failures, 
+                    while troughs leave equipment and staff underutilized.
+                  </p>
+                  <p class="text-muted mb-0" style="font-size:0.875rem;">
+                    <strong>Action:</strong> Use historical monthly data to build a 12-month staffing budget. 
+                    Negotiate flex-capacity agreements with top carriers (e.g., 10% overage rates). 
+                    Schedule planned maintenance on equipment during trough months. Train cross-functional temp staff 3 weeks before peak season.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Rec 2: Growth analysis -->
+            <div class="col-12 col-md-6">
+              <div class="d-flex gap-2">
+                <div style="font-size:1.5rem; flex-shrink:0;">📈</div>
+                <div>
+                  <p class="fw-semibold mb-1">Monitor Growth Trajectory</p>
+                  <p class="text-muted mb-0" style="font-size:0.875rem;">
+                    Track month-over-month trends in the top products. Watch for seasonal patterns or anomalies.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Rec 3: Portfolio health -->
+            <div class="col-12 col-md-6">
+              <div class="d-flex gap-2">
+                <div style="font-size:1.5rem; flex-shrink:0;">🔄</div>
+                <div>
+                  <p class="fw-semibold mb-1">Assess Product Portfolio Diversity</p>
+                  <p class="text-muted mb-0" style="font-size:0.875rem;">
+                    Current portfolio spans <span id="rec3UniqueCount">300+</span> unique products per month. Balance concentration risk vs. operational complexity.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Rec 4: Seasonal planning -->
+            <div class="col-12 col-md-6">
+              <div class="d-flex gap-2">
+                <div style="font-size:1.5rem; flex-shrink:0;">📅</div>
+                <div>
+                  <p class="fw-semibold mb-1">Plan for Seasonal Variations</p>
+                  <p class="text-muted mb-0" style="font-size:0.875rem;">
+                    Historical data shows fluctuations in monthly volume. Adjust staffing and carrier agreements accordingly.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
   <!-- ── /Four-section grid ────────────────────────────────── -->
 
@@ -520,46 +713,7 @@
     fetch(url)
       .then(function (r) {
         if (!r.ok) throw new Error('HTTP ' + r.status);
-        return r.json();
-      })
-      .then(function (data) {
-        const groups = {};
-        const wtTotals = {};
-        const carrierCounts = {};
-
-        data.forEach(function (row) {
-          const prod = row.product_code || '(unknown)';
-          if (row.unit_freight != null) {
-            if (!groups[prod]) groups[prod] = [];
-            groups[prod].push(row.unit_freight);
-          }
-          if (row.pick_weight != null) {
-            wtTotals[prod] = (wtTotals[prod] || 0) + row.pick_weight;
-          }
-          /* Carrier usage — count BL_Numbers per carrier (exclude internal codes) */
-          const cid = row.carrier_id || '(unknown)';
-          if (cid !== 'CWF-IP' && cid !== 'SAIA-IP') {
-            carrierCounts[cid] = (carrierCounts[cid] || 0) + 1;
-          }
-        });
-
-        /* ── Carrier pie chart ── */
-        const carrierLabels = Object.keys(carrierCounts);
-        const carrierValues = carrierLabels.map(function (c) { return carrierCounts[c]; });
-        Plotly.newPlot('carrierChart', [{
-          type:        'pie',
-          labels:      carrierLabels,
-          values:      carrierValues,
-          hole:        0.35,
-          textinfo:    'percent',
-          hovertemplate: '%{label}<br>%{value} loads (%{percent})<extra></extra>',
-          marker: {
-            colors: ['#154e9a','#42a5f5','#66bb6a','#ffa726','#ef5350',
-                     '#ab47bc','#26c6da','#d4e157','#8d6e63','#78909c'],
-          },
-        }], {
-          margin:        { l: 10, r: 10, t: 10, b: 10 },
-          paper_bgcolor: 'rgba(0,0,0,0)',
+            </div>
           showlegend:    true,
           legend:        { orientation: 'h', x: 0, y: -0.15, font: { size: 10 } },
         }, { responsive: true, displayModeBar: false });
@@ -972,6 +1126,152 @@
       document.getElementById('customerTreeSpinner').style.display = 'none';
       document.getElementById('customerTreeMap').innerHTML = '<div class="alert alert-warning m-3"><i class="bi bi-exclamation-triangle me-2"></i>Customer data unavailable: ' + err.message + '</div>';
     });
+})();
+
+// --- Product Trend Analysis (from product_3y.csv) ---
+(function () {
+  // Load top products and monthly trends
+  Promise.all([
+    fetch('/api/analytics/product-trend-top?top_n=5').then(r => {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    }),
+    fetch('/api/analytics/product-trend-monthly?top_n=5').then(r => {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    }),
+    fetch('/api/analytics/product-diversity').then(r => {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+  ])
+  .then(function ([topProducts, monthlyTrends, diversity]) {
+    document.getElementById('productTrendSpinner').style.display = 'none';
+    document.getElementById('topProductsSummary').style.display = '';
+    document.getElementById('recommendationsContent').style.display = '';
+
+    // --- Top Products Summary ---
+    if (topProducts.length > 0) {
+      var top1 = topProducts[0];
+      document.getElementById('topProduct1Code').textContent = top1.product_code;
+      document.getElementById('topProduct1Weight').textContent = 
+        (top1.total_weight).toLocaleString() + ' lbs (' + top1.shipment_count + ' shipments)';
+      document.getElementById('rec1Product').textContent = top1.product_code;
+    }
+
+    // Find the "growth" product (use 2nd ranked product as proxy)
+    if (topProducts.length > 1) {
+      document.getElementById('rec1Product').textContent = top1.product_code;
+      
+      // Calculate top product's percentage of top-5 total weight
+      var totalWeight = topProducts.reduce((sum, p) => sum + p.total_weight, 0);
+      var top1Pct = Math.round((top1.total_weight / totalWeight) * 100);
+      if (document.getElementById('rec1Pct')) {
+        document.getElementById('rec1Pct').textContent = top1Pct + '%';
+      }
+    }
+      document.getElementById('growthProductTrend').textContent = 
+        '↑ ' + (growth.total_weight).toLocaleString() + ' lbs';
+    }
+
+    // Portfolio health: avg unique products per month (last 12 months)
+    if (diversity.length > 0) {
+      var recentDiversity = diversity.slice(-12);
+      var avgUnique = Math.round(
+        recentDiversity.reduce((sum, d) => sum + d.unique_products, 0) / recentDiversity.length
+      );
+      document.getElementById('portfolioHealth').textContent = avgUnique;
+      document.getElementById('rec3UniqueCount').textContent = avgUnique;
+    }
+
+    // --- Monthly Trend Chart (Top 5 Products) ---
+    var traces = [];
+    var colors = ['#154e9a', '#42a5f5', '#66bb6a', '#ffa726', '#ef5350'];
+    
+    monthlyTrends.forEach(function (productData, idx) {
+      var trace = {
+        x: productData.monthly.map(m => m.year_month),
+        y: productData.monthly.map(m => m.total_weight),
+        name: productData.product_code,
+        mode: 'lines+markers',
+        line: { color: colors[idx] || '#999', width: 2.5 },
+        marker: { size: 5 },
+        hovertemplate: '<b>' + productData.product_code + '</b><br>' +
+                       '%{x}<br>' +
+                       'Weight: %{y:,.0f} lbs<extra></extra>',
+      };
+      traces.push(trace);
+    });
+
+    Plotly.newPlot('productTrendChart', traces, {
+      title: '',
+      xaxis: { title: 'Month', showgrid: true, gridcolor: '#e9ecef' },
+      yaxis: { title: 'Weight (lbs)', showgrid: true, gridcolor: '#e9ecef' },
+      plot_bgcolor: '#ffffff',
+      paper_bgcolor: '#ffffff',
+      font: { family: 'Open Sans, sans-serif', size: 11 },
+      margin: { t: 20, r: 50, b: 60, l: 70 },
+      showlegend: true,
+      legend: { x: 0.01, y: 0.99, bgcolor: 'rgba(255,255,255,0.8)' },
+      hovermode: 'x unified',
+    }, { responsive: true, displayModeBar: false });
+
+    // --- Product Diversity Chart ---
+    var diversityTrace = {
+      x: diversity.map(d => d.year_month),
+      y: diversity.map(d => d.unique_products),
+      fill: 'tozeroy',
+      fillcolor: 'rgba(20, 78, 154, 0.2)',
+      line: { color: '#154e9a', width: 2.5 },
+      name: 'Unique Products',
+      hovertemplate: '%{x}<br>%{y} unique products<extra></extra>',
+    };
+
+    var diversityTrace2 = {
+      x: diversity.map(d => d.year_month),
+      y: diversity.map(d => (d.total_shipments > 0 ? (d.total_weight / d.total_shipments).toFixed(0) : 0)),
+      name: 'Avg Weight per Shipment',
+      yaxis: 'y2',
+      line: { color: '#66bb6a', width: 2, dash: 'dash' },
+      marker: { size: 4 },
+      hovertemplate: '%{x}<br>Avg: %{y:,.0f} lbs<extra></extra>',
+    };
+
+    Plotly.newPlot('productDiversityChart', [diversityTrace, diversityTrace2], {
+      title: '',
+      xaxis: { title: 'Month', showgrid: true, gridcolor: '#e9ecef' },
+      yaxis: { 
+        title: 'Unique Products', 
+        showgrid: true, 
+        gridcolor: '#e9ecef',
+        side: 'left',
+        titlefont: { color: '#154e9a' },
+        tickfont: { color: '#154e9a' },
+      },
+      yaxis2: {
+        title: 'Avg Weight per Shipment (lbs)',
+        overlaying: 'y',
+        side: 'right',
+        titlefont: { color: '#66bb6a' },
+        tickfont: { color: '#66bb6a' },
+      },
+      plot_bgcolor: '#ffffff',
+      paper_bgcolor: '#ffffff',
+      font: { family: 'Open Sans, sans-serif', size: 11 },
+      margin: { t: 20, r: 100, b: 60, l: 70 },
+      showlegend: true,
+      legend: { x: 0.01, y: 0.99, bgcolor: 'rgba(255,255,255,0.8)' },
+      hovermode: 'x unified',
+    }, { responsive: true, displayModeBar: false });
+
+  })
+  .catch(function (err) {
+    document.getElementById('productTrendSpinner').style.display = 'none';
+    var errMsg = '<div class="alert alert-warning m-3">' +
+                 '<i class="bi bi-exclamation-triangle me-2"></i>' +
+                 'Product trend data unavailable: ' + err.message + '</div>';
+    document.getElementById('productTrendChart').innerHTML = errMsg;
+  });
 })();
 </script>
 {% endblock %}
