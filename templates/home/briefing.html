@@ -528,7 +528,7 @@
           <div id="productDiversityChart" style="height:280px;"></div>
         </div>
         <div class="card-footer text-muted" style="font-size:0.75rem;">
-          Source: <code>raw_data/product_3y.csv</code> · AMJK · SW · Monthly aggregated shipped weight by product code.
+          Source: Warship database · <code>sp_get_all_shipped_product</code> · AMJK · SW · Monthly aggregated shipped weight by product code.
         </div>
       </div>
     </div>
@@ -721,13 +721,51 @@
     fetch(url)
       .then(function (r) {
         if (!r.ok) throw new Error('HTTP ' + r.status);
-            </div>
-          showlegend:    true,
-          legend:        { orientation: 'h', x: 0, y: -0.15, font: { size: 10 } },
+        return r.json();
+      })
+      .then(function (data) {
+        const groups = {};
+        const wtTotals = {};
+        const carrierCounts = {};
+
+        data.forEach(function (row) {
+          const prod = row.product_code || '(unknown)';
+          if (row.unit_freight != null) {
+            if (!groups[prod]) groups[prod] = [];
+            groups[prod].push(row.unit_freight);
+          }
+          if (row.pick_weight != null) {
+            wtTotals[prod] = (wtTotals[prod] || 0) + row.pick_weight;
+          }
+
+          const cid = row.carrier_id || '(unknown)';
+          if (cid !== 'CWF-IP' && cid !== 'SAIA-IP') {
+            carrierCounts[cid] = (carrierCounts[cid] || 0) + 1;
+          }
+        });
+
+        const carrierLabels = Object.keys(carrierCounts);
+        const carrierValues = carrierLabels.map(function (c) { return carrierCounts[c]; });
+        Plotly.newPlot('carrierChart', [{
+          type: 'pie',
+          labels: carrierLabels,
+          values: carrierValues,
+          hole: 0.35,
+          textinfo: 'percent',
+          hovertemplate: '%{label}<br>%{value} loads (%{percent})<extra></extra>',
+          marker: {
+            colors: ['#154e9a','#42a5f5','#66bb6a','#ffa726','#ef5350',
+                     '#ab47bc','#26c6da','#d4e157','#8d6e63','#78909c'],
+          },
+        }], {
+          margin: { t: 20, r: 20, b: 20, l: 20 },
+          paper_bgcolor: '#ffffff',
+          font: { family: 'Open Sans, sans-serif', size: 11 },
+          showlegend: true,
+          legend: { orientation: 'h', x: 0, y: -0.15, font: { size: 10 } },
         }, { responsive: true, displayModeBar: false });
         document.getElementById('carrierSpinner').style.display = 'none';
 
-        /* ── Top 50 by weight, then sort by median ¢/lb asc ── */
         const top50 = Object.keys(wtTotals)
           .sort(function (a, b) { return wtTotals[b] - wtTotals[a]; })
           .slice(0, 50);
@@ -737,22 +775,22 @@
 
         const traces = products.map(function (p) {
           return {
-            type:      'box',
-            name:      p,
-            y:         groups[p],
+            type: 'box',
+            name: p,
+            y: groups[p],
             boxpoints: 'outliers',
-            marker:    { size: 4 },
-            line:      { width: 1.5 },
+            marker: { size: 4 },
+            line: { width: 1.5 },
           };
         });
         Plotly.newPlot('frtCplbChart', traces, {
-          yaxis:         { title: '¢ / lb', zeroline: false, gridcolor: '#e9ecef' },
-          xaxis:         { title: 'Product Code', tickangle: -45, automargin: true },
-          plot_bgcolor:  '#ffffff',
+          yaxis: { title: '¢ / lb', zeroline: false, gridcolor: '#e9ecef' },
+          xaxis: { title: 'Product Code', tickangle: -45, automargin: true },
+          plot_bgcolor: '#ffffff',
           paper_bgcolor: '#ffffff',
-          font:          { family: 'Open Sans, sans-serif', size: 11 },
-          margin:        { t: 20, r: 20, b: 140, l: 60 },
-          showlegend:    false,
+          font: { family: 'Open Sans, sans-serif', size: 11 },
+          margin: { t: 20, r: 20, b: 140, l: 60 },
+          showlegend: false,
         }, { responsive: true, displayModeBar: false });
 
         document.getElementById('frtCplbSpinner').style.display = 'none';
@@ -1136,83 +1174,84 @@
     });
 })();
 
-// --- Product Trend Analysis (from product_3y.csv) ---
+// --- Product Trend Analysis (from Warship DB / stored procedures) ---
 (function () {
-  // Load top products and monthly trends
   Promise.all([
-    fetch('/api/analytics/product-trend-top?top_n=5').then(r => {
+    fetch('/api/analytics/product-trend-top?top_n=5').then(function (r) {
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
     }),
-    fetch('/api/analytics/product-trend-monthly?top_n=5').then(r => {
+    fetch('/api/analytics/product-trend-monthly?top_n=5').then(function (r) {
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
     }),
-    fetch('/api/analytics/product-diversity').then(r => {
+    fetch('/api/analytics/product-diversity').then(function (r) {
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
-    })
+    }),
   ])
-  .then(function ([topProducts, monthlyTrends, diversity]) {
-    document.getElementById('productTrendSpinner').style.display = 'none';
-    document.getElementById('topProductsSummary').style.display = '';
-    document.getElementById('recommendationsContent').style.display = '';
+  .then(function (payload) {
+    var topProducts = payload[0] || [];
+    var monthlyTrends = payload[1] || [];
+    var diversity = payload[2] || [];
 
-    // --- Top Products Summary ---
+    var spinner = document.getElementById('productTrendSpinner');
+    if (spinner) spinner.style.display = 'none';
+    var topSummary = document.getElementById('topProductsSummary');
+    if (topSummary) topSummary.style.display = '';
+    var recContent = document.getElementById('recommendationsContent');
+    if (recContent) recContent.style.display = '';
+
     if (topProducts.length > 0) {
       var top1 = topProducts[0];
-      document.getElementById('topProduct1Code').textContent = top1.product_code;
-      document.getElementById('topProduct1Weight').textContent = 
-        (top1.total_weight).toLocaleString() + ' lbs (' + top1.shipment_count + ' shipments)';
-      document.getElementById('rec1Product').textContent = top1.product_code;
+      var topCode = document.getElementById('topProduct1Code');
+      var topWeight = document.getElementById('topProduct1Weight');
+      var rec1Product = document.getElementById('rec1Product');
+      if (topCode) topCode.textContent = top1.product_code;
+      if (topWeight) topWeight.textContent = Number(top1.total_weight || 0).toLocaleString() + ' lbs (' + Number(top1.shipment_count || 0) + ' shipments)';
+      if (rec1Product) rec1Product.textContent = top1.product_code;
+
+      var totalWeight = topProducts.reduce(function (sum, p) {
+        return sum + Number(p.total_weight || 0);
+      }, 0);
+      var top1Pct = totalWeight > 0 ? Math.round((Number(top1.total_weight || 0) / totalWeight) * 100) : 0;
+      var rec1Pct = document.getElementById('rec1Pct');
+      if (rec1Pct) rec1Pct.textContent = top1Pct + '%';
     }
 
-    // Find the "growth" product (use 2nd ranked product as proxy)
     if (topProducts.length > 1) {
-      document.getElementById('rec1Product').textContent = top1.product_code;
-      
-      // Calculate top product's percentage of top-5 total weight
-      var totalWeight = topProducts.reduce((sum, p) => sum + p.total_weight, 0);
-      var top1Pct = Math.round((top1.total_weight / totalWeight) * 100);
-      if (document.getElementById('rec1Pct')) {
-        document.getElementById('rec1Pct').textContent = top1Pct + '%';
-      }
-    }
-      document.getElementById('growthProductTrend').textContent = 
-        '↑ ' + (growth.total_weight).toLocaleString() + ' lbs';
+      var growth = topProducts[1];
+      var growthCode = document.getElementById('growthProductCode');
+      var growthTrend = document.getElementById('growthProductTrend');
+      if (growthCode) growthCode.textContent = growth.product_code;
+      if (growthTrend) growthTrend.textContent = '↑ ' + Number(growth.total_weight || 0).toLocaleString() + ' lbs';
     }
 
-    // Portfolio health: avg unique products per month (last 12 months)
     if (diversity.length > 0) {
       var recentDiversity = diversity.slice(-12);
-      var avgUnique = Math.round(
-        recentDiversity.reduce((sum, d) => sum + d.unique_products, 0) / recentDiversity.length
-      );
-      document.getElementById('portfolioHealth').textContent = avgUnique;
-      document.getElementById('rec3UniqueCount').textContent = avgUnique;
+      var avgUnique = Math.round(recentDiversity.reduce(function (sum, d) {
+        return sum + Number(d.unique_products || 0);
+      }, 0) / recentDiversity.length);
+      var portfolioHealth = document.getElementById('portfolioHealth');
+      var rec3Unique = document.getElementById('rec3UniqueCount');
+      if (portfolioHealth) portfolioHealth.textContent = String(avgUnique);
+      if (rec3Unique) rec3Unique.textContent = String(avgUnique);
     }
 
-    // --- Monthly Trend Chart (Top 5 Products) ---
     var traces = [];
     var colors = ['#154e9a', '#42a5f5', '#66bb6a', '#ffa726', '#ef5350'];
-    
     monthlyTrends.forEach(function (productData, idx) {
-      var trace = {
-        x: productData.monthly.map(m => m.year_month),
-        y: productData.monthly.map(m => m.total_weight),
+      traces.push({
+        x: (productData.monthly || []).map(function (m) { return m.year_month; }),
+        y: (productData.monthly || []).map(function (m) { return m.total_weight; }),
         name: productData.product_code,
         mode: 'lines+markers',
         line: { color: colors[idx] || '#999', width: 2.5 },
         marker: { size: 5 },
-        hovertemplate: '<b>' + productData.product_code + '</b><br>' +
-                       '%{x}<br>' +
-                       'Weight: %{y:,.0f} lbs<extra></extra>',
-      };
-      traces.push(trace);
+        hovertemplate: '<b>' + productData.product_code + '</b><br>%{x}<br>Weight: %{y:,.0f} lbs<extra></extra>',
+      });
     });
-
     Plotly.newPlot('productTrendChart', traces, {
-      title: '',
       xaxis: { title: 'Month', showgrid: true, gridcolor: '#e9ecef' },
       yaxis: { title: 'Weight (lbs)', showgrid: true, gridcolor: '#e9ecef' },
       plot_bgcolor: '#ffffff',
@@ -1224,33 +1263,33 @@
       hovermode: 'x unified',
     }, { responsive: true, displayModeBar: false });
 
-    // --- Product Diversity Chart ---
     var diversityTrace = {
-      x: diversity.map(d => d.year_month),
-      y: diversity.map(d => d.unique_products),
+      x: diversity.map(function (d) { return d.year_month; }),
+      y: diversity.map(function (d) { return d.unique_products; }),
       fill: 'tozeroy',
       fillcolor: 'rgba(20, 78, 154, 0.2)',
       line: { color: '#154e9a', width: 2.5 },
       name: 'Unique Products',
       hovertemplate: '%{x}<br>%{y} unique products<extra></extra>',
     };
-
     var diversityTrace2 = {
-      x: diversity.map(d => d.year_month),
-      y: diversity.map(d => (d.total_shipments > 0 ? (d.total_weight / d.total_shipments).toFixed(0) : 0)),
+      x: diversity.map(function (d) { return d.year_month; }),
+      y: diversity.map(function (d) {
+        return Number(d.total_shipments || 0) > 0
+          ? Number(d.total_weight || 0) / Number(d.total_shipments || 1)
+          : 0;
+      }),
       name: 'Avg Weight per Shipment',
       yaxis: 'y2',
       line: { color: '#66bb6a', width: 2, dash: 'dash' },
       marker: { size: 4 },
       hovertemplate: '%{x}<br>Avg: %{y:,.0f} lbs<extra></extra>',
     };
-
     Plotly.newPlot('productDiversityChart', [diversityTrace, diversityTrace2], {
-      title: '',
       xaxis: { title: 'Month', showgrid: true, gridcolor: '#e9ecef' },
-      yaxis: { 
-        title: 'Unique Products', 
-        showgrid: true, 
+      yaxis: {
+        title: 'Unique Products',
+        showgrid: true,
         gridcolor: '#e9ecef',
         side: 'left',
         titlefont: { color: '#154e9a' },
@@ -1271,14 +1310,15 @@
       legend: { x: 0.01, y: 0.99, bgcolor: 'rgba(255,255,255,0.8)' },
       hovermode: 'x unified',
     }, { responsive: true, displayModeBar: false });
-
   })
   .catch(function (err) {
-    document.getElementById('productTrendSpinner').style.display = 'none';
-    var errMsg = '<div class="alert alert-warning m-3">' +
-                 '<i class="bi bi-exclamation-triangle me-2"></i>' +
-                 'Product trend data unavailable: ' + err.message + '</div>';
-    document.getElementById('productTrendChart').innerHTML = errMsg;
+    var spinner = document.getElementById('productTrendSpinner');
+    if (spinner) spinner.style.display = 'none';
+    var errMsg = '<div class="alert alert-warning m-3"><i class="bi bi-exclamation-triangle me-2"></i>Product trend data unavailable: ' + err.message + '</div>';
+    var trendChart = document.getElementById('productTrendChart');
+    if (trendChart) trendChart.innerHTML = errMsg;
+    var diversityChart = document.getElementById('productDiversityChart');
+    if (diversityChart) diversityChart.innerHTML = errMsg;
   });
 })();
 </script>

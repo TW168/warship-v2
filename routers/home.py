@@ -950,14 +950,15 @@ async def freight_cost_by_plant() -> JSONResponse:
 
 
 # ---------------------------------------------------------------------------
-# Analytics — Product Trend (from product_3y.csv)
+# Analytics — Product Trend (from Warship DB via stored procedure)
 # ---------------------------------------------------------------------------
 
 @router.get(
     "/api/analytics/product-trend-top",
-    summary="Top N products by total weight from product_3y.csv",
+    summary="Top N products by total weight from stored procedure data",
     description=(
-        "Loads product_3y.csv and returns the top N products ranked by total shipped weight. "
+        "Loads shipped-product rows from sp_get_all_shipped_product and returns the top N "
+        "products ranked by total shipped weight. "
         "Each product includes: product_code, total_weight, shipment_count, avg_weight. "
         "Useful for identifying portfolio leaders and consolidation trends."
     ),
