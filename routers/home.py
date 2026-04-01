@@ -1088,7 +1088,7 @@ async def sw_transport_type_by_year() -> JSONResponse:
             year = int("20" + yy.strip())
             if year > 2025:          # exclude partial 2026
                 continue
-            val = float(row[ci]) if ci < len(row) and isinstance(row[ci], (int, float)) else 0.0  # type: ignore
+            val = row[ci] if ci < len(row) and isinstance(row[ci], (int, float)) else 0.0
             year_totals.setdefault(year, {t: 0.0 for t in keep})
             year_totals[year][ttype] += val
 

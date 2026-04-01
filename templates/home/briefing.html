@@ -679,17 +679,25 @@
 <script>
   /* Stamp today's date and generation time on page load */
   var _now = new Date();
-  document.getElementById('todayDate').textContent = _now.toLocaleDateString([], {
-    year: 'numeric', month: 'long', day: 'numeric'
-  });
-  document.getElementById('genTime').textContent = _now.toLocaleTimeString([], {
-    hour: '2-digit', minute: '2-digit'
-  });
+  var todayEl = document.getElementById('todayDate');
+  if (todayEl) {
+    todayEl.textContent = _now.toLocaleDateString([], {
+      year: 'numeric', month: 'long', day: 'numeric'
+    });
+  }
+  var genTimeEl = document.getElementById('genTime');
+  if (genTimeEl) {
+    genTimeEl.textContent = _now.toLocaleTimeString([], {
+      hour: '2-digit', minute: '2-digit'
+    });
+  }
 
   /* Initialise Bootstrap tooltips */
-  document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
-    new bootstrap.Tooltip(el);
-  });
+  if (window.bootstrap && bootstrap.Tooltip) {
+    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
+      new bootstrap.Tooltip(el);
+    });
+  }
 
   /* ── Freight ¢/lb by Product Code — YTD boxplot ──────────────────────
      Fetches /api/shipping/shipped-products (AMJK, SW, Jan 1 → today).
