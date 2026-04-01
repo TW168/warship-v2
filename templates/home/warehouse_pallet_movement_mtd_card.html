@@ -1,0 +1,35 @@
+{% if error %}
+<div class="alert alert-danger d-flex align-items-center gap-2" role="alert">
+  <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
+  <div>
+    <strong>Database error:</strong> {{ error }}
+  </div>
+</div>
+{% else %}
+<div class="card shadow-sm border-secondary">
+  <div class="card-header fw-bold bg-secondary text-white d-flex justify-content-between align-items-center">
+    <span><i class="bi bi-box-arrow-in-right me-2"></i>Warehouse Pallet Movement</span>
+    <span class="badge bg-light text-secondary">{{ month_label }}</span>
+  </div>
+  <div class="card-body">
+    <div class="row text-center g-3">
+      <div class="col-4">
+        <div class="text-muted small mb-1">📥 Entry</div>
+        <div class="fw-bold fs-5">{{ "{:,}".format(entry_to_date) }}</div>
+        <div class="text-muted" style="font-size:0.75rem;">pallets</div>
+      </div>
+      <div class="col-4">
+        <div class="text-muted small mb-1">📤 Exit</div>
+        <div class="fw-bold fs-5">{{ "{:,}".format(exit_to_date) }}</div>
+        <div class="text-muted" style="font-size:0.75rem;">pallets</div>
+      </div>
+      <div class="col-4">
+        <div class="text-muted small mb-1">🚚 Shipped</div>
+        <div class="fw-bold fs-5">{{ "{:,}".format(shipped_to_date) }}</div>
+        <div class="text-muted" style="font-size:0.75rem;">pallets</div>
+      </div>
+    </div>
+    <p class="text-muted small mb-0 mt-3 text-center">AMJK · SW fixed scope</p>
+  </div>
+</div>
+{% endif %}

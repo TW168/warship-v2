@@ -117,8 +117,9 @@ The `connect_to_database()` function returns a SQLAlchemy `Engine`.
 | Gas Prices History | `GET /api/gas-prices/history` | JSON — full historical series from `gas_prices` (`id`, `fuel_type`, `price`, `scraped_at`) used by Home page multi-line trend chart (one line per fuel type). |
 | Meeting Report | `GET /meeting-report` | Sub-page of Home; filter form (site, product_group, date) |
 | Meeting Report Results | `GET /api/meeting-report/results` | HTMX partial — runs aggregated shipping query and returns group cards + report elements for selected filters. |
-| Meeting Report All Site MTD | `GET /api/meeting-report/all-site-mtd` | HTMX partial — standalone All Site current-month MTD shipped weight/pallet table (AMJK, TXAS, AMIN, AMAZ), independent of Truck Appointment Date filter. |
-| Meeting Report Today Summary | `GET /api/meeting-report/today-summary` | HTMX partial — standalone Today-only shipped weight/pallet table (AMJK, TXAS, AMIN, AMAZ), independent of Truck Appointment Date filter. |
+| Meeting Report All Site MTD | `GET /api/meeting-report/all-site-mtd` | HTMX partial — standalone All Site shipped weight/pallet table (AMJK, TXAS, AMIN, AMAZ) for selected `year_month` (`YYYY-MM`) month-to-date; independent of Truck Appointment Date filter. |
+| Meeting Report Today Summary | `GET /api/meeting-report/today-summary` | HTMX partial — standalone selected-month target-day shipped weight/pallet table (AMJK, TXAS, AMIN, AMAZ). Uses selected `year_month` (`YYYY-MM`): current month = today, past month = month-end day. |
+| Meeting Report Warehouse Pallet Movement MTD | `GET /api/meeting-report/warehouse-pallet-movement-mtd` | HTMX partial — standalone Warehouse pallet entry/exit + shipped card for AMJK/SW controlled by selected `year_month` (`YYYY-MM`) month-to-date, independent of Truck Appointment Date filter. |
 | Briefing | `GET /briefing` | VIP Operations Briefing — printable snapshot of ops metrics |
 | Weight by Year | `GET /api/analytics/weight-by-year` | JSON — monthly pick_weight per year series; params: `site` (default AMJK), `product_group` (default SW) |
 | Freight Lbs by Year | `GET /api/analytics/freight-lbs-by-year-mei` | JSON — monthly lbs from `frt_cost_breakdown_mei`; param: `site` (default SW) |

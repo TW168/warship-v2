@@ -8,7 +8,7 @@
 {% else %}
 <div class="card shadow-sm border-secondary">
   <div class="card-header fw-bold bg-secondary text-white d-flex justify-content-between align-items-center">
-    <span>Today shipped weight and pallets counts</span>
+    <span><i class="bi bi-calendar3 me-2"></i>Today shipped weight and pallets counts</span>
     {% if today_rows and today_rows[0].year_month %}
       <span class="badge bg-light text-secondary">{{ today_rows[0].year_month }}</span>
     {% endif %}

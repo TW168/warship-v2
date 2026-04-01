@@ -16,6 +16,19 @@
     <i class="bi bi-journal-text me-2" aria-hidden="true"></i>Meeting Report
   </h1>
 
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <div class="row g-3 align-items-end">
+        <div class="col-sm-6 col-lg-3">
+          <label for="cardsYearMonth" class="form-label fw-semibold">
+            <i class="bi bi-calendar2-month me-1 text-primary"></i>Cards Year/Month
+          </label>
+          <input type="month" class="form-control" id="cardsYearMonth" name="year_month" />
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ── All Site MTD card (independent from Truck Appointment Date) ─── -->
   <div
     id="allSiteMtdCard"
@@ -29,6 +42,15 @@
   <div
     id="todaySummaryCard"
     hx-get="/api/meeting-report/today-summary?product_group=SW"
+    hx-trigger="load"
+    hx-swap="innerHTML"
+    class="mb-4"
+  ></div>
+
+  <!-- ── Warehouse Pallet Movement MTD card ─────────────────── -->
+  <div
+    id="warehousePalletMovementMtdCard"
+    hx-get="/api/meeting-report/warehouse-pallet-movement-mtd"
     hx-trigger="load"
     hx-swap="innerHTML"
     class="mb-4"
@@ -112,4 +134,35 @@
   <!-- ── /Results area ────────────────────────────────────────── -->
 
 </div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (function () {
+    var yearMonthInput = document.getElementById('cardsYearMonth');
+    var productGroupInput = document.getElementById('product_group');
+
+    function getCurrentYearMonth() {
+      var now = new Date();
+      var month = String(now.getMonth() + 1).padStart(2, '0');
+      return now.getFullYear() + '-' + month;
+    }
+
+    function loadSummaryCards() {
+      var yearMonth = yearMonthInput.value || getCurrentYearMonth();
+      var productGroup = productGroupInput.value || 'SW';
+
+      htmx.ajax('GET', '/api/meeting-report/all-site-mtd?product_group=' + encodeURIComponent(productGroup) + '&year_month=' + encodeURIComponent(yearMonth), { target: '#allSiteMtdCard', swap: 'innerHTML' });
+      htmx.ajax('GET', '/api/meeting-report/today-summary?product_group=' + encodeURIComponent(productGroup) + '&year_month=' + encodeURIComponent(yearMonth), { target: '#todaySummaryCard', swap: 'innerHTML' });
+      htmx.ajax('GET', '/api/meeting-report/warehouse-pallet-movement-mtd?year_month=' + encodeURIComponent(yearMonth), { target: '#warehousePalletMovementMtdCard', swap: 'innerHTML' });
+    }
+
+    yearMonthInput.value = getCurrentYearMonth();
+    loadSummaryCards();
+
+    yearMonthInput.addEventListener('change', loadSummaryCards);
+    productGroupInput.addEventListener('change', loadSummaryCards);
+  })();
+</script>
 {% endblock %}

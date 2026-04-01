@@ -207,6 +207,7 @@ async def top_customers_tree_map(
         weight_by_customer: dict[str, float] = {}
         freight_by_customer: dict[str, float] = {}
         bls_by_customer: dict[str, set[str]] = {}
+        null_bl_count_by_customer: dict[str, int] = {}
         for row in rows:
             customer = str(row.get("Ship_to_Customer") or "Unknown").strip() or "Unknown"
             if _normalize_customer_name(customer) in _EXCLUDED_TREEMAP_CUSTOMERS_NORMALIZED:
@@ -220,12 +221,17 @@ async def top_customers_tree_map(
                 weight_by_customer[customer] = 0.0
                 freight_by_customer[customer] = 0.0
                 bls_by_customer[customer] = set()
+                null_bl_count_by_customer[customer] = 0
 
             # Unit_Freight is cents/lb, so convert to dollars.
             weight_by_customer[customer] += weight
             freight_by_customer[customer] += (unit_freight_cplb * weight) / 100.0
             if bl_number:
                 bls_by_customer[customer].add(str(bl_number))
+            else:
+                # BL_Number is NULL — still a real shipment row; count it separately
+                # so it is not silently dropped from the shipment total.
+                null_bl_count_by_customer[customer] += 1
 
         normalized = []
         for customer in weight_by_customer:
@@ -234,7 +240,7 @@ async def top_customers_tree_map(
                     "customer_name": customer,
                     "total_weight": weight_by_customer[customer],
                     "total_freight": freight_by_customer[customer],
-                    "shipment_count": len(bls_by_customer[customer]),
+                    "shipment_count": len(bls_by_customer[customer]) + null_bl_count_by_customer[customer],
                 }
             )
     else:

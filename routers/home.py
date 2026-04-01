@@ -115,6 +115,16 @@ _MEETING_REPORT_SQL = text("""
         END
 """)
 
+_PALLET_ENTRY_EXIT_SQL = text("""
+    SELECT
+        SUM(avg_day_shift_in) + SUM(avg_night_shift_in) AS entry_to_date,
+        SUM(avg_1st_shift_out)
+          + SUM(avg_2nd_shift_out)
+          + SUM(avg_3rd_shift_out) AS exit_to_date
+    FROM warship.daily_shift_averages
+    WHERE date BETWEEN :date_from AND :date_to
+""")
+
 
 _ASSETS_DIR = Path(__file__).parent.parent / "static" / "assets"
 _NO_CACHE = {"Cache-Control": "no-store, no-cache, must-revalidate"}
@@ -158,14 +168,36 @@ def _normalize_customer_name(name: str) -> str:
     return re.sub(r"\s+", " ", str(name or "").upper()).strip()
 
 
+def _resolve_month_window(year_month: str | None) -> tuple[datetime.date, datetime.date, datetime.date, str]:
+    """Resolve selected month into month-start, month-end, effective MTD end, and label."""
+    today = datetime.date.today()
+
+    if year_month:
+        try:
+            selected_first = datetime.date.fromisoformat(f"{year_month}-01")
+        except ValueError as exc:
+            raise ValueError(f"Invalid year_month '{year_month}'. Expected YYYY-MM.") from exc
+    else:
+        selected_first = today.replace(day=1)
+
+    if selected_first.month == 12:
+        next_month_first = datetime.date(selected_first.year + 1, 1, 1)
+    else:
+        next_month_first = datetime.date(selected_first.year, selected_first.month + 1, 1)
+
+    month_end = next_month_first - datetime.timedelta(days=1)
+    effective_end = today if selected_first.year == today.year and selected_first.month == today.month else month_end
+    month_label = selected_first.strftime("%Y/%m")
+    return selected_first, month_end, effective_end, month_label
+
+
 def _build_all_site_mtd_rows(
     conn,
     product_group: str,
+    year_month: str | None = None,
 ) -> list[dict[str, object]]:
     """Build all-site MTD customer-vs-consignment totals from SP output using pandas."""
-    selected_date = datetime.date.today()
-    month_start = selected_date.replace(day=1)
-    year_month = selected_date.strftime("%Y/%m")
+    month_start, _month_end, selected_date, month_label = _resolve_month_window(year_month)
 
     results: list[dict[str, object]] = []
     dbapi_conn = conn.connection
@@ -200,7 +232,7 @@ def _build_all_site_mtd_rows(
             results.append(
                 {
                     "site": site_code,
-                    "year_month": year_month,
+                    "year_month": month_label,
                     "weight_to_customer": 0.0,
                     "weight_to_consignment": 0.0,
                     "pallet_to_customer": 0.0,
@@ -235,7 +267,7 @@ def _build_all_site_mtd_rows(
         results.append(
             {
                 "site": site_code,
-                "year_month": year_month,
+                "year_month": month_label,
                 "weight_to_customer": weight_total - weight_to_consignment,
                 "weight_to_consignment": weight_to_consignment,
                 "pallet_to_customer": pallet_total - pallet_to_consignment,
@@ -249,10 +281,11 @@ def _build_all_site_mtd_rows(
 def _build_today_rows(
     conn,
     product_group: str,
+    year_month: str | None = None,
 ) -> list[dict[str, object]]:
-    """Build today-only customer-vs-consignment totals from SP output using pandas."""
-    today = datetime.date.today()
-    year_month = today.strftime("%Y/%m/%d")
+    """Build selected-month target-day customer-vs-consignment totals from SP output using pandas."""
+    _month_start, _month_end, target_date, _month_label = _resolve_month_window(year_month)
+    date_label = target_date.strftime("%Y/%m/%d")
 
     results: list[dict[str, object]] = []
     dbapi_conn = conn.connection
@@ -263,8 +296,8 @@ def _build_today_rows(
             cursor.callproc(
                 "sp_bl_lbs_cnt_carrier_customer",
                 [
-                    today.isoformat(),
-                    today.isoformat(),
+                    target_date.isoformat(),
+                    target_date.isoformat(),
                     site_code,
                     product_group,
                 ],
@@ -287,7 +320,7 @@ def _build_today_rows(
             results.append(
                 {
                     "site": site_code,
-                    "year_month": year_month,
+                    "year_month": date_label,
                     "weight_to_customer": 0.0,
                     "weight_to_consignment": 0.0,
                     "pallet_to_customer": 0.0,
@@ -322,7 +355,7 @@ def _build_today_rows(
         results.append(
             {
                 "site": site_code,
-                "year_month": year_month,
+                "year_month": date_label,
                 "weight_to_customer": weight_total - weight_to_consignment,
                 "weight_to_consignment": weight_to_consignment,
                 "pallet_to_customer": pallet_total - pallet_to_consignment,
@@ -473,12 +506,13 @@ async def meeting_report(request: Request) -> HTMLResponse:
     summary="Meeting Report All Site MTD",
     description=(
         "Returns the All Site Month-to-Date shipped weight and pallet summary partial. "
-        "This card is independent from Truck Appointment Date filter and always uses current month-to-date."
+        "This card is independent from Truck Appointment Date filter and uses selected year_month month-to-date."
     ),
 )
 async def meeting_report_all_site_mtd(
     request: Request,
     product_group: str = Query(..., description="Product group identifier"),
+    year_month: str | None = Query(default=None, description="Year-month selector in YYYY-MM format"),
 ) -> HTMLResponse:
     """Render All Site MTD card partial independent of report date filter."""
     all_site_mtd_rows: list[dict[str, object]] = []
@@ -489,6 +523,7 @@ async def meeting_report_all_site_mtd(
             all_site_mtd_rows = _build_all_site_mtd_rows(
                 conn=conn,
                 product_group=product_group,
+                year_month=year_month,
             )
     except Exception as exc:
         error = str(exc)
@@ -509,13 +544,14 @@ async def meeting_report_all_site_mtd(
     response_class=HTMLResponse,
     summary="Meeting Report Today Summary",
     description=(
-        "Returns the Today-Only shipped weight and pallet summary partial. "
-        "This card shows only today's data across all sites."
+        "Returns selected-month target-day shipped weight and pallet summary partial across all sites. "
+        "Current month uses today; past months use month-end day."
     ),
 )
 async def meeting_report_today_summary(
     request: Request,
     product_group: str = Query(..., description="Product group identifier"),
+    year_month: str | None = Query(default=None, description="Year-month selector in YYYY-MM format"),
 ) -> HTMLResponse:
     """Render Today Summary card partial."""
     today_rows: list[dict[str, object]] = []
@@ -526,6 +562,7 @@ async def meeting_report_today_summary(
             today_rows = _build_today_rows(
                 conn=conn,
                 product_group=product_group,
+                year_month=year_month,
             )
     except Exception as exc:
         error = str(exc)
@@ -537,6 +574,63 @@ async def meeting_report_today_summary(
             "today_rows": today_rows,
             "error": error,
             "product_group": product_group,
+        },
+    )
+
+
+@router.get(
+    "/api/meeting-report/warehouse-pallet-movement-mtd",
+    response_class=HTMLResponse,
+    summary="Meeting Report Warehouse Pallet Movement MTD",
+    description=(
+        "Returns standalone Warehouse Pallet Movement month-to-date summary "
+        "for AMJK SW using selected year_month month-to-date window."
+    ),
+)
+async def meeting_report_warehouse_pallet_movement_mtd(request: Request) -> HTMLResponse:
+    """Render Warehouse Pallet Movement MTD card partial independent of report filters."""
+    year_month = request.query_params.get("year_month")
+    today = datetime.date.today()
+    month_label = today.strftime("%Y/%m")
+    date_from = today.replace(day=1).isoformat()
+    date_to = today.isoformat()
+    entry_to_date = 0
+    exit_to_date = 0
+    shipped_to_date = 0
+    error = None
+
+    try:
+        month_start, _month_end, effective_end, month_label = _resolve_month_window(year_month)
+        date_from = month_start.isoformat()
+        date_to = effective_end.isoformat()
+
+        with _engine.connect() as conn:
+            entry_exit_row = conn.execute(
+                _PALLET_ENTRY_EXIT_SQL,
+                {"date_from": date_from, "date_to": date_to},
+            ).fetchone()
+            entry_to_date = round(float(entry_exit_row.entry_to_date) if entry_exit_row and entry_exit_row.entry_to_date else 0)
+            exit_to_date = round(float(entry_exit_row.exit_to_date) if entry_exit_row and entry_exit_row.exit_to_date else 0)
+
+            shipped_to_date = int(conn.execute(text("""
+                SELECT SUM(pallet_count)
+                FROM warship.vw_bl_lbs_cnt_carrier_customer
+                WHERE site = 'AMJK'
+                  AND product_group = 'SW'
+                  AND Truck_Appointment_Date BETWEEN :date_from AND :date_to
+            """), {"date_from": date_from, "date_to": date_to}).scalar() or 0)
+    except Exception as exc:
+        error = str(exc)
+
+    return templates.TemplateResponse(
+        "home/warehouse_pallet_movement_mtd_card.html",
+        {
+            "request": request,
+            "month_label": month_label,
+            "entry_to_date": entry_to_date,
+            "exit_to_date": exit_to_date,
+            "shipped_to_date": shipped_to_date,
+            "error": error,
         },
     )
 
@@ -563,7 +657,6 @@ async def meeting_report_results(
     rows = []
     consignment_count = 0
     custom_count = 0
-    mtd_pallets = None
     error = None
 
     try:
@@ -605,17 +698,8 @@ async def meeting_report_results(
             consignment_count = int(conn.execute(_CONSIGNMENT_COUNT_SQL, params).scalar() or 0)
             custom_count = int(conn.execute(_CUSTOM_COUNT_SQL, params).scalar() or 0)
 
-            # MTD pallets shipped: same site/product_group, 1st of month through selected date
-            mtd_pallets = int(conn.execute(text("""
-                SELECT SUM(pallet_count)
-                FROM warship.vw_bl_lbs_cnt_carrier_customer
-                WHERE site = :site
-                  AND product_group = :product_group
-                  AND Truck_Appointment_Date BETWEEN DATE_FORMAT(:date, '%Y-%m-01') AND :date
-            """), params).scalar() or 0)
     except Exception as exc:
         error = str(exc)
-        mtd_pallets = None
 
     return templates.TemplateResponse(
         "home/meeting_report_results.html",
@@ -624,7 +708,6 @@ async def meeting_report_results(
             "rows": rows,
             "consignment_count": consignment_count,
             "custom_count": custom_count,
-            "mtd_pallets": mtd_pallets,
             "error": error,
             "site": site,
             "product_group": product_group,
