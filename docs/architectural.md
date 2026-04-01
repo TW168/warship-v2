@@ -191,7 +191,7 @@ warship-v2/
 │   ├── warehouse.py         # GET /warehouse  /api/warehouse/*
 │   ├── shipping.py          # GET /shipping  /api/carrier-cost-analysis  /api/shipping/*
 │   ├── tsr_prep.py          # GET /tsr-prep
-│   ├── maintenance.py       # GET /maintenance/input  /maintenance/architectural
+│   ├── maintenance.py       # Maintenance pages and APIs
 │   └── about.py             # GET /about
 │
 ├── schemas/                 # Pydantic response/request models
@@ -210,13 +210,10 @@ warship-v2/
 │   │   ├── meeting_report.html
 │   │   ├── meeting_report_results.html
 │   │   ├── briefing.html
-│   │   └── press.html
 │   ├── warehouse/index.html
 │   ├── shipping/index.html  # Filter bar + carrier cost bubble chart + shipped-weight charts
 │   ├── tsr_prep/index.html
 │   ├── maintenance/
-│   │   ├── input.html
-│   │   └── architectural.html
 │   └── about/index.html
 │
 ├── static/
@@ -228,7 +225,7 @@ warship-v2/
 │   └── John/
 │
 └── docs/
-    ├── architectural.md     # This document (rendered at /maintenance/architectural)
+    ├── architectural.md
     └── SRS.md               # Software Requirements Specification
 ```
 
@@ -251,12 +248,10 @@ warship-v2/
 | GET | `/` | `home/index.html` | Weather maps + national gas prices + quick access |
 | GET | `/meeting-report` | `home/meeting_report.html` | Filter form (site, product_group, date) |
 | GET | `/briefing` | `home/briefing.html` | VIP Operations Briefing — printable ops snapshot |
-| GET | `/press` | `home/press.html` | Press releases sub-page |
 | GET | `/warehouse` | `warehouse/index.html` | UDC hourly/history charts, ASH event heatmap |
 | GET | `/shipping` | `shipping/index.html` | Carrier cost analysis + shipped-weight charts |
 | GET | `/tsr-prep` | `tsr_prep/index.html` | Truck Service Request prep dashboard |
 | GET | `/maintenance/input` | `maintenance/input.html` | Data entry form |
-| GET | `/maintenance/architectural` | `maintenance/architectural.html` | This document rendered as HTML |
 | GET | `/about` | `about/index.html` | About page |
 
 ### JSON API

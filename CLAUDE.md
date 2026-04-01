@@ -59,11 +59,11 @@ warship-v2/
 │   └── workflows/           # CI (optional, Dokploy auto-deploys from GitHub push)
 ├── routers/
 │   ├── health.py            # GET /health
-│   ├── home.py              # GET / and GET /press
+│   ├── home.py              # GET /, /meeting-report, /briefing
 │   ├── warehouse.py
 │   ├── shipping.py
 │   ├── tsr_prep.py
-│   ├── maintenance.py       # GET /maintenance/input, /maintenance/architectural
+│   ├── maintenance.py       # Maintenance APIs and pages
 │   └── about.py
 ├── templates/
 │   ├── base.html            # Top navbar, Bootstrap 5, Open Sans
@@ -125,7 +125,6 @@ The `connect_to_database()` function returns a SQLAlchemy `Engine`.
 | Freight Lbs by Year | `GET /api/analytics/freight-lbs-by-year-mei` | JSON — monthly lbs from `frt_cost_breakdown_mei`; param: `site` (default SW) |
 | Unit Freight Cost John | `GET /api/analytics/unit-frt-cost-john` | JSON — all rows from `unit_frt_cost_john`: id, yyyy, mm, division, product, wt_lbs, freight |
 | Freight Cost by Plant | `GET /api/analytics/freight-cost-by-plant` | JSON — annual YTD freight cost ($) by plant (BP, SW, CT, YA, Total) for 2019–2026; reads Excel workbook `AMJK Frt cost breakdown by plants-26.02.03.xlsx` |
-| Press | `GET /press` | Sub-page of Home |
 | Warehouse | `GET /warehouse` | UDC hourly bar chart, UDC history line chart, ASH event heatmap — queries `udc_hourly_ash`, `udc_ash`, `event_ash` tables directly via SQLAlchemy |
 | Shipping | `GET /shipping` | Filter bar (date range, site, product group) drives Carrier Cost Analysis card |
 | Carrier Cost Analysis | `GET /api/carrier-cost-analysis` | JSON — calls `sp_carrier_cost_per_pound`; params: `date_from`, `date_to`, `site`, `product_group` (all optional); returns carrier_id, bl_count, total_weight, total_pallets, total_freight_cost, cost_per_pound. Card embedded at bottom of `/shipping` page with Plotly bubble chart + sortable table. |
@@ -134,7 +133,6 @@ The `connect_to_database()` function returns a SQLAlchemy `Engine`.
 | Shipping Status CRUD | `GET /maintenance/shipping-status` | Maintenance data-entry page for table `shipping_status` with inline update/delete and create form. |
 | Shipping Status API | `GET/POST/PUT/DELETE /maintenance/api/shipping-status...` | JSON CRUD endpoints for `shipping_status` (`id`, `Date`, `Customer`, `Con_Hou`, `Con_Rem`, `Con_PHO`, `Con_CHA`, `Total`, `Hou_ship`, `Rem_ship`, `Con`). |
 | Freight ¢/lb Audit | `GET /maintenance/freight-audit` | Cross-checks ¢/lb calculations across all pages using 3 independent methods (Unit_Freight weighted avg, Freight_Amount all-in, SP). Shows per-carrier breakdown and sample BL verification. |
-| Software Architectural | `GET /maintenance/architectural` | Markdown → HTML via Pygments; JS-generated Bootstrap scrollspy TOC sidebar |
 | About | `GET /about` | |
 | Health | `GET /health` | Returns `{"status": "ok", "service": "warship", "version": "0.1.0"}` |
 

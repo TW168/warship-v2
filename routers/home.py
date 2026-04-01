@@ -31,11 +31,9 @@ from sqlalchemy import text
 from database import connect_to_database
 from utils.product_trend_service import (
     load_product_data_from_sp,
-    aggregate_by_month_product,
     get_top_products,
     get_monthly_trend,
     get_product_diversity_over_time,
-    get_product_growth_analysis,
 )
 
 router = APIRouter(tags=["Home"])

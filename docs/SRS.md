@@ -236,17 +236,11 @@ warship-v2/
 
 - Form-based data input page (to be defined)
 
-### 4.8 Software Architectural (`GET /maintenance/architectural`)
-
-- Read `docs/architectural.md` and render to HTML with Pygments syntax highlighting
-- JS-generated Bootstrap scrollspy TOC sidebar built from heading elements at page load
-- Required sections: Introduction, System Overview, Architectural Styles & Patterns, Technology Stack, Data Model, Folder Structure, API Endpoints, Deployment & Scaling, Security & Compliance, Future Roadmap
-
-### 4.9 About (`GET /about`)
+### 4.8 About (`GET /about`)
 
 - Informational page about the Warship system (to be defined)
 
-### 4.10 Health Check (`GET /health`)
+### 4.9 Health Check (`GET /health`)
 
 - Returns: `{"status": "ok", "service": "warship", "version": "0.1.0"}`
 - Always returns HTTP 200; used by `deploy.sh` post-deploy verification
@@ -266,7 +260,6 @@ warship-v2/
 | GET | `/shipping` | Shipping page |
 | GET | `/tsr-prep` | TSR Prep ship list + map |
 | GET | `/maintenance/input` | Maintenance data input |
-| GET | `/maintenance/architectural` | Software Architecture document |
 | GET | `/about` | About page |
 
 ### 5.2 JSON API Routes
