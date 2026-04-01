@@ -11,6 +11,9 @@ Includes:
   GET /api/analytics/freight-lbs-by-year-mei   — Monthly lbs from frt_cost_breakdown_mei (JSON)
   GET /api/analytics/unit-frt-cost-john        — All rows from unit_frt_cost_john (JSON)
   GET /api/analytics/freight-cost-by-plant     — Annual YTD freight cost by plant from Excel (JSON)
+  GET /api/analytics/product-trend-top         — Top N products by total weight (JSON)
+  GET /api/analytics/product-trend-monthly     — Monthly trend for top products (JSON)
+  GET /api/analytics/product-diversity         — Unique products per month (JSON)
 """
 
 from collections import defaultdict
@@ -26,6 +29,14 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy import text
 
 from database import connect_to_database
+from utils.product_trend_service import (
+    load_product_data_from_sp,
+    aggregate_by_month_product,
+    get_top_products,
+    get_monthly_trend,
+    get_product_diversity_over_time,
+    get_product_growth_analysis,
+)
 
 router = APIRouter(tags=["Home"])
 templates = Jinja2Templates(directory="templates")
@@ -55,11 +66,11 @@ _CONSIGNMENT_COUNT_SQL = text("""
 
 _CUSTOM_COUNT_SQL = text("""
     SELECT COUNT(*) AS custom_count
-    FROM (
-        SELECT DISTINCT BL_Number, Carrier_ID, Truck_Appointment_Date
-        FROM warship.vw_bl_lbs_cnt_carrier_customer
-        WHERE site = :site
-          AND product_group = :product_group
+)
+)
+async def product_trend_monthly(
+    top_n: int = Query(default=5, ge=1, le=20, description="Number of top products")
+) -> JSONResponse:
           AND Truck_Appointment_Date = :date
           AND Carrier_ID NOT IN ('SAIA-IP', 'CWF-IP')
           AND Ship_to_Customer NOT IN (
@@ -939,6 +950,81 @@ async def freight_cost_by_plant() -> JSONResponse:
 
 
 # ---------------------------------------------------------------------------
+# Analytics — Product Trend (from product_3y.csv)
+# ---------------------------------------------------------------------------
+
+@router.get(
+    "/api/analytics/product-trend-top",
+    summary="Top N products by total weight from product_3y.csv",
+    description=(
+        "Loads product_3y.csv and returns the top N products ranked by total shipped weight. "
+        "Each product includes: product_code, total_weight, shipment_count, avg_weight. "
+        "Useful for identifying portfolio leaders and consolidation trends."
+    ),
+)
+async def product_trend_top(
+    top_n: int = Query(default=10, ge=1, le=50, description="Number of top products to return")
+) -> JSONResponse:
+    """Get top N products by total weight."""
+    try:
+        rows = load_product_data_from_sp()
+        products = get_top_products(rows, top_n=top_n)
+        return JSONResponse(content=products)
+    except Exception as exc:
+        return JSONResponse(status_code=500, content={"error": str(exc)})
+
+
+@router.get(
+    "/api/analytics/product-trend-monthly",
+    summary="Monthly trend data for top products",
+    description=(
+        "Returns monthly totals (weight, shipment count) for each of the top N products. "
+        "Useful for multi-line chart showing growth trajectories. "
+        "Each element: {product_code, monthly: [{year_month, total_weight, shipment_count, avg_weight}]}"
+    ),
+)
+async def product_trend_monthly(
+        top_n: int = Query(default=5, ge=1, le=20, description="Number of top products")
+    ) -> JSONResponse:
+        """Get monthly trend data for top products."""
+        try:
+            rows = load_product_data_from_sp()
+            products = get_top_products(rows, top_n=top_n)
+    
+            result = []
+            for product in products:
+                monthly = get_monthly_trend(rows, product["product_code"])
+                result.append({
+                    "product_code": product["product_code"],
+                    "total_weight": product["total_weight"],
+                    "shipment_count": product["shipment_count"],
+                    "monthly": monthly
+                })
+    
+            return JSONResponse(content=result)
+        except Exception as exc:
+            return JSONResponse(status_code=500, content={"error": str(exc)})
+
+
+@router.get(
+    "/api/analytics/product-diversity",
+    summary="Product portfolio diversity by month",
+    description=(
+        "Returns unique product count per month, showing portfolio consolidation trend. "
+        "Each element: {year_month, unique_products, total_weight, total_shipments}"
+    ),
+)
+async def product_diversity() -> JSONResponse:
+    """Get monthly product diversity metrics."""
+    try:
+        rows = load_product_data_from_sp()
+        diversity = get_product_diversity_over_time(rows)
+        return JSONResponse(content=diversity)
+    except Exception as exc:
+        return JSONResponse(status_code=500, content={"error": str(exc)})
+
+
+# ---------------------------------------------------------------------------
 # Analytics — SW transport type by year (Transp Type.xlsx, sheet AM)
 # ---------------------------------------------------------------------------
 
@@ -1002,9 +1088,9 @@ async def sw_transport_type_by_year() -> JSONResponse:
             year = int("20" + yy.strip())
             if year > 2025:          # exclude partial 2026
                 continue
-            val = row[ci] if ci < len(row) and isinstance(row[ci], (int, float)) else 0.0
+            val = float(row[ci]) if ci < len(row) and isinstance(row[ci], (int, float)) else 0.0  # type: ignore
             year_totals.setdefault(year, {t: 0.0 for t in keep})
-            year_totals[year][ttype] += val or 0.0
+            year_totals[year][ttype] += val
 
     wb.close()
 
