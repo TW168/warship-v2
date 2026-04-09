@@ -1,0 +1,216 @@
+LOGISTICS MANAGERS' INDEX
+Home
+ 
+About
+ 
+Contact
+ 
+LMI Survey
+ 
+more...
+​February 2026 Logistics Managers' Index
+Picture
+​      
+FOR RELEASE: Tuesday, March 3rd, 2026
+Contact:  
+Zac Rogers, Ph.D.
+Logistics Manager’s Index Analyst
+Associate Professor, Supply Chain Management
+Department of Management
+Colorado State University
+Fort Collins, Colorado
+(970) 491-0890
+E-mail: Zac.Rogers@colostate.edu
+February 2026 Logistics Manager’s Index Report®
+LMI® at 61.5
+Growth is INCREASING AT AN INCREASING RATE for: Warehousing Utilization, Transportation Utilization, and Transportation Prices
+Growth is INCREASING AT A DECREASING RATE for: Inventory Levels, Inventory Costs, Warehousing Prices and
+NO MOVEMENT for: Warehousing Capacity
+Transportation Capacity is CONTRACTING
+​(Fort Collins, CO) —The February Logistics Manager’s Index reads in at 61.5, up (+1.9) from January’s reading of 59.6. This is the fastest level of expansion since February 2025’s reading of 62.8. While these two readings are only 1.3 points apart, the 62.8 in February 2025 (brown bars) and the 61.5 in February 2026 (pink bars) are the result of very different circumstances. Of the eight sub-metrics of the LMI, five of them displayed statistically significant movement across the two readings. February 2025 was a time of significant buildup with Inventory Levels expanding quickly at 64.8 to stay ahead of tariffs. Firms are taking the opposite approach in February 2026, keeping Inventory Levels lean at 53.8 to avoid existent tariff costs. This leaner strategy is making some impact as Inventory Cost expansion in 2026 is significantly slower than a year ago (77.3 in 2025 to 67.8 in 2026).  The byproducts of these differing strategies are seen in our other metrics. The expansionary policies of 2025 led to faster Warehousing Price expansion last year (77.0) although we still see solid expansion in 2026 (62.6). One the flipside, the high turnover policies of 2026 have led to a reinvigoration in our transportation metrics, with Transportation Capacity significantly tighter this year (41.0 in 2026 to 55.1 in 2025) and Transportation Prices significantly higher (76.7 in 2026 to 65.5 in 2025). While this represents a dramatic shift in both supply chain strategies and asset utilization, the goals of both strategies have been the same – optimize cashflow. Tariffs have led to significant uncertainty over the last year. The way supply chains have adapted to this uncertainty is nothing short of impressive. With the recent ruling by the U.S. Supreme Court, it seems likely this uncertainty will continue through 2026. It will be interesting to continue observing the effects of this on logistics activity.
+ 
+Picture
+Picture
+Researchers at Arizona State University, Colorado State University, Florida Atlantic University, Rutgers University, and the University of Nevada, Reno, and in conjunction with the Council of Supply Chain Management Professionals (CSCMP) issued this report today.
+ 
+Results Overview
+The LMI score is a combination of eight unique components that make up the logistics industry, including: Inventory Levels and Costs, Warehousing Capacity, Utilization, and Prices, and Transportation Capacity, Utilization, and Prices. The LMI is calculated using a diffusion index, in which any reading above 50.0 indicates that logistics is expanding; a reading below 50.0 is indicative of a shrinking logistics industry. The latest results of the LMI summarize the responses of supply chain professionals collected in February 2026.
+The January LMI read in at 61.5, which is up (+1.9) from January’s reading of 59.6. This is the fastest rate of expansion since last February and the third-highest reading of the last four years. This also breaks an eleven-month streak of readings below the all-time overall average of 61.3. This slightly above average yet steady rate of growth is consistent across supply chains, with no significant differences between Upstream and Downstream (56.2 and 59.2), early and late (55.2 and 58.1) or large and small (58.1 and 54.7) respondents.
+The overall economy continues to be an interesting, if not somewhat uncertain place. One of the leading causes of this uncertainty is the shifting rules around U.S. tariffs. After the Supreme Court ruling President Trump enacted a 10 percent blanket tariff. This includes exemptions for products like textiles, steel, and some produce, and is 3.5 points lower than the pre-ruling tariffs. It is unclear how long this relief could last and for which countries[1]. Despite the Supreme Court verdict, U.S. Customs has yet to fully update their cargo management system, meaning that many importing firms are still paying the tariffs that were levied under the IEEPA[2]. FedEx is among the firms suing the federal government for tariff refunds. Experts believe that FedEx was charged several millions of dollars in tariffs since April and is likely eager to recoup[3]. Over 2,000 cases looking for refunds have been levied against the government. The Supreme Court gave the government court system approximately a month to determine next steps. The government has collected approximately $175 billion from over 300,000 shippers. Sorting this out and distributing the funds is likely to be a slow, complex process[4].
+ 
+U.S. GDP grew at a rate of 1.4% in Q4 2025, down significantly from the 3.8% expansion in the third quarter. This slowdown is at least partially due to a reduction in government spending, which economists believe may have taken a full percentage point of growth. The sharp decline in imports played a role as well, as the massive inventory build-up that dominated the first 9 months of 2025 had largely subsided by the end of the year. Consumer and business spending registered 2.4% growth in Q4, which is relatively healthy, but down from the 3.5% growth consumers reported in the previous quarter[5]. This was partly driven by flat December sales – which were not up at all (+/-0.0%) from November[6]. Flat sales in what is normally the busies retail month of the year reflects two things: 1) some consumer trepidation due to high costs; and 2) how holiday sales have become increasingly spread out in the 2020’s[7]. We may also be seeing more consistency between how consumer say they feel and how they spend. The University of Michigan’s Consumer Sentiment Index came in at 56.6 in February. This is up (+0.2) slightly from January and is down (-12.5) from this time last year. Approximately 46% of respondents mentioned the negative impact of high prices, marking seven consecutive months this has been above 40%. On the plus side, 12-month future inflation expectations are down to 3.4%, which is the lowest reading since January 2025[8].
+ 
+At the moment it is Upstream supply inflation that is most troubling. The producer price index (PPI) was up 0.5% to 2.9% from a year ago. This exceeds what had been expected by economists as this is the largest one month increase since March 2025[9]. The core PPI, which strips out food and energy prices, was up 0.8% at a seasonally adjusted rate which was also higher than anticipated[10]. The higher-than-expected wholesale inflation report led to a dip in the stock market and the benchmark 10-year treasury yield[11]. The impact of high wholesale costs – combined with interest rates – are likely impacting construction markets. Home construction confidence continues to be low – at 36 out of 100 – below 50.0 and breakeven for nearly two years[12]. This is important as construction materials provide significant volume for carriers. The combination of high interest rates and limited inventory has hurt the demand for new homes, which in turn has also significantly slowed demand for appliances and home maintenance services[13].
+ 
+The prevailing overall economic uncertainty combined with a desire to avoid potential tariff costs have led firms to maintain their regime of low inventories in February. Inventory Level expansion was down very slightly (-0.1) to 53.8 which is a marginal level of expansion just above the break-even point of 50.0. This is driven most strongly by larger firms, who actually saw Inventory Levels contract in February at a rate of 44.6 – a significant statistical difference from the expansion of 60.0 reported by smaller respondents. The contraction from larger firms likely lines up with the more muted rates of Inventory Level expansion reported by Downstream retailers (51.7), which is down from the 55.7 reported by Upstream respondents. This is consistent with reports that middle-mile wholesalers continue to hold onto disproportionate rates of inventory in a bid to keep retailer books – and cashflows – clean[14]. At the same time, some of the movement for smaller and Upstream firms may be tied to manufacturing. After contracting through most of 2025 there are some signs that, while progress is likely muted due to tariffs, that manufacturing may be picking up slightly in 2026[15]. This is backed up by January’s manufacturing PMI coming in at 52.6. This rate of expansion may be mild, but it breaks a 26-month streak of contraction[16].
+ 
+Even with these JIT systems in place Inventory Costs continue to expand at a rate of 67.8. This is down (-3.8) from the reading of 71.3 and is only the second reading below 70.0 since January of 2025. Interestingly this is driven most by larger respondents, who reported significantly higher Inventory Cost expansion at 74.3 than their smaller counterparts that reported a still-robust expansion of 63.0. At the moment it appears that the faster turnover is associated with higher costs, it will be interesting to see if this changes as the leaner inventory systems become more established. One risk of leaner inventories is that it leaves supply chains more vulnerable to disruptions. One potential disruption occurred on the last day of February with the outbreak of hostilities between the U.S., Israel, and Iran. A few days before this Maersk had announced plans to divert some ships away from Suez Canal routes due to increasing volatility in the Middle East. This comes only a few weeks after they had reinstituted these routes into their portfolio after avoiding them for two years[17]. It now seems likely that the outbreak of the conflict will lead other carriers to pursue the same strategy. The route around the horn of Africa can add weeks to transit time. While shippers will likely begin factoring this into their calculations now, the outbreak of armed conflict could lead to some disruptions in the short term. The Suez is not the only critical maritime artery facing dramatic developments. In late January Panama’s Supreme Court ruled that unconstitutional concessions had been made to the Chinese company that operates two major ports on the Pacific and Atlantic side of the canal (Cristobal and Balboa Ports, which handle 39% of Panama’s container traffic). In response, the Panamanian government has occupied both ports and begun a process for third-party firms to bid on their operation[18]. Circling back domestically import volumes through the Port of LA are down through the first two months of the year, many experts expect that it will be a more balance year for imports, with less extreme peaks and valleys than we saw in 2025. At the moment however container spot rates are down as firms continue to spread out inventory movements to keep costs low[19].
+ 
+The consistency in inventory movements is reflected in Warehousing Capacity, which did not change in February (+/-.0.0), coming in at 50.0 and no movement for the second month in a row. Downstream retailers did actually report mild contraction at 48.3, and large respondents reported capacity contraction at 48.1. These mild rates of contraction were counter-balanced by marginal expansion reported by Upstream (48.3) and smaller (52.6) respondents. There is also some evidence that available Warehousing Capacity has begun to loosen, moving from contraction at 46.5 in early February to mild expansion at 53.1 later in the month. If this slight upward trajectory continues, March may be the first month in 2026 to diverge from the 50.0 reading. There is also evidence that some capacity is exiting the market. For instance, UPS will close 22 sortation centers across 18 states as they continue to on their plan to cut 30,000 positions. This is in addition to the $150,000 buyouts that they plan to offer to drivers represented by the Teamsters union. In addition to lower labor costs, these moves are expected to consolidate routes and facilities in an attempt to achieve greater efficiencies and economies of scale[20]. While traditional warehouse construction has slowed, overall activity has spiked behind the momentum of data centers[21].
+ 
+Warehousing Utilization of existing capacity did pick up (+5.9) in February, reading in at 60.3. This is the continuation of a turnaround for this metric, which contracted for the only time in the history of the index in November (47.5) and December (52.9) of 2025. This 17.4-point turnaround is indicative of both the rapid reduction in inventories that happened at the end of 2025 as well as the high-turn, high-utilization strategy that has characterized the first two months of 2026. Lining up with the differences we read in Inventory Levels, Warehousing Utilization is significantly higher for smaller respondents who reported expansion at 65.7 – a much faster rate of growth than the 52.6 reported by larger respondents. One possibility behind this difference is the increased portfolio of warehousing options available to larger firms. Given all of this, it is unsurprising that Warehousing Prices continue to expand at a steady (-2.1) rate of 62.6.
+ 
+There was more evidence in February that the long-awaited freight market comeback is in full-swing. Transportation Capacity continues to tighten (-6.0) reading in at 41.0 which is the fastest rate of contraction since November 2021 at the height of the covid shipping boom. This tightness is uniform across supply chains, but it is especially driven by larger firms, who’s reported 32.6 reading is the fastest rate of contraction in five years, and speaks to the increased asset utilization necessary to drive inventory turnover. Consistent with this Transportation Capacity contracted slightly slower (42.0) for Upstream firms than for their Downstream counterparts (38.7) that are more likely to also be larger firms. In addition to changes in demand patterns, some of this movement is likely due to the exit of some capacity. Several small carriers have filed for bankruptcy through the first two months of the year as we continue to see consolidation in the freight market[22].
+ 
+The demand is clearly there though. FreightWaves’ flatbed tender rejection rate exceeded 32% for the second time in its eight-year history. This may be a sign of increased Upstream activity as flatbed is often used for bulkier items like those used in manufacturing and/or construction[23]. This demand is likely behind continued expansion in Transportation Utilization (+3.8) which read in at 61.9. This is a far cry from September 2025 when this metric was breaking even at 50.0. It is also the fastest rate of expansion for Transportation Utilization since May of 2022. Transportation Prices are also expanding at a pace not seen in four years, coming in hot (+5.2) at 76.7 which is the highest level for that metric since March of 2022. This is driven most strongly by Upstream firms, who reported Transportation Price expansion of 79.7, statistically significantly higher than the still robust 68.3 reported by Downstream firms. All three transportation metrics are showing their strongest levels of movement since the start, or just before the start, of the freight recession that characterized 2022 to early 2024. It is unclear how changes in tariff policy or the potential for expansion in global conflicts could impact things. For this moment however, the high rates of turnover pushed by partly by tariffs have led to the most robust freight market in four years.
+ 
+Respondents were asked to predict movement in the overall LMI and individual metrics 12 months from now. Respondent predictions for the overall index are 66.3, which is up slightly (+0.5) from January’s future prediction of 65.8. Expectations of Inventory Levels remain fairly consistent (+0.5) at 61.4, signaling that firms expect relatively robust increase in Inventory Levels as well as Inventory Costs at 72.5. Respondents believe this will lead to tightness in both future Warehousing Capacity (51.6) as well as Transportation Capacity (44.9). This tight capacity will likely lead to robust expansion across Warehousing Utilization (69.0), Transportation Utilization (73.6), Warehousing Prices (69.9) and exceptionally robust growth in Transportation Prices (80.9). This would be the fastest rate of expansion for Transportation Prices since March 2022. If these predictions hold it would mark a real shift back towards a booming transportation market. 
+
+Picture
+​
+We observe some differences when comparing feedback from Upstream (blue bars) and Downstream (orange bars) respondents in February. Continuing the trends from January, there are very few significant statistical differences across the supply chain. Downstream retailers do report leaner Inventory Levels (51.7), but their Upstream counterparts are reporting slow expansion (55.7) as well. Downstream firms are reporting slight contraction (48.3) in Warehousing Capacity and Upstream firms are reporting essentially no movement (50.8). As a result of this, Downstream respondents are seeing Warehousing Prices expand more quickly (67.2) than their Upstream counterparts (59.8). The only statistically significant difference between the two groups are in Transportation Prices, where Upstream firms reported significant levels of expansion at 79.7 to still robust expansion of 68.3 Downstream. 
+Picture
+Picture
+​We also split future predictions by Downstream respondents (purple bars) and Upstream respondents (green bars). In a departure from last month, we see no significant difference in future predictions between Upstream and Downstream respondents. Differences in the predictions in movements for five of the eight sub-metrics come in at 2.1 points or less. The exceptions are the 6.4-point difference in Transportation Capacity (46.7 Upstream and 40.3 Downstream), the 6.3-point difference in Transportation Utilization (75.7 Upstream and 69.4 Downstream, and a 10.6-point difference in future Inventory Levels (65.6 Upstream and 55.0 downstream). All of these suggest that Downstream retailers plan to run inventories leaner than their Upstream counterparts, and that firms across the supply chain will continue to see growth across transportation metrics to facilitate this high turnover strategy.
+Picture
+Picture
+​
+We analyze any differences in responses collected in early (gold bars) versus late (green bars) February. Similar to January, activity was relatively consistent throughout February. The only statistically significant movement was in Transportation Prices, which went from very robust expansion of 71.9 in the first half of the month to extreme expansion at 80.4 in late February. This is the first reading above 80.0 for this metric since March of 2022. It will be interesting to see whether this rate of expansion continues going forward or levels off. Given recent weather patterns on the East Coast and continued Capacity contraction, further expansion (especially Upstream) is possible. It is also notable that Warehousing Capacity went from mild contraction (46.5) early in the month to mild expansion (53.1) in late February. 
+Picture
+Picture
+​We also compare smaller firms (those with 0-999 employees, represented by maroon lines) to larger firms (those with 1,000 employees or more, represented by gold lines) in February. As was the case last month, this comparison is where we see the most differences across respondent groups. Smaller firms are building up Inventory Levels at a robust pace of 60.0 while their larger counterparts report contraction at 44.6. This has led to slight contraction for Warehousing Capacity (48.1) and significantly higher rates of Warehousing Utilization expansion (65.7 to 52.6) for smaller firms that likely need additional space to hold more inventory. In spite of this, respondents from larger firms report statistically faster expansion in Inventory Costs (74.3 to 63.0). These increased costs may be related to the velocity at which these are moving, and operation that clearly requires significant freight volume as larger firms report Transportation Capacity contracting at 32.6 while smaller firms report more marginal contraction at 46.8. Taken altogether it seems there is a divergence between the strategies being employed by differently sized firms. Large firms may be able to more easily turn inventories over due to their access to additional supply chain assets. Smaller firms may be “boxed out” from accessing some of these assets, limiting their ability to turn inventory over as quickly. We may also be seeing a return of strategies that were used last year, where smaller wholesalers held onto higher levels of inventory to provide a safety net for their larger, downstream retail partners. 
+Picture
+Picture
+​
+The index scores for each of the eight components of the Logistics Managers’ Index, as well as the overall index score, are presented in the table below. The rate of expansion for the overall index is 61.5, which is up (+1.9) from January’s reading of 59.6. This is the fastest rate of expansion in the overall metrics since February of last year. This movement is driven by the continued expansion of our transportation metrics, with Transportation Prices up (+5.2) to 76.7 which is their highest level since March of 2022. At the same time the contraction rate of 41.0 for Transportation Capacity is the fastest rate of contraction since November 2021 which was the peak of the covid shipping rush. The reason for these movements in transportation is due to the need to turn inventories over quickly to keep costs low. Inventory Levels continue to increase at the very marginal rate of 53.8 (-0.1); there has also been some slowing (-3.5) of Inventory Cost expansion at 67.8. Warehousing Capacity held steady (+/-0.0) at 50.0 and no movement, and Warehousing Price (-2.1) and Warehousing Utilization (+5.9) continue to expand at 62.3 and 60.3 respectively. 
+Picture
+​Historic Logistics Managers’ Index Scores
+This period’s along with prior readings from the last two years of the LMI are presented table below:
+Picture
+LMI®
+​
+The February Logistics Manager’s Index reads in at 61.5, which is up (+1.9) from January’s reading of 59.6 and is the highest reading since last February’s reading of 62.8.  This is the third-fastest rate of expansion since July 2022. This is driven by continued strength among the transportation metrics and strong cost/price growth across the board. The overall expansion is consistent across respondents, with no significant differences between Upstream and Downstream, large and small firms, or between early and late February. The regulations regarding tariffs remain uncertain, but if firms continue to pursue high levels of inventory turnover it is likely that the strong run of transportation expansion could continue through the Spring.
+​
+When asked to predict what conditions will be over the next 12 months, respondents foresee a rate of expansion of 66.3, which is up slightly (+0.5) from January’s future predictions of 65.8 and would be above the all-time average of 61.3. Respondent expectations are consistent across the supply chain, with Upstream respondents predicting overall expansion of 63.3 and Downstream respondents predicting a very similar rate of expansion at 62.5.
+
+Picture
+​Inventory Levels
+ 
+The Inventory Level index is 53.8, virtually unchanged (-0.1) from the slow rate of expansion of 53.9 reported in January. Inventory Levels are 11.0 points lower than a year ago, and 4.7 points lower than two years ago at this time. This movement was consistent across different levels of the supply chain as Upstream (55.7) and Downstream (51.7) reported similarly small increases in inventory levels. There is however strong evidence that inventory policies vary across differently sized firms, with smaller respondents reporting expansion at 60.0 while larger firms reported contraction at 44.6. The all-time average for Inventory Level expansion is 59.1, so it seems that firms generally are being a bit more cautious on inventory buildups.
+ 
+Predictions for future Inventory Level growth is 61.4, up slightly (+0.5) from January’s future prediction of 60.9. Upstream respondents predict robust expansion at 65.6 while their Downstream counterparts look to keep things a bit leaner at 55.0. This is likely an attempt by retailers to keep inventories as low as possible to avoid tariffs and optimize cashflow.
+ 
+Picture
+​Inventory Costs
+ 
+Inventory Costs are 67.8, down (-3.5) from January’s reading of 71.3. The value this month is 9.5 points below last February, and 1.0 points above February of two years ago, so costs are lower than this time last year, but very close to two years ago. Upstream (65.2) reported lower costs than Downstream (73.3). Downstream costs are higher by 8.1 points, which is surprising, considering that Upstream actually reported higher inventory levels, by 4.1 points. It seems Downstream firms are bearing a disproportionate share of the inventory costs. Small firms (63.0) saw a significant increase in costs, and large firms (74.3) saw even larger increases for Inventory Costs. This is also very surprising. Small firms saw a 15.4-point greater increase in Inventory Levels, and yet larger firms saw an 11.3-point higher increase in Inventory Costs. So small firms and Upstream firms are carrying more inventory, but larger firms and Downstream firms are seeing higher costs. The US Supreme Court recently ruled the Trump Administration’s tariffs were unconstitutional. It is difficult to know what role the changing tariffs have played in recent inventory decisions, or what impact they will have in the coming months.
+ 
+Predictions for future Inventory Cost growth is 72.5, down (-1.7) from January’s future prediction of 74.2, suggesting that costs will continue to increase significantly over the next 12 months. Upstream respondents predict growth of 72.4 and Downstream predicts expansion at 73.3. Respondents clearly expect Inventory Costs to continue outpacing Inventory Levels, particularly Downstream where they predict Inventory Levels to run relatively lean.
+ 
+Picture
+Warehousing Capacity
+ 
+The reading for Warehousing Capacity for February 2026 registered in at a neutral 50.0-points reflecting a 0-point change from the month prior. This reading is down .5-points from the reading one year ago and is also down by 2.8-points from the reading two years ago. In addition, there was a 2.5-point split between Upstream (50.8) and Downstream (48.3) which was not statistically significant (p>.1), but notable as the Downstream value moved into contraction. Comparing the differences between small (<999 employees) and large (>999) employees we see that these values are   48.1 and 52.6. This 4.5-point split was not statistically significant (p >.1). 
+​
+Finally, exploring the future predictions for Warehousing Capacity, respondents predict close to no expansion at 51.6, down marginally (-0.3) from January’s future prediction of 51.9. Respondents across the supply chain predict similarly tight movements, with Downstream (51.7) and Upstream (51.6) reporting nearly identical predictions. 
+Picture
+Warehousing Utilization
+ 
+The Warehousing Utilization index registered in at 60.3 for the month of February 2026, reflecting a 5.9-point increase from the month prior, continuing to expand for a second month in a row.  This reading is down 5.2-points from the reading one year ago, and down by 6-points from the reading two years ago. In addition, there was a 6.1percentage point split between Upstream (58.1) and Downstream (65.0), where both values are now settled in expansion, but this difference was also not statistically significant (p>.1). Comparing the differences between small (<999 employees) and large (>999) employees we see that these values are 65.7 and 52.6 reflecting a 13.1-point difference between the two which was statistically significant (p <.05).
+​
+ Finally, exploring the future predictions for Warehousing Utilization, respondents predict expansion at 69.0, up (+6.7) from January’s future prediction of 62.3. Expectations for growth are consistent across the supply chain with future Upstream expectations (69.4) growing only slightly faster than Downstream expectations (68.3).
+ 
+Picture
+Warehousing Prices
+ 
+The Warehousing Pricing index is down by 2.1 points to 62.1 for February 2026. This reading is down 12.2-points from the reading one year ago, and up 2.2-points from the reading two years ago. In addition, there was a 7.4-point split between Upstream (59.8) and Downstream (67.2) which was not statistically significant (p>.1). Comparing the differences between small (<999 employees) and large (>999) employees we see that these values are 60.4 and 64.9 reflecting a 4.5-point difference between the two which was not statistically significant (p >.1). 
+​
+Finally, exploring the future predictions for Warehouse Price, respondents predict robust expansion at 69.9, down (-5.6) from January’s future prediction of 74.5. Expectations across the supply chain are elevated, with future Upstream expectations (70.2) being predicted to be increasing, at a slightly faster rate than Downstream expectations (68.3). 
+Picture
+Transportation Capacity
+​
+The Transportation Capacity Index decreased 6.1 points to 41.0 percent in February 2026. With this decrease, the Transportation Capacity index remains below the critical threshold and continues to indicate contraction. With this decrease, the Transportation Capacity index is 14.1 points below the level indicated one year ago and 19.9 points below the level indicated two years ago. While the Upstream Transportation Capacity index is at 42.0, the Downstream index is at 38.7 but the difference is not statistically significant. Hence, the contraction observed in Transportation Capacity is widespread across the supply chains and quite significant, when compared to historical seasonal trends.
+
+Future predictions for Transportation Capacity read in at 44.9, up (+2.6) from January’s prediction of 42.3, indicating continued expectations for contraction over the next 12 months. Upstream future predictions are 46.7, the Downstream Transportation Capacity index is at 40.3, and the difference is not statistically significant. As such, the expectations of future contractions are prevalent across the supply chains, both Upstream and Downstream.
+Picture
+Transportation Utilization
+
+The Transportation Utilization Index increased 3.8 points, indicating 61.9 in February 2026. The Downstream Transportation Utilization Index is now at 62.9, while the Upstream index indicates 61.5, and the difference is not statistically significant.  As such, it can be concluded that the increase in Transportation Utilization is prevalent across the supply chains, both Upstream and Downstream.
+​
+Future predictions for Transportation Utilization read in at 73.6, up (+4.6) from January’s future prediction of 69.0. The future Upstream Transportation Utilization index reads in at 75.7 and the Downstream index is at 69.4. This differences is not statistically significant.
+ 
+Picture
+​Transportation Prices
+
+The Transportation Prices Index increased another 5.3 points from the previous reading and recorded 76.7 in February 2026. With this fifth consecutive increase, the index is the highest reading since March of 2022. While the Upstream Transportation Prices Index is at 79.7, the Downstream index is at 68.3 and the difference is statistically significant. As such, it can be concluded that the inflationary pressure on Transportation Prices is being felt stronger Upstream than Downstream, but it is present across the supply chains.
+​
+Future predictions for Transportation Prices are 80.3, up slightly (+0.8) from January’s future prediction of 79.5 and indicating expectations for extreme expansions in price. The Upstream future Transportation prices index is at 81.2 while the Downstream Transportation prices index is at 79.0, and the difference is not statistically significant. Therefore, inflationary expectations in Transportation prices are prevalent across the supply chains, both Upstream and Downstream. 
+
+Picture
+About This Report
+​
+The data presented herein are obtained from a survey of logistics supply executives based on information they have collected within their respective organizations. LMI® makes no representation, other than that stated within this release, regarding the individual company data collection procedures. The data should be compared to all other economic data sources when used in decision-making.
+
+Data and Method of Presentation
+
+Data for the Logistics Manager’s Index is collected in a monthly survey of leading logistics professionals. The respondents are CSCMP members working at the director-level or above. Upper-level managers are preferable as they are more likely to have macro-level information on trends in Inventory, Warehousing and Transportation trends within their firm. Data is also collected from subscribers to both DC Velocity and Supply Chain Exchange as well. Respondents hail from firms working on all six continents, with the majority of them working at firms with annual revenues over a billion dollars. The industries represented in this respondent pool include, but are not limited to: Apparel, Automotive, Consumer Goods, Electronics, Food & Drug, Home Furnishings, Logistics, Shipping & Transportation, and Warehousing.
+
+Respondents are asked to identify the monthly change across each of the eight metrics collected in this survey (Inventory Levels, Inventory Costs, Warehousing Capacity, Warehousing Utilization, Warehousing Prices, Transportation Capacity, Transportation Utilization, and Transportation Prices). In addition, they also forecast future trends for each metric ranging over the next 12 months. The raw data is then analyzed using a diffusion index. Diffusion Indexes measure how widely something is diffused or spread across a group. The Bureau of Labor Statistics has been using a diffusion index for the Current Employment Statics program since 1974, and the Institute for Supply Management (ISM) has been using a diffusion index to compute the Purchasing Managers Index since 1948. The ISM Index of New Orders is considered a Leading Economic Indicator.
+ 
+We compute the Diffusion Index as follows:
+ 
+PD = Percentage of respondents saying the category is Declining,
+PU = Percentage of respondents saying the category is Unchanged,
+PI = Percentage of respondents saying the category is Increasing,
+Diffusion Index = 0.0 * PD + 0.5 * PU + 1.0 * PI
+ 
+For example, if 25 say the category is declining, 38 say it is unchanged, and 37 say it is increasing, we would calculate an index value of 0*0.25 + 0.5*0.38 + 1.0*0.37 = 0 + 0.19 + 0.37 = 0.56, and the index is increasing overall. For an index value above 0.5 indicates the category is increasing, a value below 0.5 indicates it is decreasing, and a value of 0.5 means the category is unchanged. When a full year’s worth of data has been collected, adjustments will be made for seasonal factors as well.
+ 
+Logistics Managers Index
+
+Requests for permission to reproduce or distribute Logistics Managers Index Content can be made by contacting in writing at: Dale S. Rogers, WP Carey School of Business, Tempe, Arizona 85287, or by emailing dale.rogers@asu.edu Subject: Content Request.
+The authors of the Logistics Managers Index shall not have any liability, duty, or obligation for or relating to the Logistics Managers Index Content or other information contained herein, any errors, inaccuracies, omissions, or delays in providing any Logistics Managers Index Content, or for any actions taken in reliance thereon. In no event shall the authors of the Logistics Managers Index be liable for any special, incidental, or consequential damages, arising out of the use of the Logistics Managers Index. Logistics Managers’ Index, and LMI® are registered trademarks. 
+
+About The Logistics Manager’s Index®
+
+The Logistics Manager’s Index (LMI) is a joint project between researchers from Arizona State University, Colorado State University, University of Nevada, Reno, Florida Atlantic University, and Rutgers University, supported by CSCMP. It is authored by Zac Rogers Ph.D., Steven Carnovale Ph.D., Shen Yeniyurt Ph.D., Ron Lembke Ph.D., and Dale Rogers Ph.D.
+ 
+​Footnotes
+
+[1] Swanson, A. (2026, February 24). Trump’s Tariff Goes Into Effect at 10 Percent, Not the 15 Threatened. The New York Times. https://www.nytimes.com/2026/02/24/us/politics/trump-tariffs-global-trade.html
+
+[2] LaRocco, L. A. (2026a, February 22). U.S. importers still paying Trump’s illegal tariffs even after Supreme Court ruling. CNBC. https://www.cnbc.com/2026/02/22/trump-tariffs-ieepa-supreme-court.html
+
+[3] Eavis, P. (2026, February 24). FedEx Sues for Refund of Trump Tariffs Rejected by Supreme Court. The New York Times. https://www.nytimes.com/2026/02/23/business/fedex-lawsuit-tariffs-refund.html
+
+[4] LaRocco, L. A. (2026b, February 26). Trump administration faces first big tariff refund court deadline on Friday. CNBC. https://www.cnbc.com/2026/02/26/trump-tariff-refunds-doj-court-deadline.html
+
+[5] Rugaber, C., & Ott, M. (2026, February 20). US economic growth weaker than thought in fourth quarter with government shutdown, consumer pullback. AP News. https://apnews.com/article/gdp-economy-consumer-shutdown-immigration-0e5caca783b93eaf2231496e3e0f54f3
+
+[6] Javier, R. C. (2026, February 10). December’s retail sales numbers were flat, despite expectations. https://www.marketplace.org/story/2026/02/10/decembers-retail-sales-numbers-were-flat-despite-expectations
+
+[7] Schwab, K. (2026, February 26). The slow sales season has retailers more worried than usual this year. https://www.marketplace.org/story/2026/02/26/slow-winter-has-retailers-more-worried-than-usual-this-year
+
+[8] Hsu, J. (2026, February 23). Surveys of Consumers. University of Michigan Consumer Sentiment Survey. https://www.sca.isr.umich.edu/
+
+[9] Wiseman, P. (2026, February 27). US wholesale prices arrive hotter than expected, up 0.5% from December and 2.9% from a year ago. AP News. https://apnews.com/article/economy-inflation-producer-prices-trump-federal-reserve-d728162ff72f31776bbc320354586f72
+
+[10] Cox, J. (2026, February 27). Core wholesale prices rose 0.8% in January, much more than expected. CNBC. https://www.cnbc.com/2026/02/27/ppi-january-2026-.html
+
+[11] Conlon, S., & Bhaimiya, S. (2026, February 27). 10-year yield falls below 4% on stagflation risk following hot producer prices reading. CNBC. https://www.cnbc.com/2026/02/27/us-treasury-yields-investors-await-wholesale-inflation-reading.html
+
+[12] Trovall, E. (2026, February 17). For home builders, a “skeptical optimism” amid elevated interest rates and construction costs. NPR Marketplace. https://www.marketplace.org/story/2026/02/17/home-builders-grow-accustomed-to-market-headwinds
+
+[13] Keilman, J., Korpics, D., & Galkina, E. (2026, February 23). How the Frozen Housing Market Is Battering U.S. Manufacturers. Wall Street Journal. https://www.wsj.com/business/retail/how-the-frozen-housing-market-is-battering-u-s-manufacturers-42f4e3ca
+
+[14] Ackerman, D. (2026, February 19). Wholesale inventories stabilizing after stocking up for tariffs. https://www.marketplace.org/story/2026/02/19/wholesale-inventories-stabilizing-after-stocking-up-for-tariffs
+
+[15] Ho, J. (2026, February 16). U.S. manufacturing has started to pick up. Will that translate into more jobs? [Marketplace]. https://www.marketplace.org/story/2026/02/16/will-there-be-more-manufacturing-jobs-in-2026
+
+[16] Institute for Supply Management. (2026, February 2). Manufacturing PMI® at 52.6%; January 2026 ISM® Manufacturing PMI® Report. PR Newswire. https://www.prnewswire.com/news-releases/manufacturing-pmi-at-52-6-january-2026-ism-manufacturing-pmi-report-302675443.html
+
+[17] Chirls, S. (2026, February 27). Maersk pulls U.S., other sailings from Red Sea. FreightWaves. https://www.freightwaves.com/news/maersk-pulls-u-s-other-sailings-from-red-sea
+
+[18] Solís, A. (2026, February 27). 2 Panama Canal ports have dragged Panama into a tussle between superpowers. AP News. https://apnews.com/article/panama-canal-china-us-ports-2c858331b744b3faa3202789d26c5bcf
+
+[19] Berger, P. (2026b, February 26). Shipping Industry Sends Strong Consumer Demand Signal For The Year. Wall Street Journal. https://www.wsj.com/logistics-report/shipping-industry-sends-strong-consumer-demand-signal-for-the-year-153775ec
+ 
+[20] Kulisch, E. (2026, February 17). UPS identifies 22 package facilities for closure. FreightWaves. https://www.freightwaves.com/news/ups-identifies-22-package-facilities-for-closure
+
+[21] Adams, K. (2026, February 19). Tariff bills for mid-sized businesses nearly tripled since early 2025. https://www.marketplace.org/story/2026/02/19/tariff-bills-tripled-for-midsized-businesses-since-2025
+
+[22] Mahoney, N. (2026, February 17). Freight downturn deepens as supply chain bankruptcies mount. FreightWaves. https://www.freightwaves.com/news/freight-downturn-deepens-as-supply-chain-bankruptcies-mount
+ 
+[23] Strickland, Z. (2026, February 22). Is flatbed signaling a manufacturing renaissance. FreightWaves. https://www.freightwaves.com/news/is-flatbed-signaling-a-manufacturing-renaissance
+ ​
+Proudly powered by Weebly

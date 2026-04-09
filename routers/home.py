@@ -64,11 +64,11 @@ _CONSIGNMENT_COUNT_SQL = text("""
 
 _CUSTOM_COUNT_SQL = text("""
     SELECT COUNT(*) AS custom_count
-)
-)
-async def product_trend_monthly(
-    top_n: int = Query(default=5, ge=1, le=20, description="Number of top products")
-) -> JSONResponse:
+    FROM (
+        SELECT DISTINCT BL_Number, Carrier_ID, Truck_Appointment_Date
+        FROM warship.vw_bl_lbs_cnt_carrier_customer
+        WHERE site = :site
+          AND product_group = :product_group
           AND Truck_Appointment_Date = :date
           AND Carrier_ID NOT IN ('SAIA-IP', 'CWF-IP')
           AND Ship_to_Customer NOT IN (

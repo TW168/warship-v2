@@ -1,0 +1,264 @@
+LOGISTICS MANAGERS' INDEX
+Home
+ 
+About
+ 
+Contact
+ 
+LMI Survey
+ 
+more...
+March 2026 Logistics Managers' Index
+Picture
+FOR RELEASE: Tuesday, April 7th, 2026
+Contact:  
+Zac Rogers, Ph.D.
+Logistics Manager’s Index Analyst
+Associate Professor, Supply Chain Management
+Department of Management
+Colorado State University
+Fort Collins, Colorado
+(970) 491-0890
+E-mail: Zac.Rogers@colostate.edu
+March 2026 Logistics Manager’s Index Report®
+LMI® at 65.7
+Growth is INCREASING AT AN INCREASING RATE for: Inventory Levels, Inventory Costs, Warehousing Prices, Transportation Utilization, and Transportation Prices
+Growth is INCREASING AT A DECREASING RATE for: Warehousing Utilization
+Warehousing Capacity and Transportation Capacity are CONTRACTING
+​(Fort Collins, CO) —The March Logistics Manager’s Index reads in at 65.7, up (+4.2) from February’s reading of 61.5. This is the fastest level of expansion since May 2022’s reading of 67.1. This is driven by continued expansion in the freight market. Transportation Prices skyrocketed (+12.7) in March to 89.4, which is the highest level since March of 2022. This stands in contrast with the continued contraction (-1.8) of Transportation Capacity at 39.2. The 50.2-point gap between these two metrics is the highest positive inversion since November 2021 at the height of the Covid era freight boom.
+ 
+It is notable that the Transportation Price reading of 89.4 in March of 2026 is so similar to the reading of 89.7 we saw in March of 2022. Much like the spike four years ago, the rapid increase this month is at least partially attributable to the start of an armed conflict that has limited available oil supplies. The invasion of Ukraine took approximately 10% of oil supplies off the board in 2022 and the conflict with Iran – and subsequent closure of the Strait of Hormuz – has taken approximately 20% of oil off the board in 2026. In 2022, this caused significant supply-drive inflation which slowed consumer demand and ultimately led to long-lasting freight recession. While there are some clear similarities in the logistics situations in 2026 and 2022, there are some differences as well. The chart below compares the March 2026 (green bars) and March 2022 (orange bars) LMI readings. Interestingly, Transportation Prices are the only metric that did not significantly differ between readings. The biggest difference between now and four years ago is the inventory situation. Inventory Levels were expanding quickly at 75.7 in early 2022, standing in contrast to 2026’s leaner, faster-turning Inventory Levels which are expanding only marginally at 54.8. This difference in overall inventories echoes in Inventory Costs (91.0 in 2022 to 76.2 in 2026), and across all three warehousing metrics – being most pronounced for Warehousing Costs, which were 90.5 in 2022 and are a much milder (although still strong) 67.4 in 2026.  
+ 
+Picture
+Picture
+The restrictions on Russian oil in 2022 came on the heels of the Covid-era supply crunch, in which massive inventories had been built up to fulfill ravenous consumer demand. Because of this, warehouses were full and costs were high. The subsequent freight recession hit so hard through 2022 and 2023 in part because the market had been riding so high – resulting in a “the bigger they are the harder they fall” dynamic. Things are different in 2026. As has been covered in recent LMI reports, inventories have been lean throughout 2026 to avoid the costs of tariffs. Freight activity was more easily able to slow down in 2022 because inventories were high, consumer demand dropped, and there was less product to move. With the current leanness of inventories, firms will not have large stores of goods and components to draw on, which may necessitate some continued movement in freight. The leanness extends to fleet sizes as well, which have right-sized considerably since 2022, meaning there will be less excess capacity this time around.
+ 
+The caveat here is that if higher fuel and goods prices negatively impact consumer and/or industrial demand, volumes may decrease regardless. This is a distinct possibility as the closure of the Strait of Hormuz is impacting double the amount of oil as the invasion of Ukraine. To boil it down: there are strong similarities between the situations in 2026 and 2022, but there are also differences. The transportation market seems to be booming and inventories are lean. However, the possibility for stockouts due to that leanness, as well as possible demand destruction due to increasing costs are realistic possibilities. Supply chains are more flexible than they were four years ago, but it remains to be seen how exactly this unique set of circumstances will impact the logistics industry going forward.
+Researchers at Arizona State University, Colorado State University, Florida Atlantic University, Rutgers University, and the University of Nevada, Reno, and in conjunction with the Council of Supply Chain Management Professionals (CSCMP) issued this report today.
+ 
+Results Overview
+The LMI score is a combination of eight unique components that make up the logistics industry, including: Inventory Levels and Costs, Warehousing Capacity, Utilization, and Prices, and Transportation Capacity, Utilization, and Prices. The LMI is calculated using a diffusion index, in which any reading above 50.0 indicates that logistics is expanding; a reading below 50.0 is indicative of a shrinking logistics industry. The latest results of the LMI summarize the responses of supply chain professionals collected in March 2026.
+The March LMI read in at 65.7, which is up (+4.2) from February’s reading of 61.5. This is well above the all-time average of 61.3 and is the fastest rate of expansion since May of 2022. This robust rate of expansion is consistent across respondents, with no significant differences between Upstream and Downstream (64.8 and 61.5), early and late (61.1 and 64.9) or large and small (64.2 and 61.4) respondents.
+The shifts in oil prices are happening against a mixed economic backdrop. The University of Michigan’s Survey of Consumers was down 5.8% in March to 53.3, which is the lowest reading since December. Expectations for the short-run economic outlook is down 14% and expected year-ahead inflation are up 0.4% to 3.8% - which is the highest expected value since April of 2025[1]. Meanwhile, the Organization for Economic Cooperation and Development forecasts the U.S. inflation will be up 4.2% in 2026. This is up sharply from their previous prediction of 2.8% expansion[2]. Beyond the immediate shocks to gasoline – which is up 36.4% since the invasion to $3.81 per gallon[3], there is evidence that costs are already creeping into every-day products such as groceries[4]  and personal health care items such as menstrual products[5]. The increase in the cost of essential goods like food, personal health products, and gasoline may draw consumer dollars away from non-essential goods. An early indicator of this may be the sharp, 10% year-over-year decline of personal automobiles in March, which G.M. and Toyota both blamed on uncertainty around personal finances and the cost of gasoline due to the war[6]. The shift away from durable goods may be exacerbated by the costs of the goods themselves as Chinese manufacturers predict an increase in their costs will likely be passed onto their customer around the world[7].
+ 
+The Eurozone is experiencing inflation as well, with prices up 2.5% year-over-year in March, which is the highest rate since January of 2025. This is catalyzed by a 4.9% increase in energy costs. Analysts believe more inflation could be coming given the potential secondary shocks to food and goods prices[8]. Germany, the Eurozone’s economic powerhouse, has cut growth forecasts for both 2026 and 2027 due to rising costs. This is particularly tough to swallow for the German economy which had only just begun to recover from a years-long slump[9]. Southeast Asian countries like Indonesia and the Philippines have been hit more immediately by the shutdown of the Strait of Hormuz. Asian countries are particularly reliant on the flows of oil and natural gas that come through the strait, accounting for nearly 80% of product flows. The shutdown has necessitated a swift restructuring of supply chains, generally at a high cost[10].
+ 
+This comes as the U.S. consumer price index was up 2.4% year-over-year, or 0.3% for the month. This is still above the Fed’s 2% target rate. Some analysts believe the February reading is the “calm before the storm” of March’s post-war reading[11]. The Yale Budget Lab reports that consumer prices are up 1.3-1.8% one year after the implementation of the Liberation Day tariffs, which is lower than the 2.3% increase they had initially predicted. The lower-than-expected impact is due partly to a exceptions, reductions in the levels of initially announced tariffs, as well as the agile adjustments made by global supply chains[12]. All told the 2025 tariffs levied an average $1,000 increase in costs for U.S. households, with the Tax Foundation estimating that, at current levels, households will face a $600 cost from tariffs[13]. The tariffs are still shifting, as epitomized by the recent move to tariff finished products made mainly with steel, aluminum, or copper at 25%. Goods with a smaller percentage of the metals will garner a smaller tariff of 15%. It is not yet clear what the breaking point between the 25% and 15% tariffs will be[14]. Even with this increase, Retail sales were up 0.6% in February. While some of this increase may be due to inflation, there is also evidence that volume of transactions was up as well. The NRF expects this strong consumer activity to continue at least through the Easter holiday[15]. That could be an improvement from the Christmas holiday as U.S. GDP was only up 0.7% in the fourth quarter of 2025. This is a significant drop from the 4.4 increase we saw in Q3. The downward revision came despite the uptick in the goods activity that fuels transportation networks[16].
+ 
+On the flip side, there was good news on the employment front, as the U.S. added an estimated 178,000 new jobs in March. This is consistent with the private data reported by ADP which showed the economy added 62,000 positions – up significantly from expectations of 39,000 new positions[17]. According to the BLS data, healthcare was the primary driver here with 76,000 positions, but transportation and warehousing were strong as well, with 21,000 positions added last month. Despite this positive news, analysts believe that the labor market still holds several challenges for job seekers. For instance, average earnings were up just 0.2% this month, which is lower than what had been expected. We also saw several people exit the workforce[18]. Another potential challenge lies in the reduced number of available jobs, which fell to 6.9 million in February, down 300,000 positions from January’s 7.2 million[19]. Despite these challenges, it is a marked improvement from the 92,000 U.S. jobs that were lost in February[20].
+ 
+The clear headline in March is the upward movement (+12.7) in Transportation Prices which expanded at the extreme rate of 89.4, which is the fastest pace since March 2022. The rate of change continued to increase throughout the month, going from 81.9 in early March to a stratospheric 94.0 in the second half of the month – an expansion rate that is close to the maximum of 100.0. This increase is being disproportionately borne by smaller respondents, which reported expansion of 92.7; significantly higher than the 84.6 reported by their larger respondents. This increase comes as diesel prices continue to expand, hitting $5.40 per gallon on March 30th. This is up 42% from the pre-invasion reading of $3.81 per gallon in late February. Three of the 11-largest week-to-week jumps in average U.S. diesel fuel were reported in March, with the largest of all time at 96 cents a gallon coming the week of March 9th. This is a similar dynamic to what we observed after the invasion of Ukraine in March of 2022, when there was an immediate 76 cents per gallon jump followed by several other increases throughout the rest of the year. Other large jumps in 2022 happened at the start of the summer season in May and during peak inventory season in mid-October[21]. This will be worth monitoring if the Strait of Hormuz remains closed for an extended period. In the critical California shipping market the diesel is up to $7.60 per gallon in the first week of April, which is the highest-ever recorded price[22]. Given the centrality of California for imports and exports it is highly likely these costs will bleed over into those goods. Fuel typically accounts for 20-25% of OTR costs, so significant increases here as likely to be passed through to shippers[23]. One alternative to high fuel costs may be a shift back towards intermodal. In 2025 intermodal rose on the back of consolidated loads to avoid tariffs. In March of 2026 intermodal was up 0.5% year-over-year – and 4.2% through the year, as firms have looked to avoid fuel surcharges[24].
+ 
+The increase is clearly being felt by large carriers. For the first time in its history the USPS announced a temporary price increase – with prices up by 8% – to cover increased fuel costs. These increases have spread to private carriers as well, with FedEx and UPS increasing their ground transportation prices by 26.5% and 27% respectively[25]. On the heels of Amazon’s enhanced delivery services, FedEx is attempting to compete with Amazon’s improved fulfillment abilities of their own by launching a service allowing customers to select a 1- or 2-hour shipping window to add more customization to last-mile delivery. Less speedy/customizable options will be available as a more budget friendly option[26]. This move comes as FedEx has surpassed UPS for the first time since 1999 to become the most valuable carrier. FedEx has largely passed UPS due to their cost-cutting initiatives. Both firms are delivering more packages than ever, but FedEx has done it at a slightly lower cost[27]. UPS’ cost cutting measures have hit a snag as protests led to them pulling their $150,000 buyout offer from union drivers as it has continued trying to right-size its fleet[28]. At the same time, smaller carriers and owner-operators (O-O’s) are being disproportionately impacted by high costs due to their lack of purchasing power of long-term contract rates. This will likely lead to either consolidation, a sidelining of O-O capacity, passing the costs onto shippers and consumers, or some combination thereof. Shippers that are more likely to feel this immediately are those moving things like produce or other goods that need to turn over quickly[29]. Some consolidation may be apparent in the twelve carriers with over 100 employees that filed for Chapter 11 bankruptcy during March[30].
+ 
+Despite the high costs, tightness in available freight capacity has persisted. Transportation Capacity dropped (-1.8) to 39.2. This is at least partially due to the reduction of fleet capacity of the last few years. The FreightWaves rejection index has been in double digits for most of this year, greatly exceeding what we saw through much of 2025[31]. Transportation Capacity is slightly tighter for larger respondents, which reported contraction at 33.3, which is marginally significantly lower than the 43.5 reported by smaller firms. Transportation Utilization continued to expand (+1.0) at 62.9, which is the fastest rate of expansion since May of 2022. Much like what we saw for price, the rate of expansion increased throughout the month, going from 56.9 early to 66.7 in the second half of March. It has also grown more quickly Upstream, coming in at 67.6+ to the 52.1 reported Downstream.
+ 
+Jet fuel has been impacted by the invasion of Iran as well. According to the Argus index, a gallon of jet fuel now costs $4.88 per gallon, which is up a staggering 95% from the $2.50 it cost the day before the start of the war[32]. Ocean container rates are facing similar dynamics. Hapag-Lloyd estimates that the closure of the Strait of Hormuz is costing it between $40-$50 million per week due to a combination of increased fuel costs as well as longer routes and increased navigational complexity[33]. Spot rates connecting Asia to the Middle East, Northern Europe, and the U.S. West Coast are all up around 30% since the end of February. This suggests that carriers are pushing a significant level of the cost stemming from both shortages and uncertainty on towards shippers[34].
+ 
+Inventory Level expansion increased slightly (+1.0) to 54.8. This was driven more by larger firms, who reported expansion at 62.5 – far outstripping the reading of 50.0 and no movement reported by smaller respondents. This difference carried over to costs, where larger respondents reported expansion of 82.8 to the 72.0 reported by smaller firms. Despite the significant statistical difference, these both represent significant expansion in Inventory Costs. Inventory Costs across the board are up (+8.4) to 76.2 which is the fastest rate of growth since August 2025.
+ 
+U.S. manufacturing output was up again in March, with the PMI reporting upward expansion of 52.7, up (+0.3) from February’s reading of 52.4. This is the third straight reading above 50.0, suggesting that the trend towards increased manufacturing activity has continued through Q1. This increase in production comes at a cost, as ISM’s price index is up to 78.3, its highest reading since the inflationary period of mid-2022[35]. Trade statistics also corroborate the movement towards leaner inventories, with the trade deficit of 57.3 billion coming in 55% lower than the same time last year when shippers were rushing goods in ahead of tariff implementations[36]. It is worth noting that Inventory Cost expansion increased significantly during the course of the year, going from the still-high rate of 71.6 early in the month to extreme expansion at 87.5 in the second half of March. If costs continue to rise, the lean, high-turnover inventory strategy that many firms had been employing for the first few months of 2026 may be at risk. Tariff cost pressure had provided incentives to break groups of inventory up, but now the higher cost of fuel may incentivize consolidation, putting shippers through a rock and a hard place. This is exacerbated for smaller firms, to whom increased fuel surcharges have felt like “tariffs 2.0”[37]. Inventory Cost increases are expected across the supply chain, with Downstream firms anticipating expansion at 66.7 and Upstream expecting growth of 77.6.
+ 
+Warehousing Capacity had been steady at 50.0 for the past two months, that changed in March, as the metric moved (-4.0) to contraction at 46.0. This move means that Warehousing Capacity has not increased through the first quarter of 2026. The shift from no movement to contraction seemed to have happened during the course of the month, as readings went from 50.0 early on to 43.3 in the second half of March. The popularity of larger warehouses over 500,000 square feet increased by 32% in 2025[38]. The additional 113 million square feet of warehousing space absorbed last year is likely an artifact of the high volumes of inventory that firms built up last year to avoid tariff costs. If inventories due remain lean this year we may see a move back towards smaller facilities. This may already be happening, as there is also anecdotal evidence that the increase costs of transportation are incentivizing retailers to move inventory into urban areas that are closer to end consumers to reduce LTL volumes[39].
+ 
+Warehousing Utilization expansion is down slightly (-0.6) to 59.8. Cold storage space has opened up in the last year due to slow demand and a possible overbuild of capacity. Net absorption of new reefer sites was 3.5 million square feet in 2025, down from the peak of 4.8 million in 2021[40]. We also see that several warehouses are being built specifically to support data center operation and construction. Friend of the index Dr. Jason Miller believes that this is due to “intense demand for... goods in a given geographic region” that will facilitate the efficient building of these in-demand sites[41]. Some of this may be contributing to the continued expansion of Warehousing Prices, which are up (+4.8) to 67.4. This is being primarily driven by Upstream respondents, who are reporting expansion of 77.0 which is statistically significantly higher than the still-robust 65.2 reported Downstream.
+
+It is notable all of the cost/price metrics are up significantly in March. Aggregate logistics costs combining all three metrics are up (+25.9) to 233.0 this month. This is the highest level since May 2022. In the past, aggregate logistic cost expansions over 220.0 have forerun some supply-driven inflation, readings over 240.0 are often highly inflationary. The expansion of 233 suggests that the increased cost of fuel is currently driving up logistics costs. The future aggregate logistics cost predictions of 241.2 suggest that this may continue to be the case. 
+
+Picture
+Respondents were asked to predict movement in the overall LMI and individual metrics 12 months from now. Respondent predictions for the overall index are 67.8, which is up (+1.5) from February’s future prediction of 66.3 and well above the all-time average of 61.3. Expectations of Inventory Levels remain fairly consistent (-2.6) at 58.8, signaling that firms expect a moderate increase in Inventory Levels along with robust expansion in Inventory Costs at 74.4. Respondents believe this will lead to tightness in both future Warehousing Capacity (55.2) as well as Transportation Capacity (34.9). This tight capacity will likely lead to robust expansion across all cost metrics, with Warehousing Prices (73.8) and Transportation Prices (93.0) both predicted to grow swiftly. The expansion rate of 93.0 for Transportation Prices would be one of the highest in the history of the index and signal a significant expansion. On aggregate, the three cost/price metrics come in at 241.2. In the past logistics cost expansion at that level was a forerunner of robust supply-driven inflation. If these predictions hold, it is possible that inflation will once again become in issue, which in turn could actually drive logistics demand back down. 
+Picture
+​
+We observe some differences when comparing feedback from Upstream (blue bars) and Downstream (orange bars) respondents in March. The most significant difference is in Inventory Costs, where Downstream respondents outstripped the rate of expansion reported by their Upstream counterparts 87.5 to 71.6. This discrepancy in costs follows a similar delta in Inventory Level expansion, where Downstream firms outpace Upstream respondents 62.5 to 51.7. At the same time, we see a significantly higher rate of Transportation Utilization expansion by Upstream (67.6) than Downstream (52.1) firms. These differences suggest that retailers are now expanding inventories more quickly than they had through the first two months of the year, and it may be that their Upstream suppliers are utilizing increased freight capacity to do so. The higher Upstream Transportation Utilization may also be indicative of the increased manufacturing activity that has persisted through much of 2026. It is also worth noting that both Upstream and Downstream firms reported extreme Transportation Price expansion at 89.9 and 89.6 respectively. This is up 20.2 and 31.3 points each from February, representing a significant shift. 
+Picture
+Picture
+​We also split future predictions by Downstream respondents (purple bars) and Upstream respondents (green bars). In a reverse of our current readings, Inventory Costs are significantly higher for Upstream (77.6) relative to Downstream (66.7) respondents. This difference comes in spite of the near parity predicted by both groups (58.2 Upstream and 60.4 Downstream) in Inventory Levels. We see a marked difference in Warehousing Prices as well, with Upstream firms predicting a significantly more robust rate of expansion (77.0) than their Downstream (65.2) counterparts. Taken together, this suggests that Upstream firms are expecting a much faster rate of logistics cost growth than their Downstream counterparts. 
+Picture
+Picture
+​
+We analyze any differences in responses collected in early (gold bars) versus late (green bars) March. For the third consecutive month, Transportation Prices expanded over time, moving (+12.1) from the already high 81.9 early in the month to 94.0 in the second half of March. We also saw marginally significant upward movement in Transportation Utilization, which went from marginal expansion at 56.9 to robust growth at 66.7. Transportation Capacity tightened as well (-8.5) moving from 44.4 to 36.0. The final notable (if non-statistically non-significant) movement was Warehousing Capacity going from essentially no movement (50.0) to contraction (43.3).
+Picture
+Picture
+​We also compare smaller firms (those with 0-999 employees, represented by maroon lines) to larger firms (those with 1,000 employees or more, represented by gold lines) in March. For the third consecutive month we find several significant differences between large and small respondents. Many of these differences stem from the delta in Inventory Levels, where smaller firms report no movement at 50.0 and larger firms report robust expansion at 62.5. This difference spills over into Inventory Costs, where small firms report robust growth at 72.0 while their larger counterparts report extreme expansion at 82.8. The high levels of inventory are clearly leading to high absorption of available Transportation Capacity, as large firms report extreme contraction at 33.3, significantly lower than the still strong contraction of 43.5 reported by smaller respondents. Despite the slower contraction in capacity, smaller firms report significantly higher expansion for Transportation Utilization (67.6 to 56.4) as well as Transportation Prices (92.7 to 84.6). This likely represents the struggle that small firms have had in procuring freight capacity this year, with many likely having to pay more exorbitant spot-rate prices and are not enjoying the same levels of relief from lower, contracted rates as their larger counterparts. 
+Picture
+Picture
+​
+The index scores for each of the eight components of the Logistics Managers’ Index, as well as the overall index score, are presented in the table below. The rate of expansion for the overall index is 65.7, which is up (+5.2) from February’s reading of 61.5. This is the highest reading for the overall metric since May of 2022. The expansion is driven by a four-year high in Transportation Prices, which are up (+12.7) to 89.4. Relatedly, available Transportation Capacity is down (-1.8) to 39.2, which is the lowest reading since September 2021 and the height of the Covid crunch. We also observe strong movement from Warehousing Prices (+4.8) at 67.8 and Inventory Costs (+8.4) at 76.2. The high expansion in costs comes despite the continued moderation in Inventory Levels, which expanded (+1.0) at the marginal rate of 54.8. Essentially, costs are expanding at a significant rate despite the relative leanness in inventories, highlighting the continual increase in costs. Aggregate costs are now at 233.0, which is their fastest rate of growth since May of 2022 at the height of inflation.
+Picture
+​Historic Logistics Managers’ Index Scores
+This period’s along with prior readings from the last two years of the LMI are presented table below:
+Picture
+LMI®
+The March Logistics Manager’s Index reads in at 65.7, which is up (+4.2) from February’s reading of 61.5 and is the highest reading since May of 2022. This is driven by continued strength among the transportation metrics and strong cost/price growth across the board. The overall expansion is consistent across respondents, with no significant differences between Upstream and Downstream, large and small firms, or between early and late March responses. As noted above, the overall index also increased when oil was restricted in March 2022. The key difference now is that inventories are relatively lean. While continued high prices will likely act as a headwind to demand, supply chains may be more structurally sound than they were at this same point four years ago.
+
+When asked to predict what conditions will be over the next 12 months, respondents foresee a rate of expansion of 67.8, which is up (+1.6) from February’s future prediction of 66.3, and would be comfortably above the all-time average of 61.3. Respondent expectations are consistent across the supply chain, with Upstream respondents predicting overall expansion of 64.8 and Downstream respondents predicting a very similar rate of expansion at 61.5.
+ 
+Picture
+​Inventory Levels
+ 
+The Inventory Level index is 54.8, up slightly (+1.0) from March’s reading of 53.8. Inventory Levels remain muted, coming in 6.4 points lower than a year ago, and 9.0 points lower than two years ago at this time. This movement was not consistent across different levels of the supply chain as Upstream respondents reported relatively flat levels (51.7), contrasting with strong expansion (62.5) Downstream. This lines up tightly with differences by size as Small respondents were exactly unchanged, at 50.0, while large respondents showed significant increases, at 62.5. Early respondents (54.4) and late (55.1) reported virtually identical numbers, showing small increases. The all-time average for Inventory Level expansion is 59.0, suggesting that firms are continuing to be cautious on inventory buildups.
+ 
+Predictions for future Inventory Level growth is 58.8, down (-2.6) from February’s future prediction of 61.4. Upstream (58.2) and downstream (60.4) showed similar expectations of significant increases over the next year. These values are very typical of the last two years.
+ 
+Picture
+​Inventory Costs
+ 
+Inventory Costs are 76.2, a significant increase (+8.4) from February’s already robust reading of 67.8. The value this month is 5.6 points above last year, and 9.4 points above two years ago. Upstream (71.6) reported lower costs than Downstream (87.5). Downstream costs are higher by 15.9 points. It is not surprising that Downstream costs are higher, given that Downstream Inventory Levels are higher, by 10.8 points. Early (77.3) and late (75.5) respondents gave similar answers. In both cases, though, the cost numbers are roughly 20 points higher than the inventory level numbers. Small firms (72.0) saw a significant increase in costs, and large firms (82.8) saw even larger increases for Inventory Costs. Large firms had a 12.5-point greater increase in Inventory Levels, and a 10.8 greater increase in Inventory Costs. What is surprising is how much small firms said costs increased, at 72.0, when they said Inventory Levels were exactly flat, at 50.0. This means nearly three-quarters of small firms said costs increased, even when levels did not.
+ 
+Predictions for future Inventory Cost growth is 74.4, up (+1.9) from February’s prediction of 72.5, suggesting that costs will continue to increase significantly over the next 12 months. Upstream firms reported a significant increase in costs, at 77.6. Downstream firms reported a smaller increase, at 66.7. Respondents clearly expect Inventory Costs to continue outpacing Inventory Levels.
+ 
+Picture
+Warehousing Capacity
+ 
+The reading for Warehousing Capacity for March 2026 registered in at 46.0, reflecting a 4.0-point drop from the month prior. This reading is down 6.3 points from the reading one year ago and is also up by 1.4-points from the reading two years ago. This is the first move back to contraction for this metric since June of last year, suggesting that space has begun tightening in a somewhat seasonal manner. In addition, there was a 3.0-point split between Upstream (46.8) and Downstream (43.8) which was not statistically significant (p>.1), but notable as both remain solidly in contractionary territory. Comparing the differences between small (<999 employees) and large (>999) employees we see that there is a 1.8-point difference between the two at 45.3 and 47.1. This split was not statistically significant (p >.1).
+​
+Finally, exploring the future predictions for Warehousing Capacity, respondents predict moderate expansion at 55.2, up (+3.6) from February’s prediction of close to no expansion at 51.6. Respondents across the supply chain predict similar movements, with Upstream predictions registering in at 54.0 and Downstream predictions registering in at 57.7, this 3.7-point difference is not statistically significant (p>.1).
+Picture
+Warehousing Utilization
+​
+ In a slight dip from last month, the Warehousing Utilization index registered in at 59.8-points for the month of March 2026, reflecting a 0.5 -point decrease from the month prior, pulling back slightly but remaining in expansion. This reading is virtually unchanged (down 0.1-points) from the reading one year ago, and down by 3.2 -points from the reading two years ago. In addition, there was a 0.9-point split between Upstream (59.5) and Downstream (60.4), but this difference was not statistically significant (p>.1). Comparing the differences between small (<999 employees) and large (>999) employees we see that these values are 60.4 and 58.8 with both small and large firms remaining in expansionary territory. This 1.6-point split was not statistically significant (p >.1).   
+Finally, exploring the future predictions for Warehousing Utilization, respondents predict expansion at 64.9, down (-4.1) from February’s future prediction of 69.0. Expectations for growth are consistent across the supply chain with future Upstream expectations (63.5) being predicted to be growing  at a slightly slower rate than Downstream expectations (68.8), where this 5.3-point difference was not statistically significant (p>.1).
+ 
+Picture
+​Warehousing Prices
+ 
+The Warehousing Pricing index has broken a two-month downtrend, with pricing increasing by 4.8 points to 67.4 for March 2026. This reading is up 6.4 points from the reading one year ago, and down 1.1-points from the reading two years ago. In addition, there was virtually no difference (.1-points) between Upstream (67.5) and Downstream (67.4) which was not statistically significant (p>.1). Comparing the differences between small (<999 employees) and large (>999) employees we see that these values are 66.0 and 68.8, reflecting a 2.8 -point difference between the two which was not statistically significant (p >.1).
+
+Finally, exploring the future predictions for Warehouse Price, respondents predict robust expansion at 73.8, up (+3.9) from February’s future prediction of 69.9 and representing what would be a significant rate of growth. Expectations across the supply chain are elevated, future Upstream expectations (77.0) being predicted to be increasing, at a faster rate than Downstream expectations (65.2). This month's 11.8-point difference was marginally significant (p<.1).
+ 
+Picture
+Transportation Capacity
+​
+The Transportation Capacity Index decreased 1.8 points to 39.2 percent in March 2026. With this decrease, the Transportation Capacity index remains below the critical threshold and continues to indicate contraction for the fourth consecutive month. With this decrease, the Transportation Capacity index is 14.4 points below the level indicated one year ago and 20.4 points below the level indicated two years ago. While the Upstream Transportation Capacity index is at 39.0, the Downstream index is at 39.6 but the difference is not statistically significant. Hence, the contraction observed in Transportation Capacity remains widespread across the supply chains and quite significant, when compared to historical seasonal trends.
+
+The future Transportation Capacity index indicates 34.9, down sharply (-10.0) from February’s future prediction of 44.9, representing strong expectations of indicating contraction for the next 12 months. Future Upstream index is at 33.1, the Downstream Transportation Capacity index is at 37.5, this difference is not statistically significant. As such, the expectations of strong contraction in future Transportation Capacity are prevalent across the supply chains, both Upstream and Downstream.
+Picture
+Transportation Utilization
+
+The Transportation Utilization Index increased 1 point to 62.9 in March 2026. With this increase the utilization index is at the highest level recorded in the last two years and 8.9 points higher than one year ago. The Downstream Transportation Utilization Index is now at 52.1, while the Upstream index indicates 67.6, and the difference is statistically significant.  As such, it can be concluded that the increase in Transportation Utilization is much stronger Upstream than Downstream.
+​
+Future predictions for Transportation Utilization read in at 67.9, down (-5.7) from February’s future prediction of 73.6. The future Upstream Transportation Utilization index at 69.4 and the Downstream index at 62.5 but the difference is not statistically significant. As such expectation of increased Transportation Utilization remains strong both Upstream and Downstream.
+Picture
+Transportation Prices
+
+The Transportation Prices Index jumped another 12.7 points from the previous reading and recorded 89.4 in March 2026. With this increase the index is at the highest level recorded since 2022. While the Upstream Transportation Prices Index is at 89.9, the Downstream index is at 89.6 but the difference is not statistically significant. As such, it can be concluded that the inflationary pressure on Transportation Prices is being felt strongly across the supply chains.
+​
+Future predictions for Transportation Prices are 93.0, up significantly (+12.7) from February’s future prediction of 80.3, indicating expectations for extreme expansions in price. The Upstream future Transportation Prices index is at 93.4 while the Downstream Transportation Prices index is at 91.7, and the difference is not statistically significant. Therefore, inflationary expectations in Transportation Prices are prevalent across the supply chains, both Upstream and Downstream. 
+.
+Picture
+About This Report
+​
+The data presented herein are obtained from a survey of logistics supply executives based on information they have collected within their respective organizations. LMI® makes no representation, other than that stated within this release, regarding the individual company data collection procedures. The data should be compared to all other economic data sources when used in decision-making.
+
+Data and Method of Presentation
+
+Data for the Logistics Manager’s Index is collected in a monthly survey of leading logistics professionals. The respondents are CSCMP members working at the director-level or above. Upper-level managers are preferable as they are more likely to have macro-level information on trends in Inventory, Warehousing and Transportation trends within their firm. Data is also collected from subscribers to both DC Velocity and Supply Chain Exchange as well. Respondents hail from firms working on all six continents, with the majority of them working at firms with annual revenues over a billion dollars. The industries represented in this respondent pool include, but are not limited to: Apparel, Automotive, Consumer Goods, Electronics, Food & Drug, Home Furnishings, Logistics, Shipping & Transportation, and Warehousing.
+Respondents are asked to identify the monthly change across each of the eight metrics collected in this survey (Inventory Levels, Inventory Costs, Warehousing Capacity, Warehousing Utilization, Warehousing Prices, Transportation Capacity, Transportation Utilization, and Transportation Prices). In addition, they also forecast future trends for each metric ranging over the next 12 months. The raw data is then analyzed using a diffusion index. Diffusion Indexes measure how widely something is diffused or spread across a group. The Bureau of Labor Statistics has been using a diffusion index for the Current Employment Statics program since 1974, and the Institute for Supply Management (ISM) has been using a diffusion index to compute the Purchasing Managers Index since 1948. The ISM Index of New Orders is considered a Leading Economic Indicator.
+ 
+We compute the Diffusion Index as follows:
+ 
+PD = Percentage of respondents saying the category is Declining,
+PU = Percentage of respondents saying the category is Unchanged,
+PI = Percentage of respondents saying the category is Increasing,
+Diffusion Index = 0.0 * PD + 0.5 * PU + 1.0 * PI
+ 
+For example, if 25 say the category is declining, 38 say it is unchanged, and 37 say it is increasing, we would calculate an index value of 0*0.25 + 0.5*0.38 + 1.0*0.37 = 0 + 0.19 + 0.37 = 0.56, and the index is increasing overall. For an index value above 0.5 indicates the category is increasing, a value below 0.5 indicates it is decreasing, and a value of 0.5 means the category is unchanged. When a full year’s worth of data has been collected, adjustments will be made for seasonal factors as well.
+
+Logistics Managers Index
+
+Requests for permission to reproduce or distribute Logistics Managers Index Content can be made by contacting in writing at: Dale S. Rogers, WP Carey School of Business, Tempe, Arizona 85287, or by emailing dale.rogers@asu.edu Subject: Content Request.
+The authors of the Logistics Managers Index shall not have any liability, duty, or obligation for or relating to the Logistics Managers Index Content or other information contained herein, any errors, inaccuracies, omissions, or delays in providing any Logistics Managers Index Content, or for any actions taken in reliance thereon. In no event shall the authors of the Logistics Managers Index be liable for any special, incidental, or consequential damages, arising out of the use of the Logistics Managers Index. Logistics Managers’ Index, and LMI® are registered trademarks. 
+
+About The Logistics Manager’s Index®
+
+The Logistics Manager’s Index (LMI) is a joint project between researchers from Arizona State University, Colorado State University, University of Nevada, Reno, Florida Atlantic University, and Rutgers University, supported by CSCMP. It is authored by Zac Rogers Ph.D., Steven Carnovale Ph.D., Shen Yeniyurt Ph.D., Ron Lembke Ph.D., and Dale Rogers Ph.D.
+ 
+ 
+
+[1] Hsu, J. (2026, March 30). Surveys of Consumers. University of Michigan Survey of Consumers. https://www.sca.isr.umich.edu/
+
+[2] Cox, J. (2026b, March 26). Global forecasting group sees U.S. inflation at 4.2% this year, much higher than Fed estimate. CNBC. https://www.cnbc.com/2026/03/26/global-forecasting-group-sees-us-inflation-at-4point2percent-this-year-much-higher-than-fed-estimate.html
+
+[3] U.S. Energy Information Administration. (2026, March 30). Gasoline and Diesel Fuel Update. PETROLEUM & OTHER LIQUIDS - March 30, 2026. https://www.eia.gov/petroleum/gasdiesel/index.php
+
+[4] Downs, G. (2026, April 2). Grocery shock on the horizon for approaching U.S. elections as Iran war drags on. CNBC. https://www.cnbc.com/2026/04/02/grocery-shock-on-the-horizon-for-us-elections-as-iran-war-drags-on.html
+
+[5] Neelakandan, L. (2026, March 22). The price of menstrual products is skyrocketing from inflation, tariffs. CNBC. https://www.cnbc.com/2026/03/22/menstrual-products-tampons-feminine-care-prices-inflation.html
+
+[6] Ewing, J. (2026, April 1). G.M. Reports Sharp Decline in Car Sales Amid War and High Prices. The New York Times. https://www.nytimes.com/2026/04/01/business/gm-toyota-hyundai-honda-sales.html
+
+[7] Yoon, E. (2026, March 30). China suppliers warn of higher prices for Americans due to Strait of Hormuz closure. CNBC. https://www.cnbc.com/2026/03/30/china-suppliers-warn-higher-us-prices-hormuz-closure.html
+
+[8] Frankl, E. (2026, March 31). Eurozone Inflation Jumps as Iran War Raises Energy Prices. Wall Street Journal. https://www.wsj.com/economy/global/eurozone-inflation-jumps-as-iran-war-cranks-energy-prices-higher-d5ff55b9
+ 
+
+[9] Moulson, G. (2026, April 1). German growth forecast cut as Europe scrambles to contain price shock from Iran war. AP News. https://apnews.com/article/europe-germany-economy-growth-iran-war-inflation-6dd8a19413de5ba1f788b0f5b447d6b7
+
+[10] Ben-Achour, W. in the M. E. S., & Schroeder, A. (2026, April 1). War in Middle East causes oil shortages in parts of Asia. Marketplace. https://www.marketplace.org/story/2026/04/01/war-in-middle-east-causes-oil-shortages-in-parts-of-asia
+
+[11] Cox, J. (2026a, March 11). Consumer prices rose 2.4% annually in February, as expected. CNBC. https://www.cnbc.com/2026/03/11/cpi-inflation-report-february-2026.html
+
+[12] Yale Budget Lab. (2026, April 2). One Year of Tariff Analysis: What We Got Right, What Changed, and What We Learned | The Budget Lab at Yale. https://budgetlab.yale.edu/research/one-year-tariff-analysis-what-we-got-right-what-changed-and-what-we-learned
+
+[13] Tax Foundation. (2026, March 13). Tracking the Economic Impact of the Trump Tariffs. Tax Foundation. https://taxfoundation.org/research/all/federal/trump-tariffs-trade-war/
+
+[14] Bade, G., & Tita, B. (2026, April 1). Trump Overhauls Metal Tariffs. Wall Street Journal. https://www.wsj.com/economy/trade/trump-expected-to-overhaul-steel-aluminum-tariffs-53e3574f
+
+[15] Javier, C. (2026, April 1). Retail sales were up in February, but Middle East war may drag them down. Marketplace. https://www.marketplace.org/story/2026/04/01/retail-sales-were-up-in-february-but-war-may-drag-them-down
+ 
+
+[16] Bureau of Economic Analysis. (2026, March 13). GDP (Second Estimate), 4th Quarter and Year 2025 | U.S. Bureau of Economic Analysis (BEA). https://www.bea.gov/news/2026/gdp-second-estimate-4th-quarter-and-year-2025
+
+[17] Grossman, M. (2026, April 1). Private-Sector Job Growth Steady in March. Wall Street Journal. https://www.wsj.com/economy/jobs/private-sector-job-growth-steady-in-march-per-adp-9dab5be9
+
+[18] Cox, J. (2026c, April 3). U.S. payrolls rose by 178,000 in March, more than expected; unemployment at 4.3%. CNBC. https://www.cnbc.com/2026/04/03/jobs-report-march-2026-.html
+
+[19] Coacci, J. (2026, March 31). U.S. Job Openings and Hiring Fell in February. Wall Street Journal. https://www.wsj.com/economy/jobs/u-s-job-openings-and-hiring-fell-in-february-39d3e609
+
+[20] Horsley, S. (2026, March 6). The U.S. unexpectedly loses 92,000 jobs, adding to worries about the economy. NPR. https://www.npr.org/2026/03/06/nx-s1-5737603/jobs-labor-market-economy
+ 
+
+[21] U.S. Energy Information Administration. (2026, March 30). Gasoline and Diesel Fuel Update. PETROLEUM & OTHER LIQUIDS - March 30, 2026. https://www.eia.gov/petroleum/gasdiesel/index.php
+
+[22] Dickerson, K., & Lloyd, J. (2026, April 2). Diesel fuel prices reach all-time highs in California. NBC Los Angeles. https://www.nbclosangeles.com/news/local/diesel-fuel-prices-california/3870565/
+
+[23] Strickland, Z. (2026a, March 8). Rapid fuel price jump hits transportation hard. FreightWaves. https://www.freightwaves.com/news/rapid-fuel-price-jump-hits-transportation-hard
+
+[24] Chirls, S. (2026a, April 1). Intermodal rail edges ahead of carloads in flat week. FreightWaves. https://www.freightwaves.com/news/intermodal-rail-edges-ahead-of-carloads-in-flat-week
+
+[25] Young, L. (2026c, April 3). Fuel Surcharges Hit Small Businesses as ‘Tariffs 2.0.’ Wall Street Journal. https://www.wsj.com/logistics-report/fuel-surcharges-hit-small-businesses-as-tariffs-2-0-de1eeeec
+
+[26] Fung, E., & Kellaher, C. (2026, March 24). FedEx Unveils ‘SameDay Local’ Faster Delivery Service. Wall Street Journal. https://www.wsj.com/business/logistics/fedex-unveils-sameday-local-faster-delivery-service-75dfee35
+
+[27] Fung, E. (2026, March 13). FedEx Overtakes UPS as the New King of Delivery. Wall Street Journal. https://www.wsj.com/business/logistics/fedex-overtakes-ups-as-the-new-king-of-delivery-7b9712eb
+
+[28] Kulisch, E. (2026, March 25). UPS retracts driver buyout option in 13 states under union pressure. FreightWaves. https://www.freightwaves.com/news/ups-retracts-driver-buyout-option-in-13-states-under-union-pressure
+
+[29] Mitovich, J., & Whalen, J. (2026, March 22). $5 Diesel is Crushing Truckers. It Will Soon Be Felt Across the Economy. Wall Street Journal. https://www.wsj.com/economy/truckers-are-the-first-victims-of-the-diesel-price-shock-52ff802d
+
+[30] Mahoney, N. (2026, March 30). Freight bankruptcies mount in March as trucking, logistics firms file Chapter 11. FreightWaves. https://www.freightwaves.com/news/freight-bankruptcies-mount-in-march-as-trucking-logistics-firms-file-chapter-11
+
+[31] Strickland, Z. (2026b, March 22). Truckload’s tightness persists into spring. FreightWaves. https://www.freightwaves.com/news/truckloads-tightness-persists-into-spring
+
+[32] Argus. (2026, April 2). Daily Jet Fuel Spot Prices. Airlines For America. https://www.airlines.org/dataset/argus-us-jet-fuel-index/
+
+[33] Roach, A. (2026, March 30). Iran Conflict Strains Global Supply Chains, With Secondary Impacts Emerging. Inbound Logistics. https://www.inboundlogistics.com/articles/iran-conflict-strains-global-supply-chains-with-secondary-impacts-emerging/
+
+[34] Chirls, S. (2026b, April 2). Strait of Hormuz closure pushes Asia-US ocean rates up 29%. FreightWaves. https://www.freightwaves.com/news/strait-of-hormuz-closure-pushes-asia-us-ocean-rates-up-29
+
+[35] Staff, 24/7. (2026, April 3). Manufacturing Grows for Third Straight Month as Output Improves. Supply Chain 24/7. https://www.supplychain247.com/article/ism-manufacturing-growth-march-2026-slowdown-risks
+
+[36] Grossman, M., & DeBarros, A. (2026, April 2). Trade Deficit Grew in February as Policy Continued to Swing. Wall Street Journal. https://www.wsj.com/economy/trade/trade-deficit-grew-in-february-as-policy-continued-to-swing-6b58316e
+
+[37] Young, L. (2026c, April 3). Fuel Surcharges Hit Small Businesses as ‘Tariffs 2.0.’ Wall Street Journal. https://www.wsj.com/logistics-report/fuel-surcharges-hit-small-businesses-as-tariffs-2-0-de1eeeec
+ 
+
+[38] Supply Chain 24/7 Staff, 247. (2026, March 13). Demand for Big-Box Warehouse Jumps as Big-Box Leasing Rebounds. Supply Chain 24/7. https://www.supplychain247.com/article/large-warehouse-leasing-rebounds-us
+
+[39] Roach, A. (2026, March 30). Iran Conflict Strains Global Supply Chains, With Secondary Impacts Emerging. Inbound Logistics. https://www.inboundlogistics.com/articles/iran-conflict-strains-global-supply-chains-with-secondary-impacts-emerging/
+
+[40] Young, L. (2026b, March 26). Exclusive | Cold-Storage Vacancies Hit 20-Year High. Wall Street Journal. https://www.wsj.com/logistics-report/cold-storage-vacancies-hit-20-year-high-24a8b1b2
+
+[41] Young, L. (2026a, March 19). Exclusive | DHL Supply Chain Powers Up Warehouses to Supply Data Centers. Wall Street Journal. https://www.wsj.com/logistics-report/dhl-supply-chain-powers-up-warehouses-to-supply-data-centers-9fd1ebca
+ 
+Proudly powered by Weebly
