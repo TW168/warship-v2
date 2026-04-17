@@ -152,6 +152,7 @@ This app targets a professional internal tool audience. Every page must feel pol
 - **Font:** Open Sans via Google Fonts — load in `base.html`
 - **Framework:** Bootstrap 5 — use utility classes first, custom CSS only when Bootstrap cannot achieve the result
 - **Icons:** Bootstrap Icons (`bi-*`) — consistent throughout, never mix icon libraries
+- **Dashboard visual language:** Use the shared Greptile-inspired light shell (soft radial background accents, glassy white surfaces, rounded cards, and compact section bars) for newly refreshed pages.
 - **Section headings:** Reuse a shared heading style for dashboard/page sections so titles keep the same font family, weight, size, and IBM Blue treatment across cards and subsections
 - **Page and card headers:** Use the shared global classes in `static/css/custom.css` for page titles, default card headers, primary card headers, and filter cards; avoid inline header colors in templates
 
