@@ -32,8 +32,12 @@ main {
 .navbar-warship {
   background-color: rgba(255, 255, 255, 0.94);
   border-bottom: 1px solid var(--ws-border);
+  position: sticky;
+  top: 0;
+  z-index: 1030;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
 }
 
 .navbar-warship .navbar-brand {

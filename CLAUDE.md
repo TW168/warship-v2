@@ -171,7 +171,7 @@ This app targets a professional internal tool audience. Every page must feel pol
 
 ### Responsiveness
 - Mobile-first. Every layout must work at 375 px wide.
-- Navbar collapses to hamburger on small screens
+- Navbar collapses to hamburger on small screens and remains sticky at the top during scroll
 - Tables that cannot reflow wrap in `table-responsive`
 
 ### Accessibility
