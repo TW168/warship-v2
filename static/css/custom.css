@@ -39,15 +39,95 @@ body {
 
 /* ── Page layout ─────────────────────────────────────────────── */
 .page-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   border-bottom: 2px solid #154e9a;
-  padding-bottom: 0.5rem;
+  padding-bottom: 0.6rem;
   margin-bottom: 1.5rem;
   color: #154e9a;
+  font-size: 1.35rem !important;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.page-header i {
+  color: inherit;
+  font-size: 1.05rem;
+}
+
+.section-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  color: #154e9a;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.section-title i {
+  color: inherit;
+  font-size: 0.95rem;
+}
+
+.home-section-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  color: #154e9a;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.home-section-title i {
+  color: inherit;
+  font-size: 0.9rem;
+}
+
+.home-card-header {
+  background-color: #ffffff;
+  border-bottom: 1px solid #e9ecef;
 }
 
 /* ── Cards ───────────────────────────────────────────────────── */
 .card {
-  border: none;
+  background-color: #ffffff;
+  border: 1px solid #dee2e6;
+  border-radius: 0.85rem;
+  overflow: hidden;
+}
+
+.card-header {
+  padding: 0.85rem 1rem;
+  background-color: #ffffff;
+  color: #154e9a;
+  border-bottom: 1px solid #dee2e6;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.card-header i {
+  color: inherit;
+}
+
+.card-header-primary {
+  background-color: #154e9a !important;
+  color: #ffffff !important;
+  border-bottom-color: #154e9a;
+}
+
+.card-header-soft {
+  background-color: #f0f5ff !important;
+  color: #154e9a !important;
+}
+
+.filter-card .card-body {
+  padding-top: 0.9rem;
+  padding-bottom: 0.9rem;
 }
 
 /* ── Tables ──────────────────────────────────────────────────── */

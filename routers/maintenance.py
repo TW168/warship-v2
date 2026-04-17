@@ -690,6 +690,69 @@ async def lmi_analyze(body: AnalyzeRequest) -> StreamingResponse:
     )
 
 
+@router.get(
+    "/lmi/briefing-analysis",
+    summary="Cross-month LMI analysis for Briefing page",
+    description=(
+        "Reads all LMI text files, builds a 15-month timeline, and streams "
+        "a structured 5-question analysis from deepseek-r1:8b via Ollama."
+    ),
+)
+async def lmi_briefing_analysis() -> StreamingResponse:
+    """Stream a full cross-month LMI market analysis for the Operations Briefing page."""
+    import re as _re
+
+    _MONTH_MAP = {
+        "jan": 1, "feb": 2, "mar": 3, "apr": 4, "may": 5, "jun": 6,
+        "jul": 7, "aug": 8, "sep": 9, "oct": 10, "nov": 11, "dec": 12,
+    }
+    _SCORE_RE = _re.compile(r'LMI[®\s]{0,5}at\s+([\d]+\.[\d]+)', _re.IGNORECASE)
+
+    records = []
+    for f in sorted(_LMI_DIR.glob("*.txt")):
+        stem = f.stem.lower()
+        m = _re.match(r"lmi_([a-z]+)_?(\d{4})", stem)
+        if not m:
+            continue
+        mo = _MONTH_MAP.get(m.group(1)[:3])
+        if not mo:
+            continue
+        month_id = f"{m.group(2)}-{mo:02d}"
+        text = f.read_text(encoding="utf-8", errors="ignore")
+        score_m = _SCORE_RE.search(text)
+        score = score_m.group(1) if score_m else "?"
+        paras = [l.strip() for l in text.splitlines() if len(l.strip()) > 100]
+        body = " | ".join(paras[:5])[:1200]
+        records.append((month_id, score, body))
+
+    records.sort(key=lambda x: x[0])
+    timeline = "\n".join(
+        f"{mid} (LMI {score}): {body}" for mid, score, body in records
+    )
+
+    prompt = (
+        "You are a blunt, senior logistics analyst. Read the following 15 months of LMI source data.\n"
+        "Every claim you make MUST cite the exact month and score from the text below.\n\n"
+        "--- SOURCE DATA START ---\n"
+        f"{timeline}\n"
+        "--- SOURCE DATA END ---\n\n"
+        "Answer these 5 questions. Be direct. Use month-year and scores as evidence. No fluff.\n\n"
+        "**Q1. TREND ARC** (2-3 sentences): Summarize Jan 2025 → Mar 2026 as one coherent story using actual scores.\n\n"
+        "**Q2. THREE TURNING POINTS**: For each, give month, score, score change, and the specific cause from the source text.\n\n"
+        "**Q3. MOST UNUSUAL READING**: Which single sub-metric value in any month is most abnormal? "
+        "Quote the exact source text phrase that explains why.\n\n"
+        "**Q4. MAR 2026 SIGNAL**: LMI 65.7, Transportation Prices 89.4. Based on the source text explanation "
+        "of WHY (Strait of Hormuz / oil supply), what specifically should freight buyers expect in Q2 2026?\n\n"
+        "**Q5. AMJK ACTION**: For a plastic film shipper in Houston with heavy outbound truck loads, "
+        "what is the ONE most important action right now? Base it only on what the source text says."
+    )
+
+    return StreamingResponse(
+        _stream_ollama(prompt),
+        media_type="text/plain; charset=utf-8",
+    )
+
+
 # ---------------------------------------------------------------------------
 # Truck Load Map
 # ---------------------------------------------------------------------------

@@ -61,7 +61,7 @@
     <div class="card shadow-sm h-100 border-top border-primary border-3">
 
       <!-- Card header: group name -->
-      <div class="card-header fw-bold fs-6" style="background-color: #f0f5ff;">
+      <div class="card-header card-header-soft fw-bold fs-6">
         {{ icon }} {{ row.Group }}
       </div>
 
@@ -129,7 +129,7 @@
 {% set avg_per_lb = (_weighted_sum.val / total_weight) if total_weight > 0 else 0.0 %}
 
 <div class="card shadow-sm border-secondary">
-  <div class="card-header fw-bold bg-secondary text-white">
+  <div class="card-header card-header-primary fw-bold">
     <i class="bi bi-calculator me-2"></i>Report Elements
   </div>
   <div class="card-body">

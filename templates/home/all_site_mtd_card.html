@@ -7,7 +7,7 @@
 </div>
 {% else %}
 <div class="card shadow-sm border-secondary">
-  <div class="card-header fw-bold bg-secondary text-white d-flex justify-content-between align-items-center">
+  <div class="card-header card-header-primary d-flex justify-content-between align-items-center">
     <span><i class="bi bi-table me-2"></i>All Site Month to Date shipped weight and pallets counts</span>
     {% if all_site_mtd_rows and all_site_mtd_rows[0].year_month %}
       <span class="badge bg-light text-secondary">{{ all_site_mtd_rows[0].year_month }}</span>
