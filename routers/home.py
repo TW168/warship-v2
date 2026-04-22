@@ -1184,7 +1184,10 @@ async def amjk_frt_ytd_vs_avg() -> JSONResponse:
         else:
             ytd_frt = float(ytd_frt_val)
             ytd_wt  = float(ytd_wt_val)
-            ytd_n   = month_count
+            # Use actual current date for YTD calculation (completed months)
+            # April 2026 = 3 completed months (Jan, Feb, Mar)
+            current_month = _dt.date.today().month
+            ytd_n = max(1, current_month - 1)  # At least 1 month, even in January
 
     wb.close()
 
