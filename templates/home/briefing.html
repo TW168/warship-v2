@@ -254,7 +254,59 @@
       </div>
     </div>
 
-    <!-- 2. YTD Carrier ID Usage ─────────────────────────────── -->
+    <!-- 4. Pick Weight Trend by Year ──────────────── -->
+    <div class="col-md-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header card-header-primary d-flex align-items-center justify-content-between">
+          <span>
+            <i class="bi bi-boxes me-2" aria-hidden="true"></i>
+            Pick Weight Trend by Year
+            <span class="badge text-bg-light text-secondary fw-normal ms-1" style="font-size:0.7rem;">
+              <span id="weightTrendSiteLabel">AMJK</span> · <span id="weightTrendProductLabel">SW</span> · 2023–2026
+            </span>
+          </span>
+          <div class="d-flex align-items-center gap-2">
+            <!-- Site selector -->
+            <select id="weightTrendSite" class="form-select form-select-sm" style="width:auto; font-size:0.75rem;">
+              <option value="AMJK">AMJK</option>
+              <option value="TXAS">TXAS</option>
+              <option value="AMIN">AMIN</option>
+              <option value="AMAZ">AMAZ</option>
+            </select>
+            <!-- Product group selector -->
+            <select id="weightTrendProduct" class="form-select form-select-sm" style="width:auto; font-size:0.75rem;">
+              <option value="SW">SW</option>
+              <option value="BP">BP</option>
+              <option value="CT">CT</option>
+              <option value="YA">YA</option>
+            </select>
+            <!-- Carrier exclusion checkbox -->
+            <div class="form-check" style="font-size:0.75rem;">
+              <input class="form-check-input" type="checkbox" id="weightTrendExcludeCarriers" style="transform:scale(0.8);">
+              <label class="form-check-label text-white" for="weightTrendExcludeCarriers" style="font-size:0.7rem; margin-left:2px;">
+                Exclude SAIA-IP & CWF-IP
+              </label>
+            </div>
+            <span id="weightTrendSpinner"
+                  class="spinner-border spinner-border-sm text-white opacity-75"
+                  role="status" aria-label="Loading"
+                  style="width:1rem;height:1rem;"></span>
+          </div>
+        </div>
+        <div class="card-body p-2">
+          <div id="weightTrendChart" style="height:320px;"></div>
+        </div>
+        <div class="card-footer text-muted" style="font-size:0.75rem;">
+          Source: Warship database · <code>sp_bl_lbs_cnt_carrier</code> · Pick weight monthly trends by year (2023–2026).
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Second Row: YTD Carrier Usage ──────────────────────── -->
+  <div class="row g-4 briefing-grid mt-2">
+    <!-- YTD Carrier ID Usage (moved from above) ────────────────── -->
     <div class="col-md-6">
       <div class="card shadow-sm h-100">
         <div class="card-header card-header-primary d-flex align-items-center justify-content-between">
@@ -275,6 +327,16 @@
         </div>
       </div>
     </div>
+
+    <!-- Empty space for now - can add another chart later -->
+    <div class="col-md-6">
+      <!-- Future chart placeholder -->
+    </div>
+
+  </div>
+
+  <!-- ── Third Row: Full-width charts ──────────────────────── -->
+  <div class="row g-4 briefing-grid mt-2">
 
     <!-- 3. Freight ¢/lb by Product Code (YTD) + explanation — keep on one printed page -->
     <div class="col-12 print-group-boxplot">
@@ -1048,6 +1110,118 @@
     
     // Initial load
     loadFreightTrendChart();
+  })();
+
+
+  /* ── Pick Weight Trend by Year ────────────────────────────
+     Fetches /api/analytics/pick-weight-trend and renders multi-line chart:
+     Each year is a separate line showing monthly pick weight trend.
+  ──────────────────────────────────────────────────────────────────── */
+  (function () {
+    var currentSite = 'AMJK';
+    var currentProduct = 'SW';
+    var excludeCarriers = false;
+    
+    function loadPickWeightTrendChart() {
+      document.getElementById('weightTrendSpinner').style.display = 'inline-block';
+      
+      var url = '/api/analytics/pick-weight-trend?site=' + currentSite + 
+                '&product_group=' + currentProduct + 
+                '&exclude_carriers=' + excludeCarriers;
+      
+      fetch(url)
+        .then(function (r) {
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return r.json();
+        })
+        .then(function (data) {
+          if (!data.series || data.series.length === 0) {
+            throw new Error('No data available');
+          }
+          
+          // Prepare Plotly traces (one per year)
+          var traces = data.series.map(function (yearData) {
+            return {
+              x: yearData.data.map(function (d) { return d.month; }),
+              y: yearData.data.map(function (d) { return d.weight_millions; }),
+              mode: 'lines+markers',
+              name: yearData.year.toString(),
+              line: { width: 2 },
+              marker: { size: 4 },
+              hovertemplate: 
+                '<b>%{fullData.name}</b><br>' +
+                'Month: %{x}<br>' +
+                'Weight: %{y:.2f}M lbs<br>' +
+                '<extra></extra>'
+            };
+          });
+          
+          // Chart layout
+          var layout = {
+            margin: { l: 60, r: 20, t: 20, b: 40 },
+            xaxis: {
+              title: 'Month',
+              tickmode: 'linear',
+              tick0: 1,
+              dtick: 1,
+              range: [0.5, 12.5],
+              showgrid: true
+            },
+            yaxis: {
+              title: 'Pick Weight (Million lbs)',
+              showgrid: true
+            },
+            showlegend: true,
+            legend: {
+              orientation: 'h',
+              x: 0,
+              y: 1.02,
+              bgcolor: 'rgba(255,255,255,0.8)'
+            },
+            hovermode: 'closest'
+          };
+          
+          var config = {
+            responsive: true,
+            displayModeBar: false
+          };
+          
+          Plotly.newPlot('weightTrendChart', traces, layout, config);
+          
+          // Update labels
+          document.getElementById('weightTrendSiteLabel').textContent = currentSite;
+          document.getElementById('weightTrendProductLabel').textContent = currentProduct;
+          
+          document.getElementById('weightTrendSpinner').style.display = 'none';
+        })
+        .catch(function (err) {
+          document.getElementById('weightTrendChart').innerHTML =
+            '<div class="alert alert-warning m-3">' +
+            '<i class="bi bi-exclamation-triangle me-2"></i>' +
+            'Chart unavailable: ' + err.message + '</div>';
+          document.getElementById('weightTrendSpinner').style.display = 'none';
+        });
+    }
+    
+    // Event listeners for selectors
+    document.getElementById('weightTrendSite').addEventListener('change', function (e) {
+      currentSite = e.target.value;
+      loadPickWeightTrendChart();
+    });
+    
+    document.getElementById('weightTrendProduct').addEventListener('change', function (e) {
+      currentProduct = e.target.value;
+      loadPickWeightTrendChart();
+    });
+    
+    // Event listener for carrier exclusion checkbox
+    document.getElementById('weightTrendExcludeCarriers').addEventListener('change', function (e) {
+      excludeCarriers = e.target.checked;
+      loadPickWeightTrendChart();
+    });
+    
+    // Initial load
+    loadPickWeightTrendChart();
   })();
 
 

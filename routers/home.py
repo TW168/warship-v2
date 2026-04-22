@@ -1257,3 +1257,146 @@ async def amjk_frt_ytd_vs_avg(
             "total_records_final": len(df)
         }
     })
+
+
+# ── Pick Weight Trend by Year ──────────────────────────────────────────────
+# Uses warship.sp_bl_lbs_cnt_carrier stored procedure for pick_weight data.
+# Returns pick weight data grouped by year for multi-line chart display.
+# Each year becomes a separate line on the chart.
+
+
+@router.get(
+    "/api/analytics/pick-weight-trend",
+    summary="Pick weight trend by year (multi-line chart data)",
+    description=(
+        "Calls warship.sp_bl_lbs_cnt_carrier stored procedure with parameterized "
+        "site and product_group. Returns monthly pick weight data "
+        "grouped by year (2023–current). Each year is a separate series for multi-line charts."
+    ),
+)
+async def pick_weight_trend(
+    site: str = Query(default="AMJK", description="Site code, e.g. 'AMJK'"),
+    product_group: str = Query(default="SW", description="Product group, e.g. 'SW'"),
+    exclude_carriers: bool = Query(default=False, description="Exclude SAIA-IP and CWF-IP carriers"),
+) -> JSONResponse:
+    """Return pick weight data grouped by year from stored procedure for multi-line chart."""
+    import datetime as _dt
+    
+    today = _dt.date.today()
+    
+    try:
+        with _engine.connect() as conn:
+            # Call stored procedure from 2023-01-01 to today
+            dbapi_conn = conn.connection
+            cursor = dbapi_conn.cursor(dictionary=True)
+            
+            try:
+                cursor.callproc(
+                    "sp_bl_lbs_cnt_carrier",
+                    [
+                        "2023-01-01",
+                        today.isoformat(),
+                        site,
+                        product_group,
+                    ],
+                )
+                
+                # Fetch all results from stored procedure
+                sp_rows: list[dict] = []
+                for result_set in cursor.stored_results():
+                    sp_rows.extend(result_set.fetchall())
+                    
+            finally:
+                cursor.close()
+                
+    except Exception as exc:
+        return JSONResponse(status_code=500, content={"error": str(exc)})
+
+    if not sp_rows:
+        return JSONResponse(status_code=404, content={"error": "No data found for specified parameters"})
+
+    # Convert to DataFrame for easier processing
+    df = pd.DataFrame(sp_rows)
+    
+    # Ensure required columns exist
+    if "Truck_Appointment_Date" not in df.columns:
+        return JSONResponse(status_code=500, content={"error": "Missing Truck_Appointment_Date column"})
+    
+    # Filter out excluded carriers if requested
+    records_after_carrier_filter = len(sp_rows)
+    if exclude_carriers:
+        excluded_carrier_list = ["SAIA-IP", "CWF-IP"]
+        carrier_col = None
+        # Find the carrier column (case insensitive)
+        for col in df.columns:
+            if 'carrier' in col.lower():
+                carrier_col = col
+                break
+        
+        if carrier_col:
+            df = df[~df[carrier_col].isin(excluded_carrier_list)]
+            records_after_carrier_filter = len(df)
+    
+    # Convert date column to datetime
+    df["Truck_Appointment_Date"] = pd.to_datetime(df["Truck_Appointment_Date"], errors="coerce")
+    df = df.dropna(subset=["Truck_Appointment_Date"])
+    
+    # Extract year and month
+    df["year"] = df["Truck_Appointment_Date"].dt.year
+    df["month"] = df["Truck_Appointment_Date"].dt.month
+    
+    # Ensure numeric columns
+    df["pick_weight"] = pd.to_numeric(df.get("pick_weight", 0), errors="coerce").fillna(0.0)
+    
+    # Group by year and month, aggregate data
+    monthly_data = (
+        df.groupby(["year", "month"])
+        .agg({
+            "pick_weight": "sum",
+            "BL_Number": "nunique"  # count unique bill of lading numbers
+        })
+        .reset_index()
+    )
+    
+    # Convert lbs to millions for better display
+    monthly_data["weight_millions"] = monthly_data["pick_weight"] / 1_000_000
+    
+    # Group data by year for multi-line chart
+    by_year = defaultdict(list)
+    for _, row in monthly_data.iterrows():
+        by_year[int(row["year"])].append({
+            "month": int(row["month"]),
+            "total_weight_lbs": round(float(row["pick_weight"]), 0),
+            "weight_millions": round(float(row["weight_millions"]), 2),
+            "load_count": int(row["BL_Number"])
+        })
+    
+    # Sort months within each year and prepare result
+    for year in by_year:
+        by_year[year].sort(key=lambda x: x["month"])
+    
+    # Format result for multi-line chart
+    result = [
+        {
+            "year": year,
+            "site": site,
+            "product_group": product_group,
+            "data": year_data
+        }
+        for year, year_data in sorted(by_year.items())
+    ]
+    
+    return JSONResponse(content={
+        "series": result,
+        "metadata": {
+            "site": site,
+            "product_group": product_group,
+            "date_range": f"2023-01-01 to {today.isoformat()}",
+            "exclude_carriers": exclude_carriers,
+            "excluded_carriers": ["SAIA-IP", "CWF-IP"] if exclude_carriers else [],
+            "total_years": len(result),
+            "total_records_original": len(sp_rows),
+            "total_records_after_filter": records_after_carrier_filter,
+            "total_records_final": len(df)
+        }
+    })
