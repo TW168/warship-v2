@@ -206,24 +206,50 @@
       </div>
     </div>
 
-    <!-- 3. AMJK SW Freight · Monthly Avg Comparison ──────────────── -->
+    <!-- 3. Freight Cost Trend by Year ──────────────── -->
     <div class="col-md-6">
       <div class="card shadow-sm h-100">
         <div class="card-header card-header-primary d-flex align-items-center justify-content-between">
           <span>
-            <i class="bi bi-arrow-left-right me-2" aria-hidden="true"></i>
-            AMJK SW Freight · Monthly Avg Comparison
+            <i class="bi bi-graph-up me-2" aria-hidden="true"></i>
+            Freight Cost Trend by Year
             <span class="badge text-bg-light text-secondary fw-normal ms-1" style="font-size:0.7rem;">
-              2018–2025 avg vs 2026
+              <span id="frtTrendSiteLabel">AMJK</span> · <span id="frtTrendProductLabel">SW</span> · 2023–2026
             </span>
           </span>
-          <span id="frtYtdSpinner"
-                class="spinner-border spinner-border-sm text-white opacity-75"
-                role="status" aria-label="Loading"
-                style="width:1rem;height:1rem;"></span>
+          <div class="d-flex align-items-center gap-2">
+            <!-- Site selector -->
+            <select id="frtTrendSite" class="form-select form-select-sm" style="width:auto; font-size:0.75rem;">
+              <option value="AMJK">AMJK</option>
+              <option value="TXAS">TXAS</option>
+              <option value="AMIN">AMIN</option>
+              <option value="AMAZ">AMAZ</option>
+            </select>
+            <!-- Product group selector -->
+            <select id="frtTrendProduct" class="form-select form-select-sm" style="width:auto; font-size:0.75rem;">
+              <option value="SW">SW</option>
+              <option value="BP">BP</option>
+              <option value="CT">CT</option>
+              <option value="YA">YA</option>
+            </select>
+            <!-- Carrier exclusion checkbox -->
+            <div class="form-check" style="font-size:0.75rem;">
+              <input class="form-check-input" type="checkbox" id="frtTrendExcludeCarriers" style="transform:scale(0.8);">
+              <label class="form-check-label text-white" for="frtTrendExcludeCarriers" style="font-size:0.7rem; margin-left:2px;">
+                Exclude SAIA-IP & CWF-IP
+              </label>
+            </div>
+            <span id="frtYtdSpinner"
+                  class="spinner-border spinner-border-sm text-white opacity-75"
+                  role="status" aria-label="Loading"
+                  style="width:1rem;height:1rem;"></span>
+          </div>
         </div>
-        <div class="card-body p-3" id="frtYtdBody">
-          <!-- populated by JS -->
+        <div class="card-body p-2">
+          <div id="frtYtdChart" style="height:320px;"></div>
+        </div>
+        <div class="card-footer text-muted" style="font-size:0.75rem;">
+          Source: Warship database · <code>sp_bl_lbs_cnt_carrier</code> · ¢/lb monthly trends by year (2023–2026).
         </div>
       </div>
     </div>
@@ -913,74 +939,115 @@
   })();
 
 
-  /* ── AMJK SW Freight · Monthly Avg Comparison ────────────────────────────
-     Fetches /api/analytics/amjk-frt-ytd-vs-avg and renders three KPI tiles:
-     Frt Amt($), TTL W.(lbs), and ¢/lb — each showing historical avg vs 2026.
+  /* ── Freight Cost Trend by Year ────────────────────────────
+     Fetches /api/analytics/amjk-frt-ytd-vs-avg and renders multi-line chart:
+     Each year is a separate line showing monthly ¢/lb cost trend.
   ──────────────────────────────────────────────────────────────────── */
   (function () {
-    function fmt$(n) {
-      return '$' + (n / 1e6).toFixed(2) + 'M';
+    var currentSite = 'AMJK';
+    var currentProduct = 'SW';
+    var excludeCarriers = false;
+    
+    function loadFreightTrendChart() {
+      document.getElementById('frtYtdSpinner').style.display = 'inline-block';
+      
+      var url = '/api/analytics/amjk-frt-ytd-vs-avg?site=' + currentSite + 
+                '&product_group=' + currentProduct + 
+                '&exclude_carriers=' + excludeCarriers;
+      
+      fetch(url)
+        .then(function (r) {
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return r.json();
+        })
+        .then(function (data) {
+          if (!data.series || data.series.length === 0) {
+            throw new Error('No data available');
+          }
+          
+          // Prepare Plotly traces (one per year)
+          var traces = data.series.map(function (yearData) {
+            return {
+              x: yearData.data.map(function (d) { return d.month; }),
+              y: yearData.data.map(function (d) { return d.cost_per_lb; }),
+              mode: 'lines+markers',
+              name: yearData.year.toString(),
+              line: { width: 2 },
+              marker: { size: 4 },
+              hovertemplate: 
+                '<b>%{fullData.name}</b><br>' +
+                'Month: %{x}<br>' +
+                'Cost: %{y:.2f}¢/lb<br>' +
+                '<extra></extra>'
+            };
+          });
+          
+          // Chart layout
+          var layout = {
+            margin: { l: 60, r: 20, t: 20, b: 40 },
+            xaxis: {
+              title: 'Month',
+              tickmode: 'linear',
+              tick0: 1,
+              dtick: 1,
+              range: [0.5, 12.5],
+              showgrid: true
+            },
+            yaxis: {
+              title: 'Cost per Pound (¢/lb)',
+              showgrid: true
+            },
+            showlegend: true,
+            legend: {
+              orientation: 'h',
+              x: 0,
+              y: 1.02,
+              bgcolor: 'rgba(255,255,255,0.8)'
+            },
+            hovermode: 'closest'
+          };
+          
+          var config = {
+            responsive: true,
+            displayModeBar: false
+          };
+          
+          Plotly.newPlot('frtYtdChart', traces, layout, config);
+          
+          // Update labels
+          document.getElementById('frtTrendSiteLabel').textContent = currentSite;
+          document.getElementById('frtTrendProductLabel').textContent = currentProduct;
+          
+          document.getElementById('frtYtdSpinner').style.display = 'none';
+        })
+        .catch(function (err) {
+          document.getElementById('frtYtdChart').innerHTML =
+            '<div class="alert alert-warning m-3">' +
+            '<i class="bi bi-exclamation-triangle me-2"></i>' +
+            'Chart unavailable: ' + err.message + '</div>';
+          document.getElementById('frtYtdSpinner').style.display = 'none';
+        });
     }
-    function fmtLbs(n) {
-      return (n / 1e6).toFixed(2) + 'M lbs';
-    }
-    function fmtC(n) {
-      return n.toFixed(2) + '¢/lb';
-    }
-    function deltaHtml(avg, ytd, lowerIsBetter) {
-      var pct = ((ytd - avg) / avg) * 100;
-      var better = lowerIsBetter ? pct < 0 : pct > 0;
-      var color  = better ? '#198754' : '#dc3545';
-      var arrow  = better ? '▲' : '▼';
-      return '<span style="color:' + color + '; font-size:0.85rem; font-weight:600;">'
-           + arrow + ' ' + Math.abs(pct).toFixed(1) + '%</span>'
-           + '<span style="color:#888; font-size:0.75rem; margin-left:4px;">'
-           + (better ? 'better' : 'worse') + '</span>';
-    }
-    function kpiTile(label, avgVal, ytdMonthlyVal, ytdTotalVal, ytdMonths, fmtFn, lowerIsBetter) {
-      /* avgVal and ytdMonthlyVal are both per-month — fair comparison.
-         ytdTotalVal is shown as the raw YTD accumulation for context. */
-      return '<div class="col text-center border-end" style="min-width:160px;">'
-           + '<div style="font-size:0.75rem; color:#666; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:4px;">' + label + '</div>'
-           + '<div style="font-size:0.72rem; color:#888; margin-bottom:2px;">Monthly Avg (hist.)</div>'
-           + '<div style="font-size:1.25rem; font-weight:700; color:#154e9a;">' + fmtFn(avgVal) + '</div>'
-           + '<div style="font-size:0.72rem; color:#888; margin-top:8px; margin-bottom:2px;">YTD Monthly Avg (' + ytdMonths + ' mo.)</div>'
-           + '<div style="font-size:1.25rem; font-weight:700; color:#333;">' + fmtFn(ytdMonthlyVal) + '</div>'
-           + '<div style="font-size:0.7rem; color:#aaa; margin-bottom:4px;">total: ' + fmtFn(ytdTotalVal) + '</div>'
-           + '<div style="margin-top:2px;">' + deltaHtml(avgVal, ytdMonthlyVal, lowerIsBetter) + '</div>'
-           + '</div>';
-    }
-
-    fetch('/api/analytics/amjk-frt-ytd-vs-avg')
-      .then(function (r) {
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        return r.json();
-      })
-      .then(function (d) {
-        /* Divide YTD totals by number of months to get a monthly avg for comparison */
-        var n = d.ytd.months;
-        var ytdFrtMo = d.ytd.frt / n;
-        var ytdWtMo  = d.ytd.wt  / n;
-
-        var body = document.getElementById('frtYtdBody');
-        body.innerHTML =
-          '<div class="row row-cols-3 g-0">'
-          + kpiTile('Frt Amt ($)',    d.avg.frt,    ytdFrtMo,      d.ytd.frt, n, fmt$,   true)
-          + kpiTile('TTL W. (lbs)',   d.avg.wt,     ytdWtMo,       d.ytd.wt,  n, fmtLbs, false)
-          + kpiTile('¢ / lb',         d.avg.cperlb, d.ytd.cperlb,  d.ytd.cperlb, n, fmtC, true)
-          + '</div>'
-          + '<div class="text-muted mt-2" style="font-size:0.72rem;">'
-          + 'Source: AMJK Frt cost breakdown by plants.xlsx · SW row.'
-          + '</div>';
-        document.getElementById('frtYtdSpinner').style.display = 'none';
-      })
-      .catch(function (err) {
-        document.getElementById('frtYtdBody').innerHTML =
-          '<div class="alert alert-warning m-2">'
-          + '<i class="bi bi-exclamation-triangle me-2"></i>'
-          + 'Unavailable: ' + err.message + '</div>';
-        document.getElementById('frtYtdSpinner').style.display = 'none';
-      });
+    
+    // Event listeners for selectors
+    document.getElementById('frtTrendSite').addEventListener('change', function (e) {
+      currentSite = e.target.value;
+      loadFreightTrendChart();
+    });
+    
+    document.getElementById('frtTrendProduct').addEventListener('change', function (e) {
+      currentProduct = e.target.value;
+      loadFreightTrendChart();
+    });
+    
+    // Event listener for carrier exclusion checkbox
+    document.getElementById('frtTrendExcludeCarriers').addEventListener('change', function (e) {
+      excludeCarriers = e.target.checked;
+      loadFreightTrendChart();
+    });
+    
+    // Initial load
+    loadFreightTrendChart();
   })();
 
 

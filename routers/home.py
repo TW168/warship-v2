@@ -1108,109 +1108,152 @@ async def sw_transport_type_by_year() -> JSONResponse:
 
 
 
-# ── AMJK Freight Monthly Avg Comparison ──────────────────────────────────────
-# Reads SW row from _EXCEL_FRTCOST_PATH (same file as freight-cost-by-plant).
-# Historical = full calendar years 2018–(cur_year-1); YTD = current year sheet.
-# NOTE: 2018 sheet layout is reversed — lbs section is first, Frt Amt is second.
-# All other years: Frt Amt section is first (rows 3–8), lbs section second (10–15).
+# ── Freight Cost Trend by Year ──────────────────────────────────────────────
+# Uses warship.sp_bl_lbs_cnt_carrier stored procedure instead of Excel file.
+# Returns freight cost and weight data grouped by year for multi-line chart display.
+# Each year becomes a separate line on the chart.
 
 
 @router.get(
     "/api/analytics/amjk-frt-ytd-vs-avg",
-    summary="AMJK SW freight cost monthly avg comparison",
+    summary="Freight cost trend by year (multi-line chart data)",
     description=(
-        "Reads the SW row from 'AMJK Frt cost breakdown by plants.xlsx'. "
-        "Historical avg = monthly avg across full calendar years (2018–last year). "
-        "YTD = current year sheet totals. Returns Frt Amt ($), lbs, and ¢/lb."
+        "Calls warship.sp_bl_lbs_cnt_carrier stored procedure with parameterized "
+        "site and product_group. Returns monthly freight cost and weight data "
+        "grouped by year (2023–current). Each year is a separate series for multi-line charts."
     ),
 )
-async def amjk_frt_ytd_vs_avg() -> JSONResponse:
-    """Return AMJK SW monthly avg (historical full years 2018+) and current YTD from Excel."""
+async def amjk_frt_ytd_vs_avg(
+    site: str = Query(default="AMJK", description="Site code, e.g. 'AMJK'"),
+    product_group: str = Query(default="SW", description="Product group, e.g. 'SW'"),
+    exclude_carriers: bool = Query(default=False, description="Exclude SAIA-IP and CWF-IP carriers"),
+) -> JSONResponse:
+    """Return freight cost data grouped by year from stored procedure for multi-line chart."""
     import datetime as _dt
-
-    cur_year = _dt.date.today().year
-
+    
+    today = _dt.date.today()
+    
     try:
-        wb = openpyxl.load_workbook(_EXCEL_FRTCOST_PATH, data_only=True, read_only=True)
+        with _engine.connect() as conn:
+            # Call stored procedure from 2023-01-01 to today
+            dbapi_conn = conn.connection
+            cursor = dbapi_conn.cursor(dictionary=True)
+            
+            try:
+                cursor.callproc(
+                    "sp_bl_lbs_cnt_carrier",
+                    [
+                        "2023-01-01",
+                        today.isoformat(),
+                        site,
+                        product_group,
+                    ],
+                )
+                
+                # Fetch all results from stored procedure
+                sp_rows: list[dict] = []
+                for result_set in cursor.stored_results():
+                    sp_rows.extend(result_set.fetchall())
+                    
+            finally:
+                cursor.close()
+                
     except Exception as exc:
         return JSONResponse(status_code=500, content={"error": str(exc)})
 
-    hist_frt_total = 0.0
-    hist_wt_total  = 0.0
-    hist_months    = 0
-    hist_years: list[int] = []
-    ytd_frt = 0.0
-    ytd_wt  = 0.0
-    ytd_n   = 0
+    if not sp_rows:
+        return JSONResponse(status_code=404, content={"error": "No data found for specified parameters"})
 
-    for year_str in [str(y) for y in range(2018, cur_year + 1)]:
-        if year_str not in wb.sheetnames:
-            continue
-        ws = wb[year_str]
-        rows = list(ws.iter_rows(min_row=1, max_row=15, values_only=True))
-
-        # 2018 sheet is reversed: top section = lbs, bottom section = Frt Amt ($)
-        # All other years: top section = Frt Amt ($), bottom section = lbs
-        top_is_lbs = (rows[2] and str(rows[2][0]).startswith("Weight"))
-        if top_is_lbs:
-            sw_frt_row = next((r for r in rows[9:15] if r and r[0] == "SW"), None)
-            sw_lbs_row = next((r for r in rows[2:8]  if r and r[0] == "SW"), None)
-        else:
-            sw_frt_row = next((r for r in rows[2:8]  if r and r[0] == "SW"), None)
-            sw_lbs_row = next((r for r in rows[9:15] if r and r[0] == "SW"), None)
-
-        if sw_frt_row is None or sw_lbs_row is None:
-            continue
-
-        ytd_frt_val = sw_frt_row[-2]
-        ytd_wt_val  = sw_lbs_row[-2]
-
-        if not isinstance(ytd_frt_val, (int, float)) or not isinstance(ytd_wt_val, (int, float)):
-            continue
-
-        yr = int(year_str)
-        # Monthly data sits at even-indexed columns 2,4,6,...,24 (skipping Vari columns)
-        month_count = sum(
-            1 for i in range(2, 26, 2)
-            if i < len(sw_frt_row) and isinstance(sw_frt_row[i], (int, float))
-        )
-
-        if yr < cur_year:
-            if month_count == 12:  # only include complete years in historical avg
-                hist_frt_total += float(ytd_frt_val)
-                hist_wt_total  += float(ytd_wt_val)
-                hist_months    += 12
-                hist_years.append(yr)
-        else:
-            ytd_frt = float(ytd_frt_val)
-            ytd_wt  = float(ytd_wt_val)
-            # Use actual current date for YTD calculation (completed months)
-            # April 2026 = 3 completed months (Jan, Feb, Mar)
-            current_month = _dt.date.today().month
-            ytd_n = max(1, current_month - 1)  # At least 1 month, even in January
-
-    wb.close()
-
-    if not hist_years:
-        return JSONResponse(status_code=500, content={"error": "No historical data found"})
-
-    avg_monthly_frt = hist_frt_total / hist_months
-    avg_monthly_wt  = hist_wt_total  / hist_months
-    avg_cperlb  = (avg_monthly_frt / avg_monthly_wt * 100) if avg_monthly_wt else 0.0
-    ytd_cperlb  = (ytd_frt / ytd_wt * 100) if ytd_wt else 0.0
-
+    # Convert to DataFrame for easier processing
+    df = pd.DataFrame(sp_rows)
+    
+    # Ensure required columns exist
+    if "Truck_Appointment_Date" not in df.columns:
+        return JSONResponse(status_code=500, content={"error": "Missing Truck_Appointment_Date column"})
+    
+    # Filter out excluded carriers if requested
+    records_after_carrier_filter = len(sp_rows)
+    if exclude_carriers:
+        excluded_carrier_list = ["SAIA-IP", "CWF-IP"]
+        carrier_col = None
+        # Find the carrier column (case insensitive)
+        for col in df.columns:
+            if 'carrier' in col.lower():
+                carrier_col = col
+                break
+        
+        if carrier_col:
+            df = df[~df[carrier_col].isin(excluded_carrier_list)]
+            records_after_carrier_filter = len(df)
+    
+    # Convert date column to datetime
+    df["Truck_Appointment_Date"] = pd.to_datetime(df["Truck_Appointment_Date"], errors="coerce")
+    df = df.dropna(subset=["Truck_Appointment_Date"])
+    
+    # Extract year and month
+    df["year"] = df["Truck_Appointment_Date"].dt.year
+    df["month"] = df["Truck_Appointment_Date"].dt.month
+    
+    # Ensure numeric columns
+    df["Unit_Freight"] = pd.to_numeric(df.get("Unit_Freight", 0), errors="coerce").fillna(0.0)
+    df["pick_weight"] = pd.to_numeric(df.get("pick_weight", 0), errors="coerce").fillna(0.0)
+    
+    # Calculate freight amount in dollars (Unit_Freight is in cents per lb)
+    df["freight_amount"] = (df["Unit_Freight"] / 100.0) * df["pick_weight"]
+    
+    # Group by year and month, aggregate data
+    monthly_data = (
+        df.groupby(["year", "month"])
+        .agg({
+            "freight_amount": "sum",
+            "pick_weight": "sum",
+            "BL_Number": "nunique"  # count unique bill of lading numbers
+        })
+        .reset_index()
+    )
+    
+    # Calculate cost per lb for each month
+    monthly_data["cost_per_lb"] = (
+        monthly_data["freight_amount"] / monthly_data["pick_weight"] * 100
+    ).fillna(0.0)
+    
+    # Group data by year for multi-line chart
+    by_year = defaultdict(list)
+    for _, row in monthly_data.iterrows():
+        by_year[int(row["year"])].append({
+            "month": int(row["month"]),
+            "freight_amount": round(float(row["freight_amount"]), 2),
+            "total_weight": round(float(row["pick_weight"]), 0),
+            "cost_per_lb": round(float(row["cost_per_lb"]), 4),
+            "load_count": int(row["BL_Number"])
+        })
+    
+    # Sort months within each year and prepare result
+    for year in by_year:
+        by_year[year].sort(key=lambda x: x["month"])
+    
+    # Format result for multi-line chart
+    result = [
+        {
+            "year": year,
+            "site": site,
+            "product_group": product_group,
+            "data": year_data
+        }
+        for year, year_data in sorted(by_year.items())
+    ]
+    
     return JSONResponse(content={
-        "avg": {
-            "frt":    round(avg_monthly_frt, 0),
-            "wt":     round(avg_monthly_wt, 0),
-            "cperlb": round(avg_cperlb, 4),
-            "label":  f"Monthly Avg ({hist_years[0]}–{hist_years[-1]})",
-        },
-        "ytd": {
-            "frt":    round(ytd_frt, 0),
-            "wt":     round(ytd_wt, 0),
-            "cperlb": round(ytd_cperlb, 4),
-            "months": ytd_n,
-            "label":  f"YTD {cur_year} ({ytd_n} mo.)",
-        },
+        "series": result,
+        "metadata": {
+            "site": site,
+            "product_group": product_group,
+            "date_range": f"2023-01-01 to {today.isoformat()}",
+            "exclude_carriers": exclude_carriers,
+            "excluded_carriers": ["SAIA-IP", "CWF-IP"] if exclude_carriers else [],
+            "total_years": len(result),
+            "total_records_original": len(sp_rows),
+            "total_records_after_filter": records_after_carrier_filter,
+            "total_records_final": len(df)
+        }
     })
