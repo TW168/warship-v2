@@ -28,10 +28,201 @@
       </div>
       <div id="resultBox" class="alert mt-3 d-none" role="alert"></div>
     </div>
+    <div class="col-lg-7 col-md-12">
+      <div class="card shadow-sm mb-3">
+        <div class="card-header bg-light border-bottom d-flex justify-content-between align-items-center">
+          <h5 class="mb-0"><i class="bi bi-clipboard-data me-2"></i>Grade G Daily Dashboard</h5>
+          <button class="btn btn-sm btn-outline-primary" type="button" id="refreshDashboardBtn" onclick="loadDashboard()">
+            <i class="bi bi-arrow-repeat me-1"></i>Refresh
+          </button>
+        </div>
+        <div class="card-body">
+          <div id="dashboardError" class="alert alert-warning d-none mb-3"></div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-sm-6 col-xl-3">
+              <div class="border rounded p-2 bg-light">
+                <div class="small text-muted">Latest Report Date</div>
+                <div class="fw-semibold" id="kpiLatestDate">-</div>
+              </div>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+              <div class="border rounded p-2 bg-light">
+                <div class="small text-muted">Grade G Pallets</div>
+                <div class="fw-semibold" id="kpiPallets">-</div>
+              </div>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+              <div class="border rounded p-2 bg-light">
+                <div class="small text-muted">New Today</div>
+                <div class="fw-semibold" id="kpiNewToday">-</div>
+              </div>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+              <div class="border rounded p-2 bg-light">
+                <div class="small text-muted">Carried Over</div>
+                <div class="fw-semibold" id="kpiCarried">-</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-sm-6">
+              <div class="border rounded p-2 bg-light">
+                <div class="small text-muted">Total Grade G Weight</div>
+                <div class="fw-semibold" id="kpiWeight">-</div>
+              </div>
+            </div>
+            <div class="col-sm-6">
+              <div class="border rounded p-2 bg-light">
+                <div class="small text-muted">Clearance Rate vs Previous Day</div>
+                <div class="fw-semibold" id="kpiClearance">-</div>
+              </div>
+            </div>
+          </div>
+
+          <h6 class="fw-semibold mb-2">Aging Buckets (Grade G)</h6>
+          <div id="agingBuckets" class="small text-muted mb-3">No data</div>
+
+          <h6 class="fw-semibold mb-2">Top Product Codes (Grade G)</h6>
+          <div id="topProducts" class="small text-muted mb-3">No data</div>
+
+          <h6 class="fw-semibold mb-2">Repeat Offenders (3+ report days)</h6>
+          <div id="repeatOffenders" class="small text-muted mb-0">No data</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-header bg-light border-bottom">
+          <h5 class="mb-0"><i class="bi bi-list-check me-2"></i>Grade G Priority Pull List</h5>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-striped table-hover table-sm mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Pallet</th>
+                  <th>Location</th>
+                  <th>Product Code</th>
+                  <th>Manu Order</th>
+                  <th>Item</th>
+                  <th>Weight</th>
+                  <th>Last In Date</th>
+                  <th>Days Old</th>
+                </tr>
+              </thead>
+              <tbody id="pullListBody">
+                <tr><td colspan="8" class="text-center text-muted py-3">No data</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
 <script>
+function fmtNum(v) {
+  return Number(v || 0).toLocaleString();
+}
+
+function fmtDate(v) {
+  if (!v) return '-';
+  return new Date(v).toLocaleDateString();
+}
+
+function setText(id, value) {
+  document.getElementById(id).textContent = value;
+}
+
+function renderSimpleList(containerId, rows, mapFn, emptyText) {
+  const target = document.getElementById(containerId);
+  if (!rows || rows.length === 0) {
+    target.className = 'small text-muted mb-3';
+    target.textContent = emptyText;
+    return;
+  }
+  target.className = 'small';
+  target.innerHTML = rows.map(mapFn).join('<br>');
+}
+
+function renderPullList(rows) {
+  const body = document.getElementById('pullListBody');
+  if (!rows || rows.length === 0) {
+    body.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-3">No Grade G pallets for latest report</td></tr>';
+    return;
+  }
+
+  body.innerHTML = rows.map(r => `
+    <tr>
+      <td>${r.pallet}</td>
+      <td>${r.location || '-'}</td>
+      <td>${r.product_code || '-'}</td>
+      <td>${r.manu_order || '-'}</td>
+      <td>${fmtNum(r.item)}</td>
+      <td>${fmtNum(r.weight)}</td>
+      <td>${fmtDate(r.last_in_date)}</td>
+      <td>${fmtNum(r.days_old)}</td>
+    </tr>
+  `).join('');
+}
+
+async function loadDashboard() {
+  const errorEl = document.getElementById('dashboardError');
+  const refreshBtn = document.getElementById('refreshDashboardBtn');
+  errorEl.classList.add('d-none');
+
+  refreshBtn.disabled = true;
+  refreshBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Refreshing';
+
+  try {
+    const res = await fetch('/maintenance/api/not-in-xfcma/grade-g-dashboard?pull_limit=100&repeat_limit=25');
+    const payload = await res.json();
+    if (!res.ok) throw new Error(payload.detail || 'HTTP ' + res.status);
+
+    setText('kpiLatestDate', fmtDate(payload.latest_report_date));
+    setText('kpiPallets', fmtNum(payload.total_grade_g_pallets));
+    setText('kpiNewToday', fmtNum(payload.new_today_count));
+    setText('kpiCarried', fmtNum(payload.carried_over_count));
+    setText('kpiWeight', fmtNum(payload.total_grade_g_weight) + ' lbs');
+    setText('kpiClearance', payload.clearance_rate_pct == null ? 'N/A' : payload.clearance_rate_pct + '%');
+
+    renderSimpleList(
+      'agingBuckets',
+      payload.aging_buckets,
+      b => `<span class="badge bg-secondary-subtle text-dark me-2">${b.bucket} days</span>${fmtNum(b.pallet_count)} pallets / ${fmtNum(b.total_weight)} lbs`,
+      'No aging data'
+    );
+
+    renderSimpleList(
+      'topProducts',
+      payload.top_products,
+      p => `<strong>${p.product_code}</strong>: ${fmtNum(p.pallet_count)} pallets / ${fmtNum(p.total_weight)} lbs`,
+      'No top product data'
+    );
+
+    renderSimpleList(
+      'repeatOffenders',
+      payload.repeat_offenders,
+      r => `<strong>${r.pallet}</strong> (${r.product_code}) - ${r.appearances} days, ${fmtNum(r.days_old)} days old`,
+      'No repeat offenders (3+ days)'
+    );
+
+    renderPullList(payload.pull_list);
+  } catch (err) {
+    errorEl.textContent = 'Dashboard load failed: ' + err.message;
+    errorEl.classList.remove('d-none');
+  } finally {
+    refreshBtn.disabled = false;
+    refreshBtn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i>Refresh';
+  }
+}
+
 async function handleUpload() {
   const fileInput = document.getElementById('pdfFile');
   const btn = document.getElementById('uploadBtn');
@@ -65,6 +256,7 @@ async function handleUpload() {
     }
     resultBox.innerText = msg;
     fileInput.value = '';
+    await loadDashboard();
   } catch (err) {
     resultBox.className = 'alert alert-danger mt-4';
     resultBox.textContent = '\u2717 Upload failed: ' + err.message;
@@ -74,5 +266,9 @@ async function handleUpload() {
     resultBox.classList.remove('d-none');
   }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadDashboard();
+});
 </script>
 {% endblock %}

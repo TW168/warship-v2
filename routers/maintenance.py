@@ -44,6 +44,7 @@ from schemas.shipping_status import (
     ShippingStatusUpdateRequest,
 )
 from schemas.not_in_xfcma import (
+    NotInXfcmaGradeGDashboardResponse,
     NotInXfcmaCreateRequest,
     NotInXfcmaDeleteResponse,
     NotInXfcmaRow,
@@ -1057,6 +1058,264 @@ async def not_in_xfcma_upload_pdf(files: list[UploadFile] = File(...)) -> JSONRe
             "inserted": inserted_count,
             "files": file_summaries,
         }
+    )
+
+
+@router.get(
+    "/api/not-in-xfcma/grade-g-dashboard",
+    response_model=NotInXfcmaGradeGDashboardResponse,
+    summary="Daily Grade G operations dashboard",
+    description=(
+        "Returns daily Grade G analysis for not_in_xfcma, including pull list, "
+        "new-vs-carried-over counts, clearance rate, aging buckets, top products, "
+        "and repeat offenders."
+    ),
+)
+async def not_in_xfcma_grade_g_dashboard(
+    pull_limit: int = Query(100, ge=1, le=1000, description="Max pull-list rows"),
+    repeat_limit: int = Query(25, ge=1, le=200, description="Max repeat offenders"),
+) -> NotInXfcmaGradeGDashboardResponse:
+    """Build daily operations analytics focused on Grade G pallets."""
+    with _engine.connect() as conn:
+        latest_report_date = conn.execute(
+            text("SELECT DATE(MAX(report_datetime)) AS latest_date FROM not_in_xfcma")
+        ).scalar()
+
+        if latest_report_date is None:
+            raise HTTPException(status_code=404, detail="No not_in_xfcma data available")
+
+        previous_report_date = conn.execute(
+            text(
+                """
+                SELECT MAX(DATE(report_datetime)) AS prev_date
+                FROM not_in_xfcma
+                WHERE DATE(report_datetime) < :latest_date
+                """
+            ),
+            {"latest_date": latest_report_date},
+        ).scalar()
+
+        totals_row = conn.execute(
+            text(
+                """
+                SELECT
+                    COUNT(*) AS total_pallets,
+                    COALESCE(SUM(weight), 0) AS total_weight
+                FROM not_in_xfcma
+                WHERE DATE(report_datetime) = :latest_date
+                  AND UPPER(TRIM(COALESCE(grade, ''))) = 'G'
+                """
+            ),
+            {"latest_date": latest_report_date},
+        ).fetchone()
+
+        total_grade_g_pallets = int(totals_row.total_pallets or 0)
+        total_grade_g_weight = int(totals_row.total_weight or 0)
+
+        if previous_report_date is None:
+            new_today_count = total_grade_g_pallets
+            carried_over_count = 0
+            clearance_rate_pct = None
+            prev_grade_g_count = 0
+        else:
+            counts_row = conn.execute(
+                text(
+                    """
+                    SELECT
+                        (
+                            SELECT COUNT(*)
+                            FROM not_in_xfcma t
+                            WHERE DATE(t.report_datetime) = :latest_date
+                              AND UPPER(TRIM(COALESCE(t.grade, ''))) = 'G'
+                              AND NOT EXISTS (
+                                  SELECT 1
+                                  FROM not_in_xfcma p
+                                  WHERE DATE(p.report_datetime) = :prev_date
+                                    AND UPPER(TRIM(COALESCE(p.grade, ''))) = 'G'
+                                    AND p.pallet = t.pallet
+                              )
+                        ) AS new_today_count,
+                        (
+                            SELECT COUNT(*)
+                            FROM not_in_xfcma t
+                            WHERE DATE(t.report_datetime) = :latest_date
+                              AND UPPER(TRIM(COALESCE(t.grade, ''))) = 'G'
+                              AND EXISTS (
+                                  SELECT 1
+                                  FROM not_in_xfcma p
+                                  WHERE DATE(p.report_datetime) = :prev_date
+                                    AND UPPER(TRIM(COALESCE(p.grade, ''))) = 'G'
+                                    AND p.pallet = t.pallet
+                              )
+                        ) AS carried_over_count,
+                        (
+                            SELECT COUNT(*)
+                            FROM not_in_xfcma p
+                            WHERE DATE(p.report_datetime) = :prev_date
+                              AND UPPER(TRIM(COALESCE(p.grade, ''))) = 'G'
+                        ) AS prev_grade_g_count
+                    """
+                ),
+                {"latest_date": latest_report_date, "prev_date": previous_report_date},
+            ).fetchone()
+
+            new_today_count = int(counts_row.new_today_count or 0)
+            carried_over_count = int(counts_row.carried_over_count or 0)
+            prev_grade_g_count = int(counts_row.prev_grade_g_count or 0)
+            if prev_grade_g_count > 0:
+                clearance_rate_pct = round(
+                    ((prev_grade_g_count - carried_over_count) / prev_grade_g_count) * 100,
+                    1,
+                )
+            else:
+                clearance_rate_pct = None
+
+        aging_rows = conn.execute(
+            text(
+                """
+                SELECT
+                    CASE
+                        WHEN DATEDIFF(CURDATE(), last_in_date) <= 7 THEN '0-7'
+                        WHEN DATEDIFF(CURDATE(), last_in_date) <= 30 THEN '8-30'
+                        WHEN DATEDIFF(CURDATE(), last_in_date) <= 60 THEN '31-60'
+                        ELSE '61+'
+                    END AS bucket,
+                    COUNT(*) AS pallet_count,
+                    COALESCE(SUM(weight), 0) AS total_weight
+                FROM not_in_xfcma
+                WHERE DATE(report_datetime) = :latest_date
+                  AND UPPER(TRIM(COALESCE(grade, ''))) = 'G'
+                GROUP BY
+                    CASE
+                        WHEN DATEDIFF(CURDATE(), last_in_date) <= 7 THEN '0-7'
+                        WHEN DATEDIFF(CURDATE(), last_in_date) <= 30 THEN '8-30'
+                        WHEN DATEDIFF(CURDATE(), last_in_date) <= 60 THEN '31-60'
+                        ELSE '61+'
+                    END
+                """
+            ),
+            {"latest_date": latest_report_date},
+        ).fetchall()
+        aging_buckets = [
+            {
+                "bucket": row.bucket,
+                "pallet_count": int(row.pallet_count or 0),
+                "total_weight": int(row.total_weight or 0),
+            }
+            for row in aging_rows
+        ]
+
+        top_product_rows = conn.execute(
+            text(
+                """
+                SELECT
+                    product_code,
+                    COUNT(*) AS pallet_count,
+                    COALESCE(SUM(weight), 0) AS total_weight
+                FROM not_in_xfcma
+                WHERE DATE(report_datetime) = :latest_date
+                  AND UPPER(TRIM(COALESCE(grade, ''))) = 'G'
+                GROUP BY product_code
+                ORDER BY pallet_count DESC, total_weight DESC, product_code ASC
+                LIMIT 10
+                """
+            ),
+            {"latest_date": latest_report_date},
+        ).fetchall()
+        top_products = [
+            {
+                "product_code": row.product_code,
+                "pallet_count": int(row.pallet_count or 0),
+                "total_weight": int(row.total_weight or 0),
+            }
+            for row in top_product_rows
+        ]
+
+        repeat_rows = conn.execute(
+            text(
+                """
+                SELECT
+                    n.pallet,
+                    n.product_code,
+                    n.manu_order,
+                    COUNT(DISTINCT DATE(n.report_datetime)) AS appearances,
+                    MIN(n.last_in_date) AS last_in_date,
+                    DATEDIFF(CURDATE(), MIN(n.last_in_date)) AS days_old
+                FROM not_in_xfcma n
+                WHERE UPPER(TRIM(COALESCE(n.grade, ''))) = 'G'
+                  AND n.pallet IN (
+                      SELECT pallet
+                      FROM not_in_xfcma
+                      WHERE DATE(report_datetime) = :latest_date
+                        AND UPPER(TRIM(COALESCE(grade, ''))) = 'G'
+                  )
+                GROUP BY n.pallet, n.product_code, n.manu_order
+                HAVING COUNT(DISTINCT DATE(n.report_datetime)) >= 3
+                ORDER BY appearances DESC, days_old DESC, n.pallet ASC
+                LIMIT :repeat_limit
+                """
+            ),
+            {"latest_date": latest_report_date, "repeat_limit": repeat_limit},
+        ).fetchall()
+        repeat_offenders = [
+            {
+                "pallet": row.pallet,
+                "product_code": row.product_code,
+                "manu_order": row.manu_order,
+                "appearances": int(row.appearances or 0),
+                "last_in_date": row.last_in_date,
+                "days_old": int(row.days_old or 0),
+            }
+            for row in repeat_rows
+        ]
+
+        pull_rows = conn.execute(
+            text(
+                """
+                SELECT
+                    pallet,
+                    location,
+                    product_code,
+                    manu_order,
+                    item,
+                    weight,
+                    last_in_date,
+                    DATEDIFF(CURDATE(), last_in_date) AS days_old
+                FROM not_in_xfcma
+                WHERE DATE(report_datetime) = :latest_date
+                  AND UPPER(TRIM(COALESCE(grade, ''))) = 'G'
+                ORDER BY last_in_date ASC, weight DESC, pallet ASC
+                LIMIT :pull_limit
+                """
+            ),
+            {"latest_date": latest_report_date, "pull_limit": pull_limit},
+        ).fetchall()
+        pull_list = [
+            {
+                "pallet": row.pallet,
+                "location": row.location,
+                "product_code": row.product_code,
+                "manu_order": row.manu_order,
+                "item": int(row.item or 0),
+                "weight": int(row.weight or 0),
+                "last_in_date": row.last_in_date,
+                "days_old": int(row.days_old or 0),
+            }
+            for row in pull_rows
+        ]
+
+    return NotInXfcmaGradeGDashboardResponse(
+        latest_report_date=latest_report_date,
+        previous_report_date=previous_report_date,
+        total_grade_g_pallets=total_grade_g_pallets,
+        total_grade_g_weight=total_grade_g_weight,
+        new_today_count=new_today_count,
+        carried_over_count=carried_over_count,
+        clearance_rate_pct=clearance_rate_pct,
+        aging_buckets=aging_buckets,
+        top_products=top_products,
+        repeat_offenders=repeat_offenders,
+        pull_list=pull_list,
     )
 
 

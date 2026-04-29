@@ -135,9 +135,10 @@ The `connect_to_database()` function returns a SQLAlchemy `Engine`.
 | Shipping Status CRUD | `GET /maintenance/shipping-status` | Maintenance data-entry page for table `shipping_status` with inline update/delete and create form. |
 | Shipping Status API | `GET/POST/PUT/DELETE /maintenance/api/shipping-status...` | JSON CRUD endpoints for `shipping_status` (`id`, `Date`, `Customer`, `Con_Hou`, `Con_Rem`, `Con_PHO`, `Con_CHA`, `Total`, `Hou_ship`, `Rem_ship`, `Con`). |
 | Freight ¢/lb Audit | `GET /maintenance/freight-audit` | Cross-checks ¢/lb calculations across all pages using 3 independent methods (Unit_Freight weighted avg, Freight_Amount all-in, SP). Shows per-carrier breakdown and sample BL verification. |
-| Upload not in XFCMA | `GET /maintenance/not-in-xfcma` | Maintenance page to upload, view, update, and delete records from the `not_in_xfcma` table. Form to create new records + filter bar + sortable data table. |
-| Upload not in XFCMA API | `GET/POST/PUT/DELETE /maintenance/api/not-in-xfcma...` | JSON CRUD endpoints for `not_in_xfcma` (`id`, `report_datetime`, `product_code`, `manu_order`, `item`, `pallet`, `location`, `rolls`, `length`, `weight`, `grade`, `last_in_date`, `created_at`). List supports optional filters: `product_code`, `date_from`, `date_to`. |
-| Upload not in XFCMA PDF API | `POST /maintenance/api/not-in-xfcma/upload` | Multipart PDF upload endpoint. Parses QPQUPRFIL report rows and bulk inserts mapped records into `not_in_xfcma`. |
+| Upload not in XFCMA | `GET /maintenance/not-in-xfcma` | Maintenance page for PDF upload plus Grade G operations dashboard (KPIs, aging, repeat offenders, and priority pull list). |
+| Upload not in XFCMA API | `GET/POST/PUT/DELETE /maintenance/api/not-in-xfcma...` | JSON CRUD endpoints for `not_in_xfcma` (`id`, `report_datetime`, `product_code`, `manu_order`, `item`, `pallet`, `location`, `rolls`, `length`, `weight`, `grade`, `last_in_date`, `created_at_utc`, `source_file`). List supports optional filters: `product_code`, `date_from`, `date_to`. |
+| Upload not in XFCMA PDF API | `POST /maintenance/api/not-in-xfcma/upload` | Multipart PDF upload endpoint. Parses QPQUPRFIL report rows and bulk inserts mapped records into `not_in_xfcma`; re-uploading the same filename replaces that file's prior rows. |
+| Grade G Dashboard API | `GET /maintenance/api/not-in-xfcma/grade-g-dashboard` | JSON daily operations analytics for Grade G: new vs carried-over, clearance rate, aging buckets, top products, repeat offenders, and pull list. |
 | About | `GET /about` | |
 | Health | `GET /health` | Returns `{"status": "ok", "service": "warship", "version": "0.1.0"}` |
 
