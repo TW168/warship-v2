@@ -2,447 +2,67 @@
 
 {% block title %}Upload not in XFCMA{% endblock %}
 
-{% block head %}
-<style>
-  .form-floating > label {
-    color: #6c757d;
-  }
-  .table-responsive {
-    border-radius: 0.375rem;
-  }
-  .spinner-border-sm {
-    width: 1rem;
-    height: 1rem;
-    border-width: 0.15em;
-  }
-</style>
-{% endblock %}
-
 {% block content %}
-<div class="container-fluid py-4">
-  <!-- Page Title -->
-  <div class="row mb-4">
-    <div class="col">
-      <h1 class="fw-bold" style="color: #154e9a;">
-        <i class="bi bi-cloud-arrow-up me-2"></i>Upload not in XFCMA
-      </h1>
-      <p class="text-muted">Upload, view, update, and delete records from the not_in_xfcma table</p>
+<div class="container py-5" style="max-width: 600px;">
+  <h1 class="fw-bold mb-4" style="color: #154e9a;">
+    <i class="bi bi-cloud-arrow-up me-2"></i>Upload not in XFCMA
+  </h1>
+
+  <div class="card shadow-sm">
+    <div class="card-body p-4">
+      <label for="pdfFile" class="form-label fw-semibold">QPQUPRFIL PDF File(s)</label>
+      <input type="file" class="form-control mb-3" id="pdfFile" accept=".pdf,application/pdf" multiple>
+      <button class="btn btn-primary w-100" id="uploadBtn" onclick="handleUpload()">
+        <i class="bi bi-cloud-upload me-2"></i>Upload and Save to MySQL
+      </button>
     </div>
   </div>
 
-  <div class="row">
-    <!-- Left Column: Upload & Filters -->
-    <div class="col-lg-4 mb-4">
-      <!-- PDF Upload Card -->
-      <div class="card shadow-sm mb-4">
-        <div class="card-header bg-light border-bottom">
-          <h5 class="mb-0">
-            <i class="bi bi-file-earmark-arrow-up me-2"></i>Upload PDF
-          </h5>
-        </div>
-        <div class="card-body">
-          <form id="uploadForm">
-            <div class="mb-3">
-              <label for="pdfFile" class="form-label">QPQUPRFIL PDF File(s)</label>
-              <input type="file" class="form-control" id="pdfFile" accept=".pdf,application/pdf" multiple required>
-            </div>
-            <button type="submit" class="btn btn-primary w-100" id="uploadBtn">
-              <i class="bi bi-cloud-upload me-2"></i>Upload File(s) and Save to MySQL
-            </button>
-          </form>
-        </div>
-      </div>
-
-      <!-- Filter Card -->
-      <div class="card shadow-sm">
-        <div class="card-header bg-light border-bottom">
-          <h5 class="mb-0">
-            <i class="bi bi-funnel me-2"></i>Filters
-          </h5>
-        </div>
-        <div class="card-body">
-          <div class="form-floating mb-3">
-            <input type="text" class="form-control" id="filterProductCode" placeholder="Product Code">
-            <label for="filterProductCode">Product Code</label>
-          </div>
-
-          <div class="form-floating mb-3">
-            <input type="date" class="form-control" id="filterDateFrom">
-            <label for="filterDateFrom">Date From</label>
-          </div>
-
-          <div class="form-floating mb-3">
-            <input type="date" class="form-control" id="filterDateTo">
-            <label for="filterDateTo">Date To</label>
-          </div>
-
-          <button type="button" class="btn btn-outline-primary w-100 mb-2" id="applyFiltersBtn">
-            <i class="bi bi-search me-2"></i>Apply Filters
-          </button>
-          <button type="button" class="btn btn-outline-secondary w-100" id="clearFiltersBtn">
-            <i class="bi bi-arrow-clockwise me-2"></i>Clear
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Right Column: Data Table -->
-    <div class="col-lg-8 mb-4">
-      <div class="card shadow-sm">
-        <div class="card-header bg-light border-bottom d-flex justify-content-between align-items-center">
-          <h5 class="mb-0">
-            <i class="bi bi-table me-2"></i>Records
-          </h5>
-          <div class="spinner-border spinner-border-sm d-none" id="loadingSpinner" role="status">
-            <span class="visually-hidden">Loading...</span>
-          </div>
-        </div>
-        <div class="card-body">
-          <div class="table-responsive">
-            <table class="table table-striped table-hover table-sm" id="dataTable">
-              <thead class="table-light">
-                <tr>
-                  <th>ID</th>
-                  <th>Report DateTime</th>
-                  <th>Product Code</th>
-                  <th>Pallet</th>
-                  <th>Weight</th>
-                  <th>Grade</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="tableBody">
-                <tr>
-                  <td colspan="7" class="text-center text-muted py-4">Loading...</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Edit Modal -->
-<div class="modal fade" id="editModal" tabindex="-1">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Edit Record</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <form id="editForm">
-          <input type="hidden" id="editId">
-
-          <div class="form-floating mb-3">
-            <input type="datetime-local" class="form-control" id="editReportDatetime">
-            <label for="editReportDatetime">Report Date/Time</label>
-          </div>
-
-          <div class="form-floating mb-3">
-            <input type="text" class="form-control" id="editProductCode">
-            <label for="editProductCode">Product Code</label>
-          </div>
-
-          <div class="form-floating mb-3">
-            <input type="text" class="form-control" id="editManuOrder">
-            <label for="editManuOrder">Manu Order</label>
-          </div>
-
-          <div class="form-floating mb-3">
-            <input type="number" class="form-control" id="editItem">
-            <label for="editItem">Item</label>
-          </div>
-
-          <div class="form-floating mb-3">
-            <input type="text" class="form-control" id="editPallet">
-            <label for="editPallet">Pallet</label>
-          </div>
-
-          <div class="form-floating mb-3">
-            <input type="text" class="form-control" id="editLocation">
-            <label for="editLocation">Location</label>
-          </div>
-
-          <div class="form-floating mb-3">
-            <input type="number" class="form-control" id="editRolls">
-            <label for="editRolls">Rolls</label>
-          </div>
-
-          <div class="form-floating mb-3">
-            <input type="number" class="form-control" id="editLength">
-            <label for="editLength">Length</label>
-          </div>
-
-          <div class="form-floating mb-3">
-            <input type="number" class="form-control" id="editWeight">
-            <label for="editWeight">Weight</label>
-          </div>
-
-          <div class="form-floating mb-3">
-            <input type="text" class="form-control" id="editGrade" maxlength="5">
-            <label for="editGrade">Grade</label>
-          </div>
-
-          <div class="form-floating mb-3">
-            <input type="date" class="form-control" id="editLastInDate">
-            <label for="editLastInDate">Last In Date</label>
-          </div>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-primary" id="saveEditBtn">Save Changes</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Delete Record</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <p>Are you sure you want to delete this record?</p>
-        <p class="text-muted small" id="deleteConfirmText"></p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Toast Container -->
-<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
-  <div class="toast" id="toast" role="alert">
-    <div class="toast-header">
-      <strong class="me-auto">Warship</strong>
-      <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
-    </div>
-    <div class="toast-body" id="toastMessage"></div>
-  </div>
+  <div id="resultBox" class="alert mt-4 d-none" role="alert"></div>
 </div>
 
 <script>
-  const BS = window.bootstrap;
-  let editModal, deleteModal, toast;
-  let currentDeleteId = null;
+async function handleUpload() {
+  const fileInput = document.getElementById('pdfFile');
+  const btn = document.getElementById('uploadBtn');
+  const resultBox = document.getElementById('resultBox');
+  const files = Array.from(fileInput.files || []);
 
-  document.addEventListener('DOMContentLoaded', () => {
-    editModal = new BS.Modal(document.getElementById('editModal'));
-    deleteModal = new BS.Modal(document.getElementById('deleteModal'));
-    toast = new BS.Toast(document.getElementById('toast'));
+  if (files.length === 0) {
+    resultBox.className = 'alert alert-warning mt-4';
+    resultBox.textContent = 'Please select at least one PDF file.';
+    resultBox.classList.remove('d-none');
+    return;
+  }
 
-    loadData();
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Uploading…';
+  resultBox.classList.add('d-none');
 
-    // Event listeners
-    document.getElementById('uploadForm').addEventListener('submit', handleUpload);
-    document.getElementById('applyFiltersBtn').addEventListener('click', loadData);
-    document.getElementById('clearFiltersBtn').addEventListener('click', clearFilters);
-    document.getElementById('saveEditBtn').addEventListener('click', handleSave);
-    document.getElementById('confirmDeleteBtn').addEventListener('click', handleDelete);
-  });
+  const formData = new FormData();
+  for (const f of files) formData.append('files', f);
 
-  async function handleUpload(e) {
-    e.preventDefault();
-    const fileInput = document.getElementById('pdfFile');
-    const uploadBtn = document.getElementById('uploadBtn');
-    const files = Array.from(fileInput.files || []);
+  try {
+    const res = await fetch('/maintenance/api/not-in-xfcma/upload', { method: 'POST', body: formData });
+    const payload = await res.json();
 
-    if (files.length === 0) {
-      showToast('Please choose at least one PDF file', 'error');
-      return;
+    if (!res.ok) throw new Error(payload.detail || 'HTTP ' + res.status);
+
+    resultBox.className = 'alert alert-success mt-4';
+    let msg = '\u2713 ' + payload.message;
+    if (payload.files && payload.files.length) {
+      msg += '\n\n' + payload.files.map(f => '\u2022 ' + f.file + ': ' + f.inserted + ' rows').join('\n');
     }
-
-    const formData = new FormData();
-    for (const file of files) {
-      formData.append('files', file);
-    }
-
-    uploadBtn.disabled = true;
-    uploadBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Uploading files...';
-
-    try {
-      const res = await fetch('/maintenance/api/not-in-xfcma/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const payload = await res.json();
-      if (!res.ok) {
-        throw new Error(payload.detail || `HTTP ${res.status}`);
-      }
-
-      showToast(`${payload.message}`, 'success');
-      document.getElementById('uploadForm').reset();
-      loadData();
-    } catch (err) {
-      showToast(`Upload failed: ${err.message}`, 'error');
-    } finally {
-      uploadBtn.disabled = false;
-      uploadBtn.innerHTML = '<i class="bi bi-cloud-upload me-2"></i>Upload File(s) and Save to MySQL';
-    }
+    resultBox.innerText = msg;
+    fileInput.value = '';
+  } catch (err) {
+    resultBox.className = 'alert alert-danger mt-4';
+    resultBox.textContent = '\u2717 Upload failed: ' + err.message;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-cloud-upload me-2"></i>Upload and Save to MySQL';
+    resultBox.classList.remove('d-none');
   }
-
-  function showSpinner() {
-    document.getElementById('loadingSpinner').classList.remove('d-none');
-  }
-
-  function hideSpinner() {
-    document.getElementById('loadingSpinner').classList.add('d-none');
-  }
-
-  function showToast(message, type = 'info') {
-    const toastEl = document.getElementById('toast');
-    toastEl.className = `toast bg-${type === 'error' ? 'danger' : type === 'success' ? 'success' : 'info'}`;
-    document.getElementById('toastMessage').textContent = message;
-    toast.show();
-  }
-
-  function formatDateTime(dt) {
-    if (!dt) return '-';
-    return new Date(dt).toLocaleString();
-  }
-
-  async function loadData() {
-    showSpinner();
-    try {
-      const productCode = document.getElementById('filterProductCode').value;
-      const dateFrom = document.getElementById('filterDateFrom').value;
-      const dateTo = document.getElementById('filterDateTo').value;
-
-      let url = '/maintenance/api/not-in-xfcma';
-      const params = new URLSearchParams();
-      if (productCode) params.append('product_code', productCode);
-      if (dateFrom) params.append('date_from', dateFrom);
-      if (dateTo) params.append('date_to', dateTo);
-      if (params.toString()) url += '?' + params.toString();
-
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-      const rows = await res.json();
-      const tbody = document.getElementById('tableBody');
-
-      if (rows.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">No records found</td></tr>';
-      } else {
-        tbody.innerHTML = rows.map(row => `
-          <tr>
-            <td><small>${row.id}</small></td>
-            <td><small>${formatDateTime(row.report_datetime)}</small></td>
-            <td><strong>${row.product_code}</strong></td>
-            <td>${row.pallet}</td>
-            <td>${row.weight}</td>
-            <td>${row.grade}</td>
-            <td>
-              <button class="btn btn-sm btn-outline-primary me-1" onclick="editRow(${row.id}, ${JSON.stringify(row).replace(/"/g, '&quot;')})">
-                <i class="bi bi-pencil"></i>
-              </button>
-              <button class="btn btn-sm btn-outline-danger" onclick="deleteRow(${row.id}, '${row.product_code}')">
-                <i class="bi bi-trash"></i>
-              </button>
-            </td>
-          </tr>
-        `).join('');
-      }
-    } catch (err) {
-      showToast(`Error loading data: ${err.message}`, 'error');
-      document.getElementById('tableBody').innerHTML = '<tr><td colspan="7" class="text-center text-danger py-4">Error loading data</td></tr>';
-    } finally {
-      hideSpinner();
-    }
-  }
-
-  function editRow(id, row) {
-    document.getElementById('editId').value = id;
-    document.getElementById('editReportDatetime').value = row.report_datetime.slice(0, 16);
-    document.getElementById('editProductCode').value = row.product_code;
-    document.getElementById('editManuOrder').value = row.manu_order;
-    document.getElementById('editItem').value = row.item;
-    document.getElementById('editPallet').value = row.pallet;
-    document.getElementById('editLocation').value = row.location;
-    document.getElementById('editRolls').value = row.rolls;
-    document.getElementById('editLength').value = row.length;
-    document.getElementById('editWeight').value = row.weight;
-    document.getElementById('editGrade').value = row.grade;
-    document.getElementById('editLastInDate').value = row.last_in_date;
-
-    editModal.show();
-  }
-
-  async function handleSave() {
-    const id = parseInt(document.getElementById('editId').value);
-
-    const data = {
-      report_datetime: document.getElementById('editReportDatetime').value || null,
-      product_code: document.getElementById('editProductCode').value || null,
-      manu_order: document.getElementById('editManuOrder').value || null,
-      item: document.getElementById('editItem').value ? parseInt(document.getElementById('editItem').value) : null,
-      pallet: document.getElementById('editPallet').value || null,
-      location: document.getElementById('editLocation').value || null,
-      rolls: document.getElementById('editRolls').value ? parseInt(document.getElementById('editRolls').value) : null,
-      length: document.getElementById('editLength').value ? parseInt(document.getElementById('editLength').value) : null,
-      weight: document.getElementById('editWeight').value ? parseInt(document.getElementById('editWeight').value) : null,
-      grade: document.getElementById('editGrade').value || null,
-      last_in_date: document.getElementById('editLastInDate').value || null,
-    };
-
-    try {
-      const res = await fetch(`/maintenance/api/not-in-xfcma/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-      showToast('Record updated successfully', 'success');
-      editModal.hide();
-      loadData();
-    } catch (err) {
-      showToast(`Error updating record: ${err.message}`, 'error');
-    }
-  }
-
-  function deleteRow(id, productCode) {
-    currentDeleteId = id;
-    document.getElementById('deleteConfirmText').textContent = `ID: ${id} | Product Code: ${productCode}`;
-    deleteModal.show();
-  }
-
-  async function handleDelete() {
-    if (!currentDeleteId) return;
-
-    try {
-      const res = await fetch(`/maintenance/api/not-in-xfcma/${currentDeleteId}`, {
-        method: 'DELETE',
-      });
-
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-      showToast('Record deleted successfully', 'success');
-      deleteModal.hide();
-      currentDeleteId = null;
-      loadData();
-    } catch (err) {
-      showToast(`Error deleting record: ${err.message}`, 'error');
-    }
-  }
-
-  function clearFilters() {
-    document.getElementById('filterProductCode').value = '';
-    document.getElementById('filterDateFrom').value = '';
-    document.getElementById('filterDateTo').value = '';
-    loadData();
-  }
+}
 </script>
 {% endblock %}
