@@ -69,6 +69,9 @@ _OLLAMA_MODEL = "deepseek-r1:8b"
 
 # Max characters of document text sent to model (keeps prompt within context window)
 _MAX_TEXT_CHARS = 12_000
+_XFCMA_LINE_RE = re.compile(
+    r"^(\S+)\s+(\S+)\s+(\d+)\s+(\d+)\s+(\S+)\s+(\d+)\s+([\d,]+)\s+([\d,]+)(?:\s+([A-Za-z0-9]{1,5}))?\s+(\d{2}/\d{2}/\d{2})$"
+)
 
 
 class AnalyzeRequest(BaseModel):
@@ -853,6 +856,65 @@ async def not_in_xfcma_page(request: Request) -> HTMLResponse:
     )
 
 
+def _parse_not_in_xfcma_text_pdf(pdf_path: Path) -> list[dict]:
+    """Fallback parser for text-line based 'Plt In As400 ... not In XFCMA' PDFs."""
+    parsed: list[dict] = []
+
+    with pdfplumber.open(pdf_path) as pdf:
+        for page in pdf.pages:
+            text_content = page.extract_text() or ""
+            for raw_line in text_content.splitlines():
+                line = raw_line.strip()
+                if not line:
+                    continue
+
+                if line.startswith(("TOTAL", "COUNT", "Report:")):
+                    continue
+                if "Plt In As400" in line or "Product Code" in line:
+                    continue
+                if "Order#" in line or line.startswith("____"):
+                    continue
+
+                match = _XFCMA_LINE_RE.match(line)
+                if not match:
+                    continue
+
+                (
+                    product_code,
+                    manu_order,
+                    item,
+                    pallet,
+                    location,
+                    rolls,
+                    length,
+                    weight,
+                    grade,
+                    last_in_date,
+                ) = match.groups()
+
+                try:
+                    parsed_date = datetime.strptime(last_in_date, "%y/%m/%d").date()
+                except ValueError:
+                    continue
+
+                parsed.append(
+                    {
+                        "product_code": product_code,
+                        "order": manu_order,
+                        "item": item,
+                        "pallet_no": pallet,
+                        "loc": location,
+                        "rolls": rolls.replace(",", ""),
+                        "length": length.replace(",", ""),
+                        "weight": weight.replace(",", ""),
+                        "grade": (grade or "")[:5],
+                        "last_in_date": parsed_date,
+                    }
+                )
+
+    return parsed
+
+
 @router.post(
     "/api/not-in-xfcma/upload",
     summary="Upload not_in_xfcma PDF",
@@ -875,6 +937,8 @@ async def not_in_xfcma_upload_pdf(file: UploadFile = File(...)) -> JSONResponse:
             temp_path = Path(tmp.name)
 
         report_dt, parsed_rows = _parse_pdf(temp_path)
+        if not parsed_rows:
+            parsed_rows = _parse_not_in_xfcma_text_pdf(temp_path)
         if report_dt is None:
             report_dt = datetime.now()
 
@@ -884,6 +948,8 @@ async def not_in_xfcma_upload_pdf(file: UploadFile = File(...)) -> JSONResponse:
         insert_params: list[dict] = []
         for row in parsed_rows:
             trans_date = _as400_date(row.get("trans_date", ""))
+            if trans_date is None and row.get("last_in_date") is not None:
+                trans_date = row.get("last_in_date")
             length_raw = (row.get("length") or "").strip()
             rolls_raw = (row.get("rolls") or "").strip()
             weight_raw = (row.get("weight") or "").strip()

@@ -53,77 +53,6 @@
         </div>
       </div>
 
-      <!-- Create New Record Card -->
-      <div class="card shadow-sm mb-4">
-        <div class="card-header bg-light border-bottom">
-          <h5 class="mb-0">
-            <i class="bi bi-plus-circle me-2"></i>New Record
-          </h5>
-        </div>
-        <div class="card-body">
-          <form id="createForm">
-            <div class="form-floating mb-3">
-              <input type="datetime-local" class="form-control" id="report_datetime" required>
-              <label for="report_datetime">Report Date/Time</label>
-            </div>
-
-            <div class="form-floating mb-3">
-              <input type="text" class="form-control" id="product_code" required>
-              <label for="product_code">Product Code</label>
-            </div>
-
-            <div class="form-floating mb-3">
-              <input type="text" class="form-control" id="manu_order" required>
-              <label for="manu_order">Manu Order</label>
-            </div>
-
-            <div class="form-floating mb-3">
-              <input type="number" class="form-control" id="item" required>
-              <label for="item">Item</label>
-            </div>
-
-            <div class="form-floating mb-3">
-              <input type="text" class="form-control" id="pallet" required>
-              <label for="pallet">Pallet</label>
-            </div>
-
-            <div class="form-floating mb-3">
-              <input type="text" class="form-control" id="location" required>
-              <label for="location">Location</label>
-            </div>
-
-            <div class="form-floating mb-3">
-              <input type="number" class="form-control" id="rolls" required>
-              <label for="rolls">Rolls</label>
-            </div>
-
-            <div class="form-floating mb-3">
-              <input type="number" class="form-control" id="length" required>
-              <label for="length">Length</label>
-            </div>
-
-            <div class="form-floating mb-3">
-              <input type="number" class="form-control" id="weight" required>
-              <label for="weight">Weight</label>
-            </div>
-
-            <div class="form-floating mb-3">
-              <input type="text" class="form-control" id="grade" maxlength="5" required>
-              <label for="grade">Grade</label>
-            </div>
-
-            <div class="form-floating mb-3">
-              <input type="date" class="form-control" id="last_in_date" required>
-              <label for="last_in_date">Last In Date</label>
-            </div>
-
-            <button type="submit" class="btn btn-primary w-100">
-              <i class="bi bi-plus-lg me-2"></i>Create Record
-            </button>
-          </form>
-        </div>
-      </div>
-
       <!-- Filter Card -->
       <div class="card shadow-sm">
         <div class="card-header bg-light border-bottom">
@@ -316,7 +245,6 @@
 
     // Event listeners
     document.getElementById('uploadForm').addEventListener('submit', handleUpload);
-    document.getElementById('createForm').addEventListener('submit', handleCreate);
     document.getElementById('applyFiltersBtn').addEventListener('click', loadData);
     document.getElementById('clearFiltersBtn').addEventListener('click', clearFilters);
     document.getElementById('saveEditBtn').addEventListener('click', handleSave);
@@ -429,40 +357,6 @@
       document.getElementById('tableBody').innerHTML = '<tr><td colspan="7" class="text-center text-danger py-4">Error loading data</td></tr>';
     } finally {
       hideSpinner();
-    }
-  }
-
-  async function handleCreate(e) {
-    e.preventDefault();
-
-    const data = {
-      report_datetime: document.getElementById('report_datetime').value,
-      product_code: document.getElementById('product_code').value,
-      manu_order: document.getElementById('manu_order').value,
-      item: parseInt(document.getElementById('item').value),
-      pallet: document.getElementById('pallet').value,
-      location: document.getElementById('location').value,
-      rolls: parseInt(document.getElementById('rolls').value),
-      length: parseInt(document.getElementById('length').value),
-      weight: parseInt(document.getElementById('weight').value),
-      grade: document.getElementById('grade').value,
-      last_in_date: document.getElementById('last_in_date').value,
-    };
-
-    try {
-      const res = await fetch('/maintenance/api/not-in-xfcma', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-      showToast('Record created successfully', 'success');
-      document.getElementById('createForm').reset();
-      loadData();
-    } catch (err) {
-      showToast(`Error creating record: ${err.message}`, 'error');
     }
   }
 
