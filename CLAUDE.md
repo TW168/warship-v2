@@ -137,6 +137,7 @@ The `connect_to_database()` function returns a SQLAlchemy `Engine`.
 | Freight ¢/lb Audit | `GET /maintenance/freight-audit` | Cross-checks ¢/lb calculations across all pages using 3 independent methods (Unit_Freight weighted avg, Freight_Amount all-in, SP). Shows per-carrier breakdown and sample BL verification. |
 | Upload not in XFCMA | `GET /maintenance/not-in-xfcma` | Maintenance page to upload, view, update, and delete records from the `not_in_xfcma` table. Form to create new records + filter bar + sortable data table. |
 | Upload not in XFCMA API | `GET/POST/PUT/DELETE /maintenance/api/not-in-xfcma...` | JSON CRUD endpoints for `not_in_xfcma` (`id`, `report_datetime`, `product_code`, `manu_order`, `item`, `pallet`, `location`, `rolls`, `length`, `weight`, `grade`, `last_in_date`, `created_at`). List supports optional filters: `product_code`, `date_from`, `date_to`. |
+| Upload not in XFCMA PDF API | `POST /maintenance/api/not-in-xfcma/upload` | Multipart PDF upload endpoint. Parses QPQUPRFIL report rows and bulk inserts mapped records into `not_in_xfcma`. |
 | About | `GET /about` | |
 | Health | `GET /health` | Returns `{"status": "ok", "service": "warship", "version": "0.1.0"}` |
 

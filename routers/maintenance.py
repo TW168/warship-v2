@@ -23,13 +23,14 @@ Handles:
 import csv
 import json
 import re
+import tempfile
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
 import httpx
 import pdfplumber
-from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi import APIRouter, File, HTTPException, Query, Request, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
@@ -48,6 +49,7 @@ from schemas.not_in_xfcma import (
     NotInXfcmaRow,
     NotInXfcmaUpdateRequest,
 )
+from utils.inas400_pdf_parser import _as400_date, _parse_pdf
 
 router = APIRouter(prefix="/maintenance", tags=["Maintenance"])
 templates = Jinja2Templates(directory="templates")
@@ -849,6 +851,105 @@ async def not_in_xfcma_page(request: Request) -> HTMLResponse:
         "maintenance/not_in_xfcma.html",
         {"request": request, "active_page": "not_in_xfcma"},
     )
+
+
+@router.post(
+    "/api/not-in-xfcma/upload",
+    summary="Upload not_in_xfcma PDF",
+    description=(
+        "Upload a QPQUPRFIL PDF report, parse rows, and insert the extracted "
+        "records into not_in_xfcma."
+    ),
+)
+async def not_in_xfcma_upload_pdf(file: UploadFile = File(...)) -> JSONResponse:
+    """Parse an uploaded PDF and insert rows into not_in_xfcma."""
+    filename = file.filename or ""
+    if not filename.lower().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Only PDF files are allowed")
+
+    temp_path: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+            content = await file.read()
+            tmp.write(content)
+            temp_path = Path(tmp.name)
+
+        report_dt, parsed_rows = _parse_pdf(temp_path)
+        if report_dt is None:
+            report_dt = datetime.now()
+
+        if not parsed_rows:
+            raise HTTPException(status_code=400, detail="No data rows found in PDF")
+
+        insert_params: list[dict] = []
+        for row in parsed_rows:
+            trans_date = _as400_date(row.get("trans_date", ""))
+            length_raw = (row.get("length") or "").strip()
+            rolls_raw = (row.get("rolls") or "").strip()
+            weight_raw = (row.get("weight") or "").strip()
+            item_raw = (row.get("item") or "").strip()
+
+            try:
+                length_val = int(float(length_raw)) if length_raw else 0
+            except ValueError:
+                length_val = 0
+
+            try:
+                rolls_val = int(float(rolls_raw)) if rolls_raw else 0
+            except ValueError:
+                rolls_val = 0
+
+            try:
+                weight_val = int(float(weight_raw)) if weight_raw else 0
+            except ValueError:
+                weight_val = 0
+
+            try:
+                item_val = int(float(item_raw)) if item_raw else 0
+            except ValueError:
+                item_val = 0
+
+            insert_params.append(
+                {
+                    "report_datetime": report_dt,
+                    "product_code": (row.get("product_code") or "").strip(),
+                    "manu_order": (row.get("order") or "").strip(),
+                    "item": item_val,
+                    "pallet": (row.get("pallet_no") or "").strip(),
+                    "location": (row.get("loc") or "").strip(),
+                    "rolls": rolls_val,
+                    "length": length_val,
+                    "weight": weight_val,
+                    "grade": (row.get("grade") or "").strip(),
+                    "last_in_date": trans_date or report_dt.date(),
+                }
+            )
+
+        with _engine.begin() as conn:
+            conn.execute(
+                text(
+                    """
+                    INSERT INTO not_in_xfcma
+                    (report_datetime, product_code, manu_order, item, pallet,
+                     location, rolls, length, weight, grade, last_in_date, created_at)
+                    VALUES
+                    (:report_datetime, :product_code, :manu_order, :item, :pallet,
+                     :location, :rolls, :length, :weight, :grade, :last_in_date, NOW())
+                    """
+                ),
+                insert_params,
+            )
+
+        return JSONResponse(
+            content={
+                "message": f"Inserted {len(insert_params)} rows from {filename}",
+                "inserted": len(insert_params),
+                "report_datetime": report_dt.isoformat(sep=" "),
+            }
+        )
+    finally:
+        if temp_path and temp_path.exists():
+            temp_path.unlink(missing_ok=True)
 
 
 @router.get(
