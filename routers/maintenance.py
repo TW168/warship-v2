@@ -13,6 +13,11 @@ Handles:
   GET /maintenance/lmi              — LMI document analysis page
   POST /maintenance/lmi/analyze     — Stream AI bullet-point takeaways via Ollama
   GET /maintenance/truck-load-map   — Interactive truck trailer load planning tool
+  GET /maintenance/not-in-xfcma     — Upload not in XFCMA page
+  GET /maintenance/api/not-in-xfcma — JSON list not_in_xfcma rows
+  POST /maintenance/api/not-in-xfcma — JSON create not_in_xfcma row
+  PUT /maintenance/api/not-in-xfcma/{id} — JSON update not_in_xfcma row
+  DELETE /maintenance/api/not-in-xfcma/{id} — JSON delete not_in_xfcma row
 """
 
 import csv
@@ -36,6 +41,12 @@ from schemas.shipping_status import (
     ShippingStatusDeleteResponse,
     ShippingStatusRow,
     ShippingStatusUpdateRequest,
+)
+from schemas.not_in_xfcma import (
+    NotInXfcmaCreateRequest,
+    NotInXfcmaDeleteResponse,
+    NotInXfcmaRow,
+    NotInXfcmaUpdateRequest,
 )
 
 router = APIRouter(prefix="/maintenance", tags=["Maintenance"])
@@ -798,3 +809,243 @@ async def truck_load_map(request: Request) -> HTMLResponse:
         "maintenance/truck_load_map.html",
         {"request": request, "active_page": "truck_load_map", "products": products},
     )
+
+
+# ---------------------------------------------------------------------------
+# Not in XFCMA Upload & CRUD
+# ---------------------------------------------------------------------------
+
+def _row_to_not_in_xfcma(row) -> NotInXfcmaRow:
+    """Map a SQLAlchemy row to a NotInXfcmaRow model."""
+    return NotInXfcmaRow(
+        id=int(row.id),
+        report_datetime=row.report_datetime,
+        product_code=row.product_code,
+        manu_order=row.manu_order,
+        item=int(row.item),
+        pallet=row.pallet,
+        location=row.location,
+        rolls=int(row.rolls),
+        length=int(row.length),
+        weight=int(row.weight),
+        grade=row.grade,
+        last_in_date=row.last_in_date,
+        created_at=row.created_at,
+    )
+
+
+@router.get(
+    "/not-in-xfcma",
+    response_class=HTMLResponse,
+    summary="Upload not in XFCMA Page",
+    description=(
+        "Maintenance page to upload, view, update, and delete records in the "
+        "not_in_xfcma table."
+    ),
+)
+async def not_in_xfcma_page(request: Request) -> HTMLResponse:
+    """Render the not_in_xfcma upload and management page."""
+    return templates.TemplateResponse(
+        "maintenance/not_in_xfcma.html",
+        {"request": request, "active_page": "not_in_xfcma"},
+    )
+
+
+@router.get(
+    "/api/not-in-xfcma",
+    response_model=list[NotInXfcmaRow],
+    summary="List not_in_xfcma rows",
+    description=(
+        "Returns not_in_xfcma rows ordered by report_datetime desc and id desc. "
+        "Optional filters for product_code and date range."
+    ),
+)
+async def not_in_xfcma_list(
+    product_code: Optional[str] = Query(None, description="Filter by product_code"),
+    date_from: Optional[str] = Query(None, description="report_datetime >= (YYYY-MM-DD)"),
+    date_to: Optional[str] = Query(None, description="report_datetime <= (YYYY-MM-DD)"),
+    limit: int = Query(500, ge=1, le=5000, description="Maximum rows to return"),
+) -> list[NotInXfcmaRow]:
+    """Return not_in_xfcma rows with optional filters."""
+    with _engine.connect() as conn:
+        where_clauses = []
+        params = {}
+
+        if product_code:
+            where_clauses.append("product_code = :product_code")
+            params["product_code"] = product_code
+
+        if date_from:
+            where_clauses.append("DATE(report_datetime) >= :date_from")
+            params["date_from"] = date_from
+
+        if date_to:
+            where_clauses.append("DATE(report_datetime) <= :date_to")
+            params["date_to"] = date_to
+
+        where = "WHERE " + " AND ".join(where_clauses) if where_clauses else ""
+
+        rows = conn.execute(
+            text(f"""
+                SELECT
+                    id, report_datetime, product_code, manu_order, item, pallet,
+                    location, rolls, length, weight, grade, last_in_date, created_at
+                FROM not_in_xfcma
+                {where}
+                ORDER BY report_datetime DESC, id DESC
+                LIMIT :limit
+            """),
+            {**params, "limit": limit},
+        ).fetchall()
+
+        return [_row_to_not_in_xfcma(row) for row in rows]
+
+
+@router.post(
+    "/api/not-in-xfcma",
+    response_model=NotInXfcmaRow,
+    summary="Create not_in_xfcma row",
+    description="Create a new not_in_xfcma record.",
+)
+async def not_in_xfcma_create(body: NotInXfcmaCreateRequest) -> NotInXfcmaRow:
+    """Create a new not_in_xfcma row."""
+    with _engine.connect() as conn:
+        result = conn.execute(
+            text("""
+                INSERT INTO not_in_xfcma
+                (report_datetime, product_code, manu_order, item, pallet,
+                 location, rolls, length, weight, grade, last_in_date)
+                VALUES
+                (:report_datetime, :product_code, :manu_order, :item, :pallet,
+                 :location, :rolls, :length, :weight, :grade, :last_in_date)
+            """),
+            {
+                "report_datetime": body.report_datetime,
+                "product_code": body.product_code,
+                "manu_order": body.manu_order,
+                "item": body.item,
+                "pallet": body.pallet,
+                "location": body.location,
+                "rolls": body.rolls,
+                "length": body.length,
+                "weight": body.weight,
+                "grade": body.grade,
+                "last_in_date": body.last_in_date,
+            },
+        )
+        new_id = result.lastrowid
+        conn.commit()
+
+        # Fetch the newly created row
+        row = conn.execute(
+            text("""
+                SELECT
+                    id, report_datetime, product_code, manu_order, item, pallet,
+                    location, rolls, length, weight, grade, last_in_date, created_at
+                FROM not_in_xfcma
+                WHERE id = :id
+            """),
+            {"id": new_id},
+        ).fetchone()
+
+        return _row_to_not_in_xfcma(row)
+
+
+@router.put(
+    "/api/not-in-xfcma/{row_id}",
+    response_model=NotInXfcmaRow,
+    summary="Update not_in_xfcma row",
+    description="Update an existing not_in_xfcma record.",
+)
+async def not_in_xfcma_update(row_id: int, body: NotInXfcmaUpdateRequest) -> NotInXfcmaRow:
+    """Update a not_in_xfcma row."""
+    updates = []
+    params = {"id": row_id}
+
+    if body.report_datetime is not None:
+        updates.append("report_datetime = :report_datetime")
+        params["report_datetime"] = body.report_datetime
+    if body.product_code is not None:
+        updates.append("product_code = :product_code")
+        params["product_code"] = body.product_code
+    if body.manu_order is not None:
+        updates.append("manu_order = :manu_order")
+        params["manu_order"] = body.manu_order
+    if body.item is not None:
+        updates.append("item = :item")
+        params["item"] = body.item
+    if body.pallet is not None:
+        updates.append("pallet = :pallet")
+        params["pallet"] = body.pallet
+    if body.location is not None:
+        updates.append("location = :location")
+        params["location"] = body.location
+    if body.rolls is not None:
+        updates.append("rolls = :rolls")
+        params["rolls"] = body.rolls
+    if body.length is not None:
+        updates.append("length = :length")
+        params["length"] = body.length
+    if body.weight is not None:
+        updates.append("weight = :weight")
+        params["weight"] = body.weight
+    if body.grade is not None:
+        updates.append("grade = :grade")
+        params["grade"] = body.grade
+    if body.last_in_date is not None:
+        updates.append("last_in_date = :last_in_date")
+        params["last_in_date"] = body.last_in_date
+
+    if not updates:
+        raise HTTPException(status_code=400, detail="No fields to update")
+
+    with _engine.connect() as conn:
+        conn.execute(
+            text(f"""
+                UPDATE not_in_xfcma
+                SET {', '.join(updates)}
+                WHERE id = :id
+            """),
+            params,
+        )
+        conn.commit()
+
+        row = conn.execute(
+            text("""
+                SELECT
+                    id, report_datetime, product_code, manu_order, item, pallet,
+                    location, rolls, length, weight, grade, last_in_date, created_at
+                FROM not_in_xfcma
+                WHERE id = :id
+            """),
+            {"id": row_id},
+        ).fetchone()
+
+        if not row:
+            raise HTTPException(status_code=404, detail=f"Row with id {row_id} not found")
+
+        return _row_to_not_in_xfcma(row)
+
+
+@router.delete(
+    "/api/not-in-xfcma/{row_id}",
+    response_model=NotInXfcmaDeleteResponse,
+    summary="Delete not_in_xfcma row",
+    description="Delete a not_in_xfcma record by id.",
+)
+async def not_in_xfcma_delete(row_id: int) -> NotInXfcmaDeleteResponse:
+    """Delete a not_in_xfcma row."""
+    with _engine.connect() as conn:
+        result = conn.execute(
+            text("DELETE FROM not_in_xfcma WHERE id = :id"),
+            {"id": row_id},
+        )
+        conn.commit()
+
+        if result.rowcount == 0:
+            raise HTTPException(status_code=404, detail=f"Row with id {row_id} not found")
+
+        return NotInXfcmaDeleteResponse(
+            id=row_id,
+            message=f"Row {row_id} deleted successfully",
+        )

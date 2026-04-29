@@ -101,7 +101,7 @@
 
           <!-- Maintenance (dropdown) -->
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle {% if active_page in ['maintenance', 'frt_validation', 'freight_audit', 'lmi', 'truck_load_map', 'shipping_status'] %}active{% endif %}"
+            <a class="nav-link dropdown-toggle {% if active_page in ['maintenance', 'frt_validation', 'freight_audit', 'lmi', 'truck_load_map', 'shipping_status', 'not_in_xfcma'] %}active{% endif %}"
                href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
               <i class="bi bi-tools me-1" aria-hidden="true"></i>Maintenance
             </a>
@@ -129,6 +129,11 @@
               <li>
                 <a class="dropdown-item {% if active_page == 'truck_load_map' %}active{% endif %}" href="/maintenance/truck-load-map">
                   <i class="bi bi-diagram-2 me-2" aria-hidden="true"></i>Truck Load Map
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item {% if active_page == 'not_in_xfcma' %}active{% endif %}" href="/maintenance/not-in-xfcma">
+                  <i class="bi bi-cloud-arrow-up me-2" aria-hidden="true"></i>Upload not in XFCMA
                 </a>
               </li>
             </ul>
