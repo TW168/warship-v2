@@ -835,7 +835,8 @@ def _row_to_not_in_xfcma(row) -> NotInXfcmaRow:
         weight=int(row.weight),
         grade=row.grade,
         last_in_date=row.last_in_date,
-        created_at=row.created_at,
+        created_at_utc=row.created_at_utc,
+        source_file=row.source_file,
     )
 
 
@@ -919,103 +920,144 @@ def _parse_not_in_xfcma_text_pdf(pdf_path: Path) -> list[dict]:
     "/api/not-in-xfcma/upload",
     summary="Upload not_in_xfcma PDF",
     description=(
-        "Upload a QPQUPRFIL PDF report, parse rows, and insert the extracted "
-        "records into not_in_xfcma."
+        "Upload one or more QPQUPRFIL PDF reports, parse rows, and insert the "
+        "extracted records into not_in_xfcma."
     ),
 )
-async def not_in_xfcma_upload_pdf(file: UploadFile = File(...)) -> JSONResponse:
-    """Parse an uploaded PDF and insert rows into not_in_xfcma."""
-    filename = file.filename or ""
-    if not filename.lower().endswith(".pdf"):
-        raise HTTPException(status_code=400, detail="Only PDF files are allowed")
+async def not_in_xfcma_upload_pdf(files: list[UploadFile] = File(...)) -> JSONResponse:
+    """Parse uploaded PDFs and insert rows into not_in_xfcma."""
+    if not files:
+        raise HTTPException(status_code=400, detail="Please upload at least one PDF file")
 
-    temp_path: Path | None = None
-    try:
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
-            content = await file.read()
-            tmp.write(content)
-            temp_path = Path(tmp.name)
+    all_insert_params: list[dict] = []
+    file_summaries: list[dict] = []
+    invalid_files: list[str] = []
 
-        report_dt, parsed_rows = _parse_pdf(temp_path)
-        if not parsed_rows:
-            parsed_rows = _parse_not_in_xfcma_text_pdf(temp_path)
-        if report_dt is None:
-            report_dt = datetime.now()
+    for upload in files:
+        filename = (upload.filename or "").strip()
+        if not filename.lower().endswith(".pdf"):
+            invalid_files.append(filename or "(unnamed)")
+            continue
 
-        if not parsed_rows:
-            raise HTTPException(status_code=400, detail="No data rows found in PDF")
+        temp_path: Path | None = None
+        try:
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+                content = await upload.read()
+                tmp.write(content)
+                temp_path = Path(tmp.name)
 
-        insert_params: list[dict] = []
-        for row in parsed_rows:
-            trans_date = _as400_date(row.get("trans_date", ""))
-            if trans_date is None and row.get("last_in_date") is not None:
-                trans_date = row.get("last_in_date")
-            length_raw = (row.get("length") or "").strip()
-            rolls_raw = (row.get("rolls") or "").strip()
-            weight_raw = (row.get("weight") or "").strip()
-            item_raw = (row.get("item") or "").strip()
+            report_dt, parsed_rows = _parse_pdf(temp_path)
+            if not parsed_rows:
+                parsed_rows = _parse_not_in_xfcma_text_pdf(temp_path)
+            if report_dt is None:
+                report_dt = datetime.now()
 
-            try:
-                length_val = int(float(length_raw)) if length_raw else 0
-            except ValueError:
-                length_val = 0
+            if not parsed_rows:
+                file_summaries.append({"file": filename, "inserted": 0, "detail": "No rows found"})
+                continue
 
-            try:
-                rolls_val = int(float(rolls_raw)) if rolls_raw else 0
-            except ValueError:
-                rolls_val = 0
+            file_insert_count = 0
+            for row in parsed_rows:
+                trans_date = _as400_date(row.get("trans_date", ""))
+                if trans_date is None and row.get("last_in_date") is not None:
+                    trans_date = row.get("last_in_date")
+                length_raw = (row.get("length") or "").strip()
+                rolls_raw = (row.get("rolls") or "").strip()
+                weight_raw = (row.get("weight") or "").strip()
+                item_raw = (row.get("item") or "").strip()
 
-            try:
-                weight_val = int(float(weight_raw)) if weight_raw else 0
-            except ValueError:
-                weight_val = 0
+                try:
+                    length_val = int(float(length_raw)) if length_raw else 0
+                except ValueError:
+                    length_val = 0
 
-            try:
-                item_val = int(float(item_raw)) if item_raw else 0
-            except ValueError:
-                item_val = 0
+                try:
+                    rolls_val = int(float(rolls_raw)) if rolls_raw else 0
+                except ValueError:
+                    rolls_val = 0
 
-            insert_params.append(
+                try:
+                    weight_val = int(float(weight_raw)) if weight_raw else 0
+                except ValueError:
+                    weight_val = 0
+
+                try:
+                    item_val = int(float(item_raw)) if item_raw else 0
+                except ValueError:
+                    item_val = 0
+
+                all_insert_params.append(
+                    {
+                        "report_datetime": report_dt,
+                        "product_code": (row.get("product_code") or "").strip(),
+                        "manu_order": (row.get("order") or "").strip(),
+                        "item": item_val,
+                        "pallet": (row.get("pallet_no") or "").strip(),
+                        "location": (row.get("loc") or "").strip(),
+                        "rolls": rolls_val,
+                        "length": length_val,
+                        "weight": weight_val,
+                        "grade": (row.get("grade") or "").strip(),
+                        "last_in_date": trans_date or report_dt.date(),
+                        "source_file": filename,
+                    }
+                )
+                file_insert_count += 1
+
+            file_summaries.append(
                 {
-                    "report_datetime": report_dt,
-                    "product_code": (row.get("product_code") or "").strip(),
-                    "manu_order": (row.get("order") or "").strip(),
-                    "item": item_val,
-                    "pallet": (row.get("pallet_no") or "").strip(),
-                    "location": (row.get("loc") or "").strip(),
-                    "rolls": rolls_val,
-                    "length": length_val,
-                    "weight": weight_val,
-                    "grade": (row.get("grade") or "").strip(),
-                    "last_in_date": trans_date or report_dt.date(),
+                    "file": filename,
+                    "inserted": file_insert_count,
+                    "report_datetime": report_dt.isoformat(sep=" "),
                 }
             )
+        finally:
+            if temp_path and temp_path.exists():
+                temp_path.unlink(missing_ok=True)
 
-        with _engine.begin() as conn:
+    if invalid_files:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Only PDF files are allowed. Invalid files: {', '.join(invalid_files)}",
+        )
+
+    if not all_insert_params:
+        raise HTTPException(status_code=400, detail="No data rows found in uploaded PDF files")
+
+    # Delete existing rows for each source filename so the same file can be re-uploaded
+    unique_filenames = list({p["source_file"] for p in all_insert_params})
+
+    with _engine.begin() as conn:
+        for fname in unique_filenames:
             conn.execute(
-                text(
-                    """
-                    INSERT INTO not_in_xfcma
-                    (report_datetime, product_code, manu_order, item, pallet,
-                     location, rolls, length, weight, grade, last_in_date, created_at)
-                    VALUES
-                    (:report_datetime, :product_code, :manu_order, :item, :pallet,
-                     :location, :rolls, :length, :weight, :grade, :last_in_date, NOW())
-                    """
-                ),
-                insert_params,
+                text("DELETE FROM not_in_xfcma WHERE source_file = :fname"),
+                {"fname": fname},
             )
 
-        return JSONResponse(
-            content={
-                "message": f"Inserted {len(insert_params)} rows from {filename}",
-                "inserted": len(insert_params),
-                "report_datetime": report_dt.isoformat(sep=" "),
-            }
+        result = conn.execute(
+            text(
+                """
+                INSERT INTO not_in_xfcma
+                (report_datetime, product_code, manu_order, item, pallet,
+                 location, rolls, length, weight, grade, last_in_date, created_at_utc,
+                 source_file)
+                VALUES
+                (:report_datetime, :product_code, :manu_order, :item, :pallet,
+                 :location, :rolls, :length, :weight, :grade, :last_in_date, NOW(),
+                 :source_file)
+                """
+            ),
+            all_insert_params,
         )
-    finally:
-        if temp_path and temp_path.exists():
-            temp_path.unlink(missing_ok=True)
+        inserted_count = int(result.rowcount or 0)
+
+    return JSONResponse(
+        content={
+            "message": f"Inserted {inserted_count} rows from {len(file_summaries)} file(s)",
+            "inserted": inserted_count,
+            "files": file_summaries,
+        }
+    )
 
 
 @router.get(
@@ -1056,7 +1098,8 @@ async def not_in_xfcma_list(
             text(f"""
                 SELECT
                     id, report_datetime, product_code, manu_order, item, pallet,
-                    location, rolls, length, weight, grade, last_in_date, created_at
+                    location, rolls, length, weight, grade, last_in_date, created_at_utc,
+                    source_file
                 FROM not_in_xfcma
                 {where}
                 ORDER BY report_datetime DESC, id DESC
@@ -1108,7 +1151,8 @@ async def not_in_xfcma_create(body: NotInXfcmaCreateRequest) -> NotInXfcmaRow:
             text("""
                 SELECT
                     id, report_datetime, product_code, manu_order, item, pallet,
-                    location, rolls, length, weight, grade, last_in_date, created_at
+                    location, rolls, length, weight, grade, last_in_date, created_at_utc,
+                    source_file
                 FROM not_in_xfcma
                 WHERE id = :id
             """),
@@ -1181,7 +1225,8 @@ async def not_in_xfcma_update(row_id: int, body: NotInXfcmaUpdateRequest) -> Not
             text("""
                 SELECT
                     id, report_datetime, product_code, manu_order, item, pallet,
-                    location, rolls, length, weight, grade, last_in_date, created_at
+                    location, rolls, length, weight, grade, last_in_date, created_at_utc,
+                    source_file
                 FROM not_in_xfcma
                 WHERE id = :id
             """),

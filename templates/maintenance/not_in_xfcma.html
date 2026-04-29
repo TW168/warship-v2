@@ -43,11 +43,11 @@
         <div class="card-body">
           <form id="uploadForm">
             <div class="mb-3">
-              <label for="pdfFile" class="form-label">QPQUPRFIL PDF File</label>
-              <input type="file" class="form-control" id="pdfFile" accept=".pdf,application/pdf" required>
+              <label for="pdfFile" class="form-label">QPQUPRFIL PDF File(s)</label>
+              <input type="file" class="form-control" id="pdfFile" accept=".pdf,application/pdf" multiple required>
             </div>
             <button type="submit" class="btn btn-primary w-100" id="uploadBtn">
-              <i class="bi bi-cloud-upload me-2"></i>Upload and Save to MySQL
+              <i class="bi bi-cloud-upload me-2"></i>Upload File(s) and Save to MySQL
             </button>
           </form>
         </div>
@@ -255,18 +255,20 @@
     e.preventDefault();
     const fileInput = document.getElementById('pdfFile');
     const uploadBtn = document.getElementById('uploadBtn');
-    const file = fileInput.files && fileInput.files[0];
+    const files = Array.from(fileInput.files || []);
 
-    if (!file) {
-      showToast('Please choose a PDF file first', 'error');
+    if (files.length === 0) {
+      showToast('Please choose at least one PDF file', 'error');
       return;
     }
 
     const formData = new FormData();
-    formData.append('file', file);
+    for (const file of files) {
+      formData.append('files', file);
+    }
 
     uploadBtn.disabled = true;
-    uploadBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Uploading...';
+    uploadBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Uploading files...';
 
     try {
       const res = await fetch('/maintenance/api/not-in-xfcma/upload', {
@@ -286,7 +288,7 @@
       showToast(`Upload failed: ${err.message}`, 'error');
     } finally {
       uploadBtn.disabled = false;
-      uploadBtn.innerHTML = '<i class="bi bi-cloud-upload me-2"></i>Upload and Save to MySQL';
+      uploadBtn.innerHTML = '<i class="bi bi-cloud-upload me-2"></i>Upload File(s) and Save to MySQL';
     }
   }
 

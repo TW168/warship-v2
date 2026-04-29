@@ -19,7 +19,8 @@ class NotInXfcmaRow(BaseModel):
     weight: int
     grade: str
     last_in_date: date
-    created_at: datetime
+    created_at_utc: datetime
+    source_file: str
 
 
 class NotInXfcmaCreateRequest(BaseModel):
