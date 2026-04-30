@@ -1094,6 +1094,9 @@ async def site_status_upload_csv(file: UploadFile = File(...)) -> JSONResponse:
         )
         inserted_count = int(result.rowcount or 0)
 
+    # Run ETL to populate star-schema tables
+    etl_result = _run_silo_etl(rows_to_insert[0]["snapshot_date"])
+
     return JSONResponse(
         content={
             "message": "Site Status CSV uploaded successfully",
@@ -1101,7 +1104,518 @@ async def site_status_upload_csv(file: UploadFile = File(...)) -> JSONResponse:
             "csv_rows": parsed_row_count,
             "inserted": inserted_count,
             "snapshot_date": rows_to_insert[0]["snapshot_date"].isoformat(),
+            "etl_vessels": etl_result.get("vessels_resolved", 0),
+            "etl_facts": etl_result.get("fact_rows_inserted", 0),
         }
+    )
+
+
+# ---------------------------------------------------------------------------
+# Silos ETL — populate star-schema from silo_status raw rows
+# ---------------------------------------------------------------------------
+
+def _run_silo_etl(snapshot_date) -> dict:
+    """ETL pipeline for one snapshot_date.
+
+    Reads raw rows from silo_status, upserts dimension tables
+    (silo_dim_vessel, silo_dim_contents, silo_dim_alarm), loads
+    fact_silo_status, then refreshes all five aggregate tables.
+
+    Returns a dict with row counts for each step.
+    """
+    with _engine.begin() as conn:
+        # ── 1. Resolve silo_dim_vessel ──────────────────────────────────────
+        vessels = conn.execute(
+            text(
+                """
+                SELECT DISTINCT vessel_name, site, vessel_type, distance_units,
+                    volume_units, weight_units, vessel_height, vessel_radius,
+                    vessel_length, vessel_width, hopper_height, outlet_radius,
+                    outlet_length, outlet_width, capacity_volume,
+                    sensor_type, sensor_address
+                FROM silo_status
+                WHERE snapshot_date = :sd AND vessel_name IS NOT NULL
+                  AND vessel_name <> ''
+                """
+            ),
+            {"sd": snapshot_date},
+        ).mappings().all()
+
+        vessel_map: dict[str, int] = {}
+        for v in vessels:
+            row = conn.execute(
+                text("SELECT vessel_key FROM silo_dim_vessel WHERE vessel_name = :n AND is_current = 1"),
+                {"n": v["vessel_name"]},
+            ).fetchone()
+            if row:
+                vessel_map[v["vessel_name"]] = int(row[0])
+            else:
+                r = conn.execute(
+                    text(
+                        """
+                        INSERT INTO silo_dim_vessel (
+                            vessel_name, site, vessel_type, distance_units, volume_units,
+                            weight_units, vessel_height, vessel_radius, vessel_length,
+                            vessel_width, hopper_height, outlet_radius, outlet_length,
+                            outlet_width, capacity_volume, sensor_type, sensor_address,
+                            effective_from
+                        ) VALUES (
+                            :vessel_name, :site, :vessel_type, :distance_units, :volume_units,
+                            :weight_units, :vessel_height, :vessel_radius, :vessel_length,
+                            :vessel_width, :hopper_height, :outlet_radius, :outlet_length,
+                            :outlet_width, :capacity_volume, :sensor_type, :sensor_address,
+                            :effective_from
+                        )
+                        """
+                    ),
+                    {**dict(v), "effective_from": snapshot_date},
+                )
+                vessel_map[v["vessel_name"]] = int(r.lastrowid)
+
+        # ── 2. Resolve silo_dim_contents ────────────────────────────────────
+        contents_rows = conn.execute(
+            text(
+                """
+                SELECT DISTINCT contents AS contents_code, density_units
+                FROM silo_status
+                WHERE snapshot_date = :sd AND contents IS NOT NULL AND contents <> ''
+                """
+            ),
+            {"sd": snapshot_date},
+        ).mappings().all()
+
+        contents_map: dict[str, int] = {}
+        for c in contents_rows:
+            code = c["contents_code"] or "UNKNOWN"
+            row = conn.execute(
+                text("SELECT contents_key FROM silo_dim_contents WHERE contents_code = :c"),
+                {"c": code},
+            ).fetchone()
+            if row:
+                contents_map[code] = int(row[0])
+            else:
+                r = conn.execute(
+                    text(
+                        "INSERT INTO silo_dim_contents (contents_code, density_units) VALUES (:c, :d)"
+                    ),
+                    {"c": code, "d": c.get("density_units")},
+                )
+                contents_map[code] = int(r.lastrowid)
+
+        unk_row = conn.execute(
+            text("SELECT contents_key FROM silo_dim_contents WHERE contents_code = 'UNKNOWN'")
+        ).fetchone()
+        unknown_contents_key = int(unk_row[0]) if unk_row else 1
+        contents_map.setdefault("UNKNOWN", unknown_contents_key)
+
+        # ── 3. Resolve silo_dim_alarm ───────────────────────────────────────
+        alarm_rows = conn.execute(
+            text(
+                "SELECT DISTINCT alarm_condition FROM silo_status WHERE snapshot_date = :sd"
+            ),
+            {"sd": snapshot_date},
+        ).mappings().all()
+
+        alarm_map: dict[str, int] = {}
+        for a in alarm_rows:
+            code = (a["alarm_condition"] or "NONE").strip() or "NONE"
+            if code in alarm_map:
+                continue
+            row = conn.execute(
+                text("SELECT alarm_key FROM silo_dim_alarm WHERE alarm_code = :c"),
+                {"c": code},
+            ).fetchone()
+            if row:
+                alarm_map[code] = int(row[0])
+            else:
+                upper = code.upper()
+                severity = 2 if "ALARM" in upper else (1 if "WARN" in upper else 0)
+                label = ("ALARM" if severity == 2 else ("WARNING" if severity == 1 else "NONE"))
+                r = conn.execute(
+                    text(
+                        """
+                        INSERT INTO silo_dim_alarm (alarm_code, severity_level, severity_label)
+                        VALUES (:c, :s, :l)
+                        """
+                    ),
+                    {"c": code, "s": severity, "l": label},
+                )
+                alarm_map[code] = int(r.lastrowid)
+
+        none_row = conn.execute(
+            text("SELECT alarm_key FROM silo_dim_alarm WHERE alarm_code = 'NONE'")
+        ).fetchone()
+        none_alarm_key = int(none_row[0]) if none_row else 1
+        alarm_map.setdefault("NONE", none_alarm_key)
+
+        # ── 4. Load fact_silo_status ────────────────────────────────────────
+        raw_rows = conn.execute(
+            text(
+                """
+                SELECT measurement_time, snapshot_date, vessel_name, contents,
+                    product_density, product_volume, product_weight, product_height,
+                    headroom_volume, headroom_weight, headroom_height,
+                    measurement_in_feet, measurement_in_meters, percent_full,
+                    alarm_condition, source_file
+                FROM silo_status
+                WHERE snapshot_date = :sd
+                """
+            ),
+            {"sd": snapshot_date},
+        ).mappings().all()
+
+        fact_rows = []
+        for r in raw_rows:
+            vk = vessel_map.get(r["vessel_name"] or "")
+            if vk is None:
+                continue
+            ck = contents_map.get(r["contents"] or "UNKNOWN", unknown_contents_key)
+            ac = (r["alarm_condition"] or "NONE").strip() or "NONE"
+            ak = alarm_map.get(ac, none_alarm_key)
+            fact_rows.append(
+                {
+                    "measurement_time": r["measurement_time"],
+                    "snapshot_date": r["snapshot_date"],
+                    "time_key": r["snapshot_date"],
+                    "vessel_key": vk,
+                    "contents_key": ck,
+                    "alarm_key": ak,
+                    "product_density": r["product_density"],
+                    "product_volume": r["product_volume"],
+                    "product_weight": r["product_weight"],
+                    "product_height": r["product_height"],
+                    "headroom_volume": r["headroom_volume"],
+                    "headroom_weight": r["headroom_weight"],
+                    "headroom_height": r["headroom_height"],
+                    "measurement_in_feet": r["measurement_in_feet"],
+                    "measurement_in_meters": r["measurement_in_meters"],
+                    "percent_full": r["percent_full"],
+                    "source_file": r["source_file"],
+                }
+            )
+
+        fact_inserted = 0
+        if fact_rows:
+            res = conn.execute(
+                text(
+                    """
+                    INSERT IGNORE INTO fact_silo_status (
+                        measurement_time, snapshot_date, time_key,
+                        vessel_key, contents_key, alarm_key,
+                        product_density, product_volume, product_weight, product_height,
+                        headroom_volume, headroom_weight, headroom_height,
+                        measurement_in_feet, measurement_in_meters, percent_full, source_file
+                    ) VALUES (
+                        :measurement_time, :snapshot_date, :time_key,
+                        :vessel_key, :contents_key, :alarm_key,
+                        :product_density, :product_volume, :product_weight, :product_height,
+                        :headroom_volume, :headroom_weight, :headroom_height,
+                        :measurement_in_feet, :measurement_in_meters, :percent_full, :source_file
+                    )
+                    """
+                ),
+                fact_rows,
+            )
+            fact_inserted = int(res.rowcount or 0)
+
+        # ── 5a. silo_agg_inventory_current ──────────────────────────────────
+        # Use DELETE + INSERT (no alias ON DUPLICATE KEY — not valid with SELECT)
+        conn.execute(
+            text(
+                """
+                DELETE FROM silo_agg_inventory_current
+                WHERE vessel_key IN (
+                    SELECT DISTINCT vessel_key FROM fact_silo_status
+                    WHERE snapshot_date = :sd
+                )
+                """
+            ),
+            {"sd": snapshot_date},
+        )
+        conn.execute(
+            text(
+                """
+                INSERT INTO silo_agg_inventory_current
+                    (vessel_key, vessel_name, site, contents_code,
+                     last_measurement_time, percent_full, product_weight,
+                     product_height, alarm_code, severity_level, refreshed_at)
+                SELECT
+                    f.vessel_key, v.vessel_name, v.site, c.contents_code,
+                    f.measurement_time, f.percent_full, f.product_weight,
+                    f.product_height, a.alarm_code, a.severity_level, UTC_TIMESTAMP()
+                FROM fact_silo_status f
+                JOIN silo_dim_vessel   v ON v.vessel_key   = f.vessel_key
+                JOIN silo_dim_contents c ON c.contents_key = f.contents_key
+                JOIN silo_dim_alarm    a ON a.alarm_key    = f.alarm_key
+                WHERE f.measurement_time = (
+                    SELECT MAX(f2.measurement_time)
+                    FROM fact_silo_status f2
+                    WHERE f2.vessel_key = f.vessel_key
+                )
+                  AND f.snapshot_date = :sd
+                """
+            ),
+            {"sd": snapshot_date},
+        )
+
+        # ── 5b. silo_agg_inventory_daily ────────────────────────────────────
+        conn.execute(
+            text("DELETE FROM silo_agg_inventory_daily WHERE snapshot_date = :sd"),
+            {"sd": snapshot_date},
+        )
+        conn.execute(
+            text(
+                """
+                INSERT INTO silo_agg_inventory_daily
+                    (snapshot_date, contents_code, reading_count,
+                     avg_percent_full, min_percent_full, max_percent_full,
+                     total_product_weight, avg_product_weight, refreshed_at)
+                SELECT
+                    f.snapshot_date, c.contents_code, COUNT(*),
+                    AVG(f.percent_full), MIN(f.percent_full), MAX(f.percent_full),
+                    SUM(f.product_weight), AVG(f.product_weight), UTC_TIMESTAMP()
+                FROM fact_silo_status f
+                JOIN silo_dim_contents c ON c.contents_key = f.contents_key
+                WHERE f.snapshot_date = :sd
+                GROUP BY f.snapshot_date, c.contents_code
+                """
+            ),
+            {"sd": snapshot_date},
+        )
+
+        # ── 5c. silo_agg_consumption_rate ───────────────────────────────────
+        conn.execute(
+            text("DELETE FROM silo_agg_consumption_rate WHERE snapshot_date = :sd"),
+            {"sd": snapshot_date},
+        )
+        conn.execute(
+            text(
+                """
+                INSERT INTO silo_agg_consumption_rate
+                    (vessel_key, snapshot_date, vessel_name, contents_code,
+                     product_weight, prev_day_weight, weight_delta,
+                     avg_7d_delta, days_to_empty, refreshed_at)
+                SELECT
+                    cur.vessel_key,
+                    :sd AS snapshot_date,
+                    v.vessel_name,
+                    c.contents_code,
+                    cur.avg_weight AS product_weight,
+                    prev.avg_weight AS prev_day_weight,
+                    (cur.avg_weight - COALESCE(prev.avg_weight, cur.avg_weight)) AS weight_delta,
+                    NULL AS avg_7d_delta,
+                    CASE
+                        WHEN (cur.avg_weight - COALESCE(prev.avg_weight, cur.avg_weight)) < 0
+                        THEN ROUND(ABS(cur.avg_weight / NULLIF(
+                            cur.avg_weight - COALESCE(prev.avg_weight, cur.avg_weight), 0)), 1)
+                        ELSE NULL
+                    END AS days_to_empty,
+                    UTC_TIMESTAMP()
+                FROM (
+                    SELECT vessel_key,
+                           AVG(product_weight) AS avg_weight,
+                           MAX(contents_key)   AS contents_key
+                    FROM fact_silo_status
+                    WHERE snapshot_date = :sd
+                    GROUP BY vessel_key
+                ) cur
+                JOIN silo_dim_vessel   v ON v.vessel_key   = cur.vessel_key
+                JOIN silo_dim_contents c ON c.contents_key = cur.contents_key
+                LEFT JOIN (
+                    SELECT vessel_key, AVG(product_weight) AS avg_weight
+                    FROM fact_silo_status
+                    WHERE snapshot_date = DATE_SUB(:sd, INTERVAL 1 DAY)
+                    GROUP BY vessel_key
+                ) prev ON prev.vessel_key = cur.vessel_key
+                """
+            ),
+            {"sd": snapshot_date},
+        )
+
+        # ── 5d. silo_agg_alarm_stats ─────────────────────────────────────────
+        conn.execute(
+            text("DELETE FROM silo_agg_alarm_stats WHERE snapshot_date = :sd"),
+            {"sd": snapshot_date},
+        )
+        conn.execute(
+            text(
+                """
+                INSERT INTO silo_agg_alarm_stats
+                    (vessel_key, snapshot_date, vessel_name,
+                     alarm_code, severity_level, alarm_count, refreshed_at)
+                SELECT
+                    f.vessel_key, f.snapshot_date, v.vessel_name,
+                    a.alarm_code, a.severity_level, COUNT(*), UTC_TIMESTAMP()
+                FROM fact_silo_status f
+                JOIN silo_dim_vessel v ON v.vessel_key = f.vessel_key
+                JOIN silo_dim_alarm  a ON a.alarm_key  = f.alarm_key
+                WHERE f.snapshot_date = :sd
+                GROUP BY f.vessel_key, f.snapshot_date, v.vessel_name,
+                         a.alarm_code, a.severity_level
+                """
+            ),
+            {"sd": snapshot_date},
+        )
+
+        # ── 5e. silo_agg_silo_utilization ───────────────────────────────────
+        conn.execute(
+            text(
+                """
+                DELETE FROM silo_agg_silo_utilization
+                WHERE ym = DATE_FORMAT(:sd, '%Y-%m')
+                """
+            ),
+            {"sd": snapshot_date},
+        )
+        conn.execute(
+            text(
+                """
+                INSERT INTO silo_agg_silo_utilization
+                    (vessel_key, ym, vessel_name, site, reading_count,
+                     avg_percent_full, min_percent_full, max_percent_full,
+                     days_above_80pct, days_below_20pct, refreshed_at)
+                SELECT
+                    f.vessel_key,
+                    DATE_FORMAT(f.snapshot_date, '%Y-%m') AS ym,
+                    v.vessel_name, v.site,
+                    COUNT(*),
+                    AVG(f.percent_full), MIN(f.percent_full), MAX(f.percent_full),
+                    SUM(CASE WHEN f.percent_full > 80 THEN 1 ELSE 0 END),
+                    SUM(CASE WHEN f.percent_full < 20 THEN 1 ELSE 0 END),
+                    UTC_TIMESTAMP()
+                FROM fact_silo_status f
+                JOIN silo_dim_vessel v ON v.vessel_key = f.vessel_key
+                WHERE DATE_FORMAT(f.snapshot_date, '%Y-%m') = DATE_FORMAT(:sd, '%Y-%m')
+                GROUP BY f.vessel_key, DATE_FORMAT(f.snapshot_date, '%Y-%m'),
+                         v.vessel_name, v.site
+                """
+            ),
+            {"sd": snapshot_date},
+        )
+
+
+    return {
+        "vessels_resolved": len(vessel_map),
+        "fact_rows_inserted": fact_inserted,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Silos — serving-layer API endpoints
+# ---------------------------------------------------------------------------
+
+@router.get(
+    "/api/silos/inventory-current",
+    summary="Silos Current Inventory",
+    description=(
+        "Returns the latest inventory snapshot per vessel from "
+        "silo_agg_inventory_current, ordered by site then vessel name."
+    ),
+)
+async def silos_inventory_current() -> JSONResponse:
+    """Return per-vessel current inventory from the serving-layer aggregate."""
+    with _engine.connect() as conn:
+        rows = conn.execute(
+            text(
+                """
+                SELECT vessel_key, vessel_name, site, contents_code,
+                       last_measurement_time, percent_full, product_weight,
+                       product_height, alarm_code, severity_level, refreshed_at
+                FROM silo_agg_inventory_current
+                ORDER BY site, vessel_name
+                """
+            )
+        ).mappings().all()
+
+    def _ser(v):
+        """Serialize datetimes and Decimals."""
+        import decimal
+        if hasattr(v, "isoformat"):
+            return v.isoformat()
+        if isinstance(v, decimal.Decimal):
+            return float(v)
+        return v
+
+    return JSONResponse(
+        content={"data": [{k: _ser(v) for k, v in row.items()} for row in rows]}
+    )
+
+
+@router.get(
+    "/api/silos/inventory-daily",
+    summary="Silos Daily Inventory Trend",
+    description=(
+        "Returns daily aggregate inventory from silo_agg_inventory_daily "
+        "for the last N days (default 30). Param: days (int, 1–365)."
+    ),
+)
+async def silos_inventory_daily(days: int = 30) -> JSONResponse:
+    """Return daily inventory trend from the serving-layer aggregate."""
+    days = max(1, min(days, 365))
+    with _engine.connect() as conn:
+        rows = conn.execute(
+            text(
+                """
+                SELECT snapshot_date, contents_code, reading_count,
+                       avg_percent_full, min_percent_full, max_percent_full,
+                       total_product_weight, avg_product_weight
+                FROM silo_agg_inventory_daily
+                WHERE snapshot_date >= DATE_SUB(CURDATE(), INTERVAL :days DAY)
+                ORDER BY snapshot_date, contents_code
+                """
+            ),
+            {"days": days},
+        ).mappings().all()
+
+    def _ser(v):
+        import decimal
+        if hasattr(v, "isoformat"):
+            return v.isoformat()
+        if isinstance(v, decimal.Decimal):
+            return float(v)
+        return v
+
+    return JSONResponse(
+        content={"data": [{k: _ser(v) for k, v in row.items()} for row in rows]}
+    )
+
+
+@router.get(
+    "/api/silos/consumption-rate",
+    summary="Silos Consumption / Burn Rate",
+    description=(
+        "Returns per-vessel daily consumption rate from "
+        "silo_agg_consumption_rate for the last N days (default 30)."
+    ),
+)
+async def silos_consumption_rate(days: int = 30) -> JSONResponse:
+    """Return vessel burn-rate data from the serving-layer aggregate."""
+    days = max(1, min(days, 365))
+    with _engine.connect() as conn:
+        rows = conn.execute(
+            text(
+                """
+                SELECT vessel_key, snapshot_date, vessel_name, contents_code,
+                       product_weight, prev_day_weight, weight_delta,
+                       avg_7d_delta, days_to_empty
+                FROM silo_agg_consumption_rate
+                WHERE snapshot_date >= DATE_SUB(CURDATE(), INTERVAL :days DAY)
+                ORDER BY vessel_name, snapshot_date
+                """
+            ),
+            {"days": days},
+        ).mappings().all()
+
+    def _ser(v):
+        import decimal
+        if hasattr(v, "isoformat"):
+            return v.isoformat()
+        if isinstance(v, decimal.Decimal):
+            return float(v)
+        return v
+
+    return JSONResponse(
+        content={"data": [{k: _ser(v) for k, v in row.items()} for row in rows]}
     )
 
 

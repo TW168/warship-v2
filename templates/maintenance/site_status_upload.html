@@ -4,58 +4,308 @@
 
 {% block content %}
 <div class="container-fluid py-4">
-  <div class="row mb-3">
+
+  <!-- ── Page header ─────────────────────────────────────────────────────── -->
+  <div class="row mb-4">
     <div class="col">
-      <h1 class="fw-bold" style="color: #154e9a;">
-        <i class="bi bi-bar-chart-steps me-2"></i>Silos Status
+      <h1 class="page-header">
+        <i class="bi bi-bar-chart-steps"></i>Silos Status
       </h1>
-      <p class="text-muted mb-0">
-        Upload the daily Site Status CSV file to store silo snapshot records in MySQL.
+      <p class="text-muted mb-0 mt-1">
+        Live inventory dashboard — upload a daily Site Status CSV to refresh.
       </p>
+    </div>
+    <div class="col-auto align-self-start pt-1">
+      <span id="refreshBadge" class="badge bg-light text-muted border d-none"
+            style="font-size:0.78rem;"></span>
     </div>
   </div>
 
-  <div class="row">
-    <div class="col-lg-6 col-md-8">
-      <div class="card shadow-sm">
-        <div class="card-header bg-light border-bottom">
-          <h5 class="mb-0">
-            <i class="bi bi-cloud-arrow-up me-2"></i>Daily CSV Upload
-          </h5>
-        </div>
-        <div class="card-body">
-          <label for="csvFile" class="form-label fw-semibold">Select Site Status CSV</label>
-          <input
-            type="file"
-            class="form-control mb-3"
-            id="csvFile"
-            accept=".csv,text/csv"
-            aria-label="Site Status CSV file"
-          >
+  <!-- ── Loading spinner ────────────────────────────────────────────────── -->
+  <div id="loadingRow" class="row mb-3">
+    <div class="col text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading…</span>
+      </div>
+      <p class="text-muted mt-2 mb-0">Loading inventory data…</p>
+    </div>
+  </div>
 
-          <button class="btn btn-primary w-100" id="uploadBtn" onclick="handleUpload()">
-            <i class="bi bi-cloud-upload me-2"></i>Upload and Save to MySQL
-          </button>
+  <!-- ── Main dashboard (hidden until data loads) ───────────────────────── -->
+  <div id="dashContent" class="d-none">
 
-          <div class="small text-muted mt-3">
-            Expected file format includes columns such as Measurement Time, Vessel Name, Product Weight, and % Full.
+    <!-- Row 1: Current inventory cards -->
+    <div class="section-band mb-3">
+      <h2 class="section-band-title">
+        <i class="bi bi-clipboard2-pulse"></i>Current Inventory
+      </h2>
+    </div>
+    <div id="inventoryCards" class="row g-3 mb-4"></div>
+
+    <!-- Row 2: Daily trend chart + consumption table -->
+    <div class="row g-3 mb-4">
+      <div class="col-lg-7">
+        <div class="card shadow-sm h-100">
+          <div class="card-header d-flex align-items-center justify-content-between">
+            <span><i class="bi bi-graph-up me-2"></i>Daily Avg % Full</span>
+            <select id="trendDays" class="form-select form-select-sm w-auto"
+                    onchange="loadTrend()" aria-label="Trend window">
+              <option value="30" selected>30 days</option>
+              <option value="60">60 days</option>
+              <option value="90">90 days</option>
+            </select>
+          </div>
+          <div class="card-body p-2">
+            <div id="trendChart" style="height:320px;"></div>
           </div>
         </div>
       </div>
 
-      <div id="resultBox" class="alert mt-3 d-none" role="alert"></div>
+      <div class="col-lg-5">
+        <div class="card shadow-sm h-100">
+          <div class="card-header">
+            <i class="bi bi-fire me-2"></i>Consumption Rate (latest day)
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-sm table-striped table-hover mb-0">
+                <thead class="table-light sticky-top">
+                  <tr>
+                    <th>Vessel</th>
+                    <th class="text-end">Today (lbs)</th>
+                    <th class="text-end">Δ vs prev</th>
+                    <th class="text-end">Days left</th>
+                  </tr>
+                </thead>
+                <tbody id="burnBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
+
+    <!-- Row 3: Upload card -->
+    <div class="section-band mb-3">
+      <h2 class="section-band-title">
+        <i class="bi bi-cloud-arrow-up"></i>Upload Daily CSV
+      </h2>
+    </div>
+    <div class="row mb-3">
+      <div class="col-lg-5 col-md-7">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <label for="csvFile" class="form-label fw-semibold">
+              Select Site Status CSV
+            </label>
+            <input
+              type="file"
+              class="form-control mb-3"
+              id="csvFile"
+              accept=".csv,text/csv"
+              aria-label="Site Status CSV file"
+            >
+            <button class="btn btn-primary w-100" id="uploadBtn" onclick="handleUpload()">
+              <i class="bi bi-cloud-upload me-2"></i>Upload and Save to MySQL
+            </button>
+            <div class="small text-muted mt-2">
+              Expected columns: Measurement Time, Vessel Name, Product Weight, % Full, etc.
+            </div>
+          </div>
+        </div>
+        <div id="resultBox" class="alert mt-3 d-none" role="alert"></div>
+      </div>
+    </div>
+
+  </div><!-- /#dashContent -->
+
 </div>
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdn.plot.ly/plotly-basic-3.0.1.min.js"></script>
 <script>
+const VESSEL_COLORS = [
+  '#154e9a','#2a9d8f','#e9c46a','#e76f51','#457b9d',
+  '#6d6875','#f4a261','#264653','#a8dadc','#c77dff'
+];
+
+function alarmBadge(code, severity) {
+  if (!code || code === 'NONE' || severity === 0)
+    return '<span class="badge bg-success-subtle text-success border border-success-subtle">OK</span>';
+  if (severity === 1)
+    return `<span class="badge bg-warning-subtle text-warning border border-warning-subtle"><i class="bi bi-exclamation-triangle me-1"></i>${code}</span>`;
+  return `<span class="badge bg-danger-subtle text-danger border border-danger-subtle"><i class="bi bi-exclamation-octagon me-1"></i>${code}</span>`;
+}
+
+function pctBar(pct) {
+  if (pct == null) return '<span class="text-muted">—</span>';
+  const p = parseFloat(pct).toFixed(1);
+  const color = pct >= 80 ? 'bg-danger' : pct >= 50 ? 'bg-warning' : 'bg-success';
+  return `
+    <div class="d-flex align-items-center gap-2">
+      <div class="progress flex-grow-1" style="height:10px;" role="progressbar"
+           aria-valuenow="${p}" aria-valuemin="0" aria-valuemax="100">
+        <div class="progress-bar ${color}" style="width:${p}%"></div>
+      </div>
+      <span class="fw-semibold" style="min-width:3rem;text-align:right;">${p}%</span>
+    </div>`;
+}
+
+function fmtWt(v) {
+  if (v == null) return '—';
+  return parseFloat(v).toLocaleString(undefined, {maximumFractionDigits:0}) + ' lbs';
+}
+function fmtDelta(v) {
+  if (v == null) return '—';
+  const n = parseFloat(v);
+  const sign = n >= 0 ? '+' : '';
+  const cls  = n < 0 ? 'text-danger' : n > 0 ? 'text-success' : '';
+  return `<span class="${cls}">${sign}${n.toLocaleString(undefined, {maximumFractionDigits:0})}</span>`;
+}
+
+async function loadInventory() {
+  const res  = await fetch('/maintenance/api/silos/inventory-current');
+  if (!res.ok) throw new Error('inventory-current ' + res.status);
+  const json = await res.json();
+  const rows = json.data || [];
+
+  const container = document.getElementById('inventoryCards');
+  if (!rows.length) {
+    container.innerHTML =
+      '<div class="col"><p class="text-muted">No inventory data yet. Upload a CSV to begin.</p></div>';
+    return;
+  }
+
+  container.innerHTML = rows.map((r, i) => `
+    <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header py-2 d-flex align-items-center justify-content-between"
+             style="border-left:4px solid ${VESSEL_COLORS[i % VESSEL_COLORS.length]};">
+          <span class="fw-bold text-truncate" title="${r.vessel_name}">${r.vessel_name}</span>
+          ${alarmBadge(r.alarm_code, r.severity_level)}
+        </div>
+        <div class="card-body py-3 px-3">
+          <div class="mb-2">${pctBar(r.percent_full)}</div>
+          <div class="small text-muted mb-1">
+            <i class="bi bi-weight me-1"></i>${fmtWt(r.product_weight)}
+          </div>
+          <div class="small text-muted mb-1">
+            <i class="bi bi-box me-1"></i>${r.contents_code || '—'}
+          </div>
+          <div class="small text-muted">
+            <i class="bi bi-clock me-1"></i>${
+              r.last_measurement_time
+                ? r.last_measurement_time.replace('T',' ').slice(0,16)
+                : '—'}
+          </div>
+        </div>
+      </div>
+    </div>`
+  ).join('');
+
+  const refreshed = rows[0] && rows[0].refreshed_at;
+  if (refreshed) {
+    const badge = document.getElementById('refreshBadge');
+    badge.textContent = 'Data as of ' + refreshed.replace('T',' ').slice(0,16) + ' UTC';
+    badge.classList.remove('d-none');
+  }
+}
+
+async function loadTrend() {
+  const days = document.getElementById('trendDays').value;
+  const res  = await fetch(`/maintenance/api/silos/inventory-daily?days=${days}`);
+  if (!res.ok) return;
+  const json = await res.json();
+  const rows = json.data || [];
+
+  const series = {};
+  for (const r of rows) {
+    const key = r.contents_code;
+    if (!series[key]) series[key] = {x:[], y:[]};
+    series[key].x.push(r.snapshot_date);
+    series[key].y.push(r.avg_percent_full != null ? parseFloat(r.avg_percent_full) : null);
+  }
+
+  const traces = Object.entries(series).map(([name, s], i) => ({
+    type:'scatter', mode:'lines+markers', name,
+    x:s.x, y:s.y,
+    line:{color:VESSEL_COLORS[i % VESSEL_COLORS.length], width:2},
+    marker:{size:5}
+  }));
+
+  const layout = {
+    margin:{l:42, r:10, t:10, b:50},
+    xaxis:{type:'date', tickformat:'%b %d'},
+    yaxis:{range:[0,100], ticksuffix:'%', gridcolor:'#edf0f4'},
+    plot_bgcolor:'transparent', paper_bgcolor:'transparent',
+    legend:{orientation:'h', y:-0.22},
+    font:{family:'Open Sans', size:12, color:'#132238'},
+    hovermode:'x unified'
+  };
+
+  if (!traces.length) {
+    document.getElementById('trendChart').innerHTML =
+      '<p class="text-center text-muted pt-5">No trend data yet.</p>';
+    return;
+  }
+  Plotly.react('trendChart', traces, layout, {responsive:true, displayModeBar:false});
+}
+
+async function loadBurnRate() {
+  const res  = await fetch('/maintenance/api/silos/consumption-rate?days=2');
+  if (!res.ok) return;
+  const json = await res.json();
+  const rows = json.data || [];
+
+  const latestDate = rows.reduce((mx, r) => r.snapshot_date > mx ? r.snapshot_date : mx, '');
+  const latest     = rows.filter(r => r.snapshot_date === latestDate);
+
+  const tbody = document.getElementById('burnBody');
+  if (!latest.length) {
+    tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-3">No data yet</td></tr>';
+    return;
+  }
+  tbody.innerHTML = latest.map(r => `
+    <tr>
+      <td class="text-truncate" style="max-width:130px;" title="${r.vessel_name}">${r.vessel_name}</td>
+      <td class="text-end">${fmtWt(r.product_weight)}</td>
+      <td class="text-end">${fmtDelta(r.weight_delta)}</td>
+      <td class="text-end">${r.days_to_empty != null
+          ? parseFloat(r.days_to_empty).toFixed(1) + 'd' : '—'}</td>
+    </tr>`
+  ).join('');
+}
+
+function showToast(msg, type='success') {
+  let container = document.getElementById('toastContainer');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'toastContainer';
+    container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+    container.style.zIndex = 1100;
+    document.body.appendChild(container);
+  }
+  const id = 'toast_' + Date.now();
+  container.insertAdjacentHTML('beforeend', `
+    <div id="${id}" class="toast align-items-center text-bg-${type} border-0"
+         role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="4000">
+      <div class="d-flex">
+        <div class="toast-body">${msg}</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+    </div>`);
+  const el = document.getElementById(id);
+  bootstrap.Toast.getOrCreateInstance(el).show();
+  el.addEventListener('hidden.bs.toast', () => el.remove());
+}
+
 async function handleUpload() {
   const fileInput = document.getElementById('csvFile');
-  const btn = document.getElementById('uploadBtn');
+  const btn       = document.getElementById('uploadBtn');
   const resultBox = document.getElementById('resultBox');
-  const file = fileInput.files && fileInput.files[0];
+  const file      = fileInput.files && fileInput.files[0];
 
   if (!file) {
     resultBox.className = 'alert alert-warning mt-3';
@@ -65,39 +315,36 @@ async function handleUpload() {
   }
 
   btn.disabled = true;
-  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Uploading...';
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Uploading…';
   resultBox.classList.add('d-none');
 
   const formData = new FormData();
   formData.append('file', file);
 
   try {
-    const res = await fetch('/maintenance/api/site-status/upload', {
-      method: 'POST',
-      body: formData
-    });
-
+    const res     = await fetch('/maintenance/api/site-status/upload', {method:'POST', body:formData});
     const payload = await res.json();
 
     if (res.status === 409) {
       resultBox.className = 'alert alert-warning mt-3';
-      resultBox.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-2"></i>' + (payload.detail || 'Duplicate file.');
+      resultBox.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-2"></i>' +
+        (payload.detail || 'Duplicate file.');
       resultBox.classList.remove('d-none');
       return;
     }
-    if (!res.ok) {
-      throw new Error(payload.detail || ('HTTP ' + res.status));
-    }
+    if (!res.ok) throw new Error(payload.detail || ('HTTP ' + res.status));
 
     resultBox.className = 'alert alert-success mt-3';
-    resultBox.innerText =
-      'Upload successful.\n\n' +
-      'File: ' + payload.source_file + '\n' +
-      'CSV rows read: ' + payload.csv_rows + '\n' +
-      'Rows inserted: ' + payload.inserted + '\n' +
-      'Snapshot date: ' + payload.snapshot_date;
+    resultBox.innerHTML =
+      '<i class="bi bi-check-circle-fill me-2"></i>' +
+      `<strong>Upload successful.</strong><br>` +
+      `File: ${payload.source_file} &nbsp;·&nbsp; ` +
+      `${payload.inserted} rows inserted &nbsp;·&nbsp; ` +
+      `ETL: ${payload.etl_facts} facts, ${payload.etl_vessels} vessels`;
     resultBox.classList.remove('d-none');
     fileInput.value = '';
+    showToast('CSV uploaded. Refreshing dashboard…');
+    await Promise.all([loadInventory(), loadTrend(), loadBurnRate()]);
   } catch (err) {
     resultBox.className = 'alert alert-danger mt-3';
     resultBox.textContent = 'Upload failed: ' + err.message;
@@ -107,5 +354,16 @@ async function handleUpload() {
     btn.innerHTML = '<i class="bi bi-cloud-upload me-2"></i>Upload and Save to MySQL';
   }
 }
+
+(async function init() {
+  try {
+    await Promise.all([loadInventory(), loadTrend(), loadBurnRate()]);
+  } catch (e) {
+    console.warn('Dashboard load error:', e);
+  } finally {
+    document.getElementById('loadingRow').classList.add('d-none');
+    document.getElementById('dashContent').classList.remove('d-none');
+  }
+})();
 </script>
 {% endblock %}
