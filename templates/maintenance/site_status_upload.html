@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Silos Status{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="row mb-3">
+    <div class="col">
+      <h1 class="fw-bold" style="color: #154e9a;">
+        <i class="bi bi-bar-chart-steps me-2"></i>Silos Status
+      </h1>
+      <p class="text-muted mb-0">
+        Upload the daily Site Status CSV file to store silo snapshot records in MySQL.
+      </p>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-6 col-md-8">
+      <div class="card shadow-sm">
+        <div class="card-header bg-light border-bottom">
+          <h5 class="mb-0">
+            <i class="bi bi-cloud-arrow-up me-2"></i>Daily CSV Upload
+          </h5>
+        </div>
+        <div class="card-body">
+          <label for="csvFile" class="form-label fw-semibold">Select Site Status CSV</label>
+          <input
+            type="file"
+            class="form-control mb-3"
+            id="csvFile"
+            accept=".csv,text/csv"
+            aria-label="Site Status CSV file"
+          >
+
+          <button class="btn btn-primary w-100" id="uploadBtn" onclick="handleUpload()">
+            <i class="bi bi-cloud-upload me-2"></i>Upload and Save to MySQL
+          </button>
+
+          <div class="small text-muted mt-3">
+            Expected file format includes columns such as Measurement Time, Vessel Name, Product Weight, and % Full.
+          </div>
+        </div>
+      </div>
+
+      <div id="resultBox" class="alert mt-3 d-none" role="alert"></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function handleUpload() {
+  const fileInput = document.getElementById('csvFile');
+  const btn = document.getElementById('uploadBtn');
+  const resultBox = document.getElementById('resultBox');
+  const file = fileInput.files && fileInput.files[0];
+
+  if (!file) {
+    resultBox.className = 'alert alert-warning mt-3';
+    resultBox.textContent = 'Please select a CSV file.';
+    resultBox.classList.remove('d-none');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Uploading...';
+  resultBox.classList.add('d-none');
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  try {
+    const res = await fetch('/maintenance/api/site-status/upload', {
+      method: 'POST',
+      body: formData
+    });
+
+    const payload = await res.json();
+
+    if (res.status === 409) {
+      resultBox.className = 'alert alert-warning mt-3';
+      resultBox.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-2"></i>' + (payload.detail || 'Duplicate file.');
+      resultBox.classList.remove('d-none');
+      return;
+    }
+    if (!res.ok) {
+      throw new Error(payload.detail || ('HTTP ' + res.status));
+    }
+
+    resultBox.className = 'alert alert-success mt-3';
+    resultBox.innerText =
+      'Upload successful.\n\n' +
+      'File: ' + payload.source_file + '\n' +
+      'CSV rows read: ' + payload.csv_rows + '\n' +
+      'Rows inserted: ' + payload.inserted + '\n' +
+      'Snapshot date: ' + payload.snapshot_date;
+    resultBox.classList.remove('d-none');
+    fileInput.value = '';
+  } catch (err) {
+    resultBox.className = 'alert alert-danger mt-3';
+    resultBox.textContent = 'Upload failed: ' + err.message;
+    resultBox.classList.remove('d-none');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-cloud-upload me-2"></i>Upload and Save to MySQL';
+  }
+}
+</script>
+{% endblock %}

@@ -18,9 +18,13 @@ Handles:
   POST /maintenance/api/not-in-xfcma — JSON create not_in_xfcma row
   PUT /maintenance/api/not-in-xfcma/{id} — JSON update not_in_xfcma row
   DELETE /maintenance/api/not-in-xfcma/{id} — JSON delete not_in_xfcma row
+    GET /maintenance/silos-status           — Silos Status page
+    GET /maintenance/site-status-upload     — Legacy alias for Silos Status page
+    POST /maintenance/api/site-status/upload — Upload Site Status CSV and insert rows
 """
 
 import csv
+import io
 import json
 import re
 import tempfile
@@ -72,6 +76,40 @@ _MAX_TEXT_CHARS = 12_000
 _XFCMA_LINE_RE = re.compile(
     r"^(\S+)\s+(\S+)\s+(\d+)\s+(\d+)\s+(\S+)\s+(\d+)\s+([\d,]+)\s+([\d,]+)(?:\s+([A-Za-z0-9]{1,5}))?\s+(\d{2}/\d{2}/\d{2})$"
 )
+
+_SITE_STATUS_REQUIRED_HEADERS = {
+    "Measurement Time",
+    "Site",
+    "Vessel Name",
+    "Contents",
+    "Vessel Type",
+    "Distance Units",
+    "Volume Units",
+    "Weight Units",
+    "Vessel Height",
+    "Vessel Radius",
+    "Vessel Length",
+    "Vessel Width",
+    "Hopper Height",
+    "Outlet Radius",
+    "Outlet Length",
+    "Outlet Width",
+    "Capacity Volume",
+    "Sensor Type",
+    "Sensor Address",
+    "Measurement in Feet",
+    "Measurement in Meters",
+    "Product Density",
+    "Density Units",
+    "Product Volume",
+    "Product Weight",
+    "Product Height",
+    "Headroom Volume",
+    "Headroom Weight",
+    "Headroom Height",
+    "% Full",
+    "Alarm Condition",
+}
 
 
 class AnalyzeRequest(BaseModel):
@@ -813,6 +851,257 @@ async def truck_load_map(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(
         "maintenance/truck_load_map.html",
         {"request": request, "active_page": "truck_load_map", "products": products},
+    )
+
+
+# ---------------------------------------------------------------------------
+# Site Status CSV Upload
+# ---------------------------------------------------------------------------
+
+def _clean_csv_text(value: str | None) -> str:
+    """Trim whitespace and remove wrapping single quotes from CSV text fields."""
+    if value is None:
+        return ""
+    cleaned = value.strip()
+    if cleaned.startswith("'") and cleaned.endswith("'") and len(cleaned) >= 2:
+        cleaned = cleaned[1:-1].strip()
+    return cleaned
+
+
+def _parse_float_or_none(value: str | None) -> float | None:
+    """Safely parse a CSV numeric field into float or None when blank/invalid."""
+    raw = _clean_csv_text(value)
+    if not raw:
+        return None
+    raw = raw.replace(",", "")
+    try:
+        return float(raw)
+    except ValueError:
+        return None
+
+
+def _ensure_silo_status_table() -> None:
+    """Create silo_status table if it does not already exist."""
+    with _engine.begin() as conn:
+        conn.execute(
+            text(
+                """
+                CREATE TABLE IF NOT EXISTS silo_status (
+                    id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                    measurement_time DATETIME NOT NULL,
+                    site VARCHAR(100) NULL,
+                    vessel_name VARCHAR(100) NULL,
+                    contents VARCHAR(100) NULL,
+                    vessel_type VARCHAR(100) NULL,
+                    distance_units VARCHAR(50) NULL,
+                    volume_units VARCHAR(50) NULL,
+                    weight_units VARCHAR(50) NULL,
+                    vessel_height DECIMAL(18,4) NULL,
+                    vessel_radius DECIMAL(18,4) NULL,
+                    vessel_length DECIMAL(18,4) NULL,
+                    vessel_width DECIMAL(18,4) NULL,
+                    hopper_height DECIMAL(18,4) NULL,
+                    outlet_radius DECIMAL(18,4) NULL,
+                    outlet_length DECIMAL(18,4) NULL,
+                    outlet_width DECIMAL(18,4) NULL,
+                    capacity_volume DECIMAL(18,4) NULL,
+                    sensor_type VARCHAR(150) NULL,
+                    sensor_address VARCHAR(50) NULL,
+                    measurement_in_feet DECIMAL(18,4) NULL,
+                    measurement_in_meters DECIMAL(18,4) NULL,
+                    product_density DECIMAL(18,4) NULL,
+                    density_units VARCHAR(50) NULL,
+                    product_volume DECIMAL(18,4) NULL,
+                    product_weight DECIMAL(18,4) NULL,
+                    product_height DECIMAL(18,4) NULL,
+                    headroom_volume DECIMAL(18,4) NULL,
+                    headroom_weight DECIMAL(18,4) NULL,
+                    headroom_height DECIMAL(18,4) NULL,
+                    percent_full DECIMAL(9,4) NULL,
+                    alarm_condition VARCHAR(120) NULL,
+                    snapshot_date DATE NOT NULL,
+                    source_file VARCHAR(255) NOT NULL,
+                    uploaded_at_utc DATETIME NOT NULL DEFAULT (UTC_TIMESTAMP()),
+                    KEY ix_silo_status_snapshot_date (snapshot_date),
+                    KEY ix_silo_status_vessel_name (vessel_name),
+                    KEY ix_silo_status_source_file (source_file)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+                """
+            )
+        )
+
+
+@router.get(
+    "/silos-status",
+    response_class=HTMLResponse,
+    summary="Silos Status Page",
+    description=(
+        "Silos Status page for daily Site Status CSV upload into the "
+        "silo_status table."
+    ),
+)
+@router.get(
+    "/site-status-upload",
+    response_class=HTMLResponse,
+    summary="Silos Status Page (Legacy URL)",
+    description=(
+        "Legacy URL for the Silos Status page used to upload daily "
+        "Site Status CSV files into the "
+        "silo_status table."
+    ),
+)
+async def site_status_upload_page(request: Request) -> HTMLResponse:
+    """Render the Silos Status page."""
+    return templates.TemplateResponse(
+        "maintenance/site_status_upload.html",
+        {"request": request, "active_page": "silos_status"},
+    )
+
+
+@router.post(
+    "/api/site-status/upload",
+    summary="Upload Site Status CSV",
+    description=(
+        "Upload one Site Status CSV file, parse rows, and insert records into "
+        "silo_status. Duplicate filenames are rejected with a warning and "
+        "not inserted again."
+    ),
+)
+async def site_status_upload_csv(file: UploadFile = File(...)) -> JSONResponse:
+    """Parse uploaded Site Status CSV and insert rows into silo_status."""
+    filename = (file.filename or "").strip()
+    if not filename.lower().endswith(".csv"):
+        raise HTTPException(status_code=400, detail="Please upload a CSV file")
+
+    content = await file.read()
+    if not content:
+        raise HTTPException(status_code=400, detail="Uploaded file is empty")
+
+    try:
+        decoded = content.decode("utf-8-sig")
+    except UnicodeDecodeError as exc:
+        raise HTTPException(status_code=400, detail=f"Invalid CSV encoding: {exc}") from exc
+
+    reader = csv.DictReader(io.StringIO(decoded))
+    if not reader.fieldnames:
+        raise HTTPException(status_code=400, detail="CSV header row is missing")
+
+    missing_headers = sorted(_SITE_STATUS_REQUIRED_HEADERS - set(reader.fieldnames))
+    if missing_headers:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Missing required CSV headers: {', '.join(missing_headers)}",
+        )
+
+    rows_to_insert: list[dict] = []
+    parsed_row_count = 0
+
+    for csv_row in reader:
+        parsed_row_count += 1
+        measurement_time_raw = _clean_csv_text(csv_row.get("Measurement Time"))
+        if not measurement_time_raw:
+            continue
+
+        try:
+            measurement_time = datetime.strptime(measurement_time_raw, "%m/%d/%Y %I:%M:%S %p")
+        except ValueError:
+            continue
+
+        rows_to_insert.append(
+            {
+                "measurement_time": measurement_time,
+                "site": _clean_csv_text(csv_row.get("Site")),
+                "vessel_name": _clean_csv_text(csv_row.get("Vessel Name")),
+                "contents": _clean_csv_text(csv_row.get("Contents")),
+                "vessel_type": _clean_csv_text(csv_row.get("Vessel Type")),
+                "distance_units": _clean_csv_text(csv_row.get("Distance Units")),
+                "volume_units": _clean_csv_text(csv_row.get("Volume Units")),
+                "weight_units": _clean_csv_text(csv_row.get("Weight Units")),
+                "vessel_height": _parse_float_or_none(csv_row.get("Vessel Height")),
+                "vessel_radius": _parse_float_or_none(csv_row.get("Vessel Radius")),
+                "vessel_length": _parse_float_or_none(csv_row.get("Vessel Length")),
+                "vessel_width": _parse_float_or_none(csv_row.get("Vessel Width")),
+                "hopper_height": _parse_float_or_none(csv_row.get("Hopper Height")),
+                "outlet_radius": _parse_float_or_none(csv_row.get("Outlet Radius")),
+                "outlet_length": _parse_float_or_none(csv_row.get("Outlet Length")),
+                "outlet_width": _parse_float_or_none(csv_row.get("Outlet Width")),
+                "capacity_volume": _parse_float_or_none(csv_row.get("Capacity Volume")),
+                "sensor_type": _clean_csv_text(csv_row.get("Sensor Type")),
+                "sensor_address": _clean_csv_text(csv_row.get("Sensor Address")),
+                "measurement_in_feet": _parse_float_or_none(csv_row.get("Measurement in Feet")),
+                "measurement_in_meters": _parse_float_or_none(csv_row.get("Measurement in Meters")),
+                "product_density": _parse_float_or_none(csv_row.get("Product Density")),
+                "density_units": _clean_csv_text(csv_row.get("Density Units")),
+                "product_volume": _parse_float_or_none(csv_row.get("Product Volume")),
+                "product_weight": _parse_float_or_none(csv_row.get("Product Weight")),
+                "product_height": _parse_float_or_none(csv_row.get("Product Height")),
+                "headroom_volume": _parse_float_or_none(csv_row.get("Headroom Volume")),
+                "headroom_weight": _parse_float_or_none(csv_row.get("Headroom Weight")),
+                "headroom_height": _parse_float_or_none(csv_row.get("Headroom Height")),
+                "percent_full": _parse_float_or_none(csv_row.get("% Full")),
+                "alarm_condition": _clean_csv_text(csv_row.get("Alarm Condition")),
+                "snapshot_date": measurement_time.date(),
+                "source_file": filename,
+            }
+        )
+
+    if not rows_to_insert:
+        raise HTTPException(
+            status_code=400,
+            detail="No valid rows found. Confirm Measurement Time format is MM/DD/YYYY HH:MM:SS AM/PM.",
+        )
+
+    _ensure_silo_status_table()
+
+    with _engine.begin() as conn:
+        existing = conn.execute(
+            text("SELECT COUNT(*) FROM silo_status WHERE source_file = :source_file"),
+            {"source_file": filename},
+        ).scalar()
+        if existing:
+            raise HTTPException(
+                status_code=409,
+                detail=f"File '{filename}' has already been uploaded. Each filename can only be uploaded once.",
+            )
+
+        result = conn.execute(
+            text(
+                """
+                INSERT INTO silo_status (
+                    measurement_time, site, vessel_name, contents, vessel_type,
+                    distance_units, volume_units, weight_units,
+                    vessel_height, vessel_radius, vessel_length, vessel_width,
+                    hopper_height, outlet_radius, outlet_length, outlet_width,
+                    capacity_volume, sensor_type, sensor_address,
+                    measurement_in_feet, measurement_in_meters, product_density,
+                    density_units, product_volume, product_weight, product_height,
+                    headroom_volume, headroom_weight, headroom_height,
+                    percent_full, alarm_condition, snapshot_date, source_file
+                ) VALUES (
+                    :measurement_time, :site, :vessel_name, :contents, :vessel_type,
+                    :distance_units, :volume_units, :weight_units,
+                    :vessel_height, :vessel_radius, :vessel_length, :vessel_width,
+                    :hopper_height, :outlet_radius, :outlet_length, :outlet_width,
+                    :capacity_volume, :sensor_type, :sensor_address,
+                    :measurement_in_feet, :measurement_in_meters, :product_density,
+                    :density_units, :product_volume, :product_weight, :product_height,
+                    :headroom_volume, :headroom_weight, :headroom_height,
+                    :percent_full, :alarm_condition, :snapshot_date, :source_file
+                )
+                """
+            ),
+            rows_to_insert,
+        )
+        inserted_count = int(result.rowcount or 0)
+
+    return JSONResponse(
+        content={
+            "message": "Site Status CSV uploaded successfully",
+            "source_file": filename,
+            "csv_rows": parsed_row_count,
+            "inserted": inserted_count,
+            "snapshot_date": rows_to_insert[0]["snapshot_date"].isoformat(),
+        }
     )
 
 

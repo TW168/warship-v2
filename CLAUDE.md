@@ -138,6 +138,8 @@ The `connect_to_database()` function returns a SQLAlchemy `Engine`.
 | Upload not in XFCMA | `GET /maintenance/not-in-xfcma` | Maintenance page for PDF upload with success/failure indication only. |
 | Upload not in XFCMA API | `GET/POST/PUT/DELETE /maintenance/api/not-in-xfcma...` | JSON CRUD endpoints for `not_in_xfcma` (`id`, `report_datetime`, `product_code`, `manu_order`, `item`, `pallet`, `location`, `rolls`, `length`, `weight`, `grade`, `last_in_date`, `created_at_utc`, `source_file`). List supports optional filters: `product_code`, `date_from`, `date_to`. |
 | Upload not in XFCMA PDF API | `POST /maintenance/api/not-in-xfcma/upload` | Multipart PDF upload endpoint. Parses QPQUPRFIL report rows and bulk inserts mapped records into `not_in_xfcma`; re-uploading the same filename replaces that file's prior rows. |
+| Silos Status | `GET /maintenance/silos-status` | Page for daily Site Status CSV upload into `silo_status` (legacy alias: `GET /maintenance/site-status-upload`). |
+| Upload Site Status CSV API | `POST /maintenance/api/site-status/upload` | Multipart CSV upload endpoint. Validates required headers, parses rows, auto-creates `silo_status` table if missing, bulk inserts rows, and rejects duplicate filenames with warning (no re-upload overwrite). |
 | About | `GET /about` | |
 | Health | `GET /health` | Returns `{"status": "ok", "service": "warship", "version": "0.1.0"}` |
 
