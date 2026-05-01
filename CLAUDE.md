@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-> **Status: Active development** — initial scaffold complete, DB not yet wired to pages.
+> **Status: Active development** — DB fully wired, all pages functional.
 
 > **Living document.** This app is actively developed. Every time a new route, model, UI pattern, or architectural decision is added, update the relevant section of this file before finishing the task.
 
@@ -63,7 +63,20 @@ warship-v2/
 │   ├── warehouse.py
 │   ├── shipping.py
 │   ├── tsr_prep.py
-│   ├── maintenance.py       # Maintenance APIs and pages
+│   ├── maintenance/         # Maintenance section — package, one file per domain
+│   │   ├── __init__.py      # Parent router (prefix=/maintenance), includes all sub-routers
+│   │   ├── shipping_status.py   # ShippingStatus CRUD
+│   │   ├── freight_audit.py     # Freight ¢/lb audit (3 independent methods)
+│   │   ├── lmi.py               # LMI document analysis via Ollama deepseek-r1:8b
+│   │   ├── truck_load_map.py    # Truck trailer load planning tool
+│   │   ├── not_in_xfcma.py      # Not-in-XFCMA PDF upload + CRUD
+│   │   └── silos/               # Silos sub-package
+│   │       ├── __init__.py      # Silos sub-router, combines upload/api/anomaly_api
+│   │       ├── anomaly.py       # ML feature engineering + event generation helpers
+│   │       ├── etl.py           # Full star-schema ETL pipeline (dim/fact/aggregates)
+│   │       ├── upload.py        # Silos page + CSV ingest endpoint
+│   │       ├── api.py           # Inventory and consumption-rate serving endpoints
+│   │       └── anomaly_api.py   # Anomaly investigation queue endpoints
 │   └── about.py
 ├── templates/
 │   ├── base.html            # Top navbar, Bootstrap 5, Open Sans
@@ -76,6 +89,20 @@ warship-v2/
 ├── scripts/
 │   └── scrape_gas_prices.py # Cron job: scrape AAA gas prices → MySQL
 ├── schemas/                 # Pydantic request/response models (one file per domain)
+│   ├── health.py
+│   ├── meeting_report.py
+│   ├── not_in_xfcma.py
+│   ├── shipped_product.py
+│   ├── shipping_status.py
+│   ├── silos.py             # SiloAnomalyStatusUpdateRequest
+│   ├── top_customers.py
+│   └── tsr_prep.py
+├── utils/
+│   ├── db_serializer.py     # Shared SQLAlchemy → JSON serialization (serialize_row)
+│   ├── extract_lmi_scores.py
+│   ├── inas400_pdf_parser.py
+│   ├── product_forecast.py
+│   └── product_trend_service.py
 ├── static/
 │   └── assets/              # Images: MaxT1_conus.png, national_forecast.jpg
 └── tests/
@@ -138,10 +165,39 @@ The `connect_to_database()` function returns a SQLAlchemy `Engine`.
 | Upload not in XFCMA | `GET /maintenance/not-in-xfcma` | Maintenance page for PDF upload with success/failure indication only. |
 | Upload not in XFCMA API | `GET/POST/PUT/DELETE /maintenance/api/not-in-xfcma...` | JSON CRUD endpoints for `not_in_xfcma` (`id`, `report_datetime`, `product_code`, `manu_order`, `item`, `pallet`, `location`, `rolls`, `length`, `weight`, `grade`, `last_in_date`, `created_at_utc`, `source_file`). List supports optional filters: `product_code`, `date_from`, `date_to`. |
 | Upload not in XFCMA PDF API | `POST /maintenance/api/not-in-xfcma/upload` | Multipart PDF upload endpoint. Parses QPQUPRFIL report rows and bulk inserts mapped records into `not_in_xfcma`; re-uploading the same filename replaces that file's prior rows. |
-| Silos Status | `GET /maintenance/silos-status` | Page for daily Site Status CSV upload into `silo_status` (legacy alias: `GET /maintenance/site-status-upload`). |
-| Upload Site Status CSV API | `POST /maintenance/api/site-status/upload` | Multipart CSV upload endpoint. Validates required headers, parses rows, auto-creates `silo_status` table if missing, bulk inserts rows, and rejects duplicate filenames with warning (no re-upload overwrite). |
+| Silos Status | `GET /silos-status` | Canonical page for daily Site Status CSV upload into `silo_status`, including Current Inventory cards, Daily Avg % Full trend, current Consumption Rate card, and Consumption Rate History card (content filter + lookback window). Legacy maintenance URLs `GET /maintenance/silos-status` and `GET /maintenance/site-status-upload` now 307-redirect to this root route. |
+| Upload Site Status CSV API | `POST /maintenance/api/site-status/upload` | Multipart CSV upload endpoint. Validates required headers, parses rows, auto-creates `silo_status` table if missing, bulk inserts rows, rejects duplicate filenames, and triggers anomaly feature/event refresh for the uploaded snapshot date. |
+| Silos Anomaly Features API | `GET /maintenance/api/silos/anomaly-features` | JSON — historical feature-engineering dataset for anomaly detection (`risk_score`, rolling stats, z-score, run length) from `silo_ml_features_daily`; filters: `days`, `min_risk`, optional `contents_code`. |
+| Silos Anomaly Events API | `GET /maintenance/api/silos/anomaly-events` | JSON — anomaly investigation queue from `silo_anomaly_events`; filters: `days`, `status`, `min_level` (`medium|high|critical`). |
+| Silo Anomaly Event Status API | `PUT /maintenance/api/silos/anomaly-events/{event_id}/status` | JSON — update workflow status (`open`, `acknowledged`, `closed`) and optional analyst notes for one anomaly event. |
 | About | `GET /about` | |
+| Software Architectural | `GET /about/architectural` | Reads `docs/architectural.md`, renders with Pygments syntax highlighting, JS-generated Bootstrap scrollspy TOC sidebar. |
+| Who Are We | `GET /about/who-are-we` | Team introduction page with group photo and team bios. |
 | Health | `GET /health` | Returns `{"status": "ok", "service": "warship", "version": "0.1.0"}` |
+| UDC Hourly Missions | `GET /api/warehouse/udc-hourly` | JSON — latest hourly UDC mission counts from `udc_hourly_ash`; params: `date` (default today). |
+| UDC Summary | `GET /api/warehouse/udc-summary` | JSON — UDC daily totals over a date range from `udc_ash`; params: `date_from`, `date_to`. |
+| ASH Event Summary | `GET /api/warehouse/ash-summary` | JSON — ASH event counts aggregated by event type and date range from `event_ash`; params: `date_from`, `date_to`. |
+| ASH Descriptions | `GET /api/warehouse/ash-descriptions` | JSON — full ASH event description catalog from `event_ash`. |
+| Shipped Products | `GET /api/shipping/shipped-products` | JSON — all shipped product rows; params: `site`, `product_group`, `date_from`, `date_to`. |
+| Top Customers Tree Map | `GET /api/shipping/top-customers` | JSON — top N customers by total shipped weight and freight via `sp_bl_lbs_cnt_carrier_customer`; params: `site`, `product_group`, `date_from`, `date_to`, `top_n`. |
+| TSR Filter Options | `GET /api/tsr-prep/filter-options` | JSON — distinct sites, product groups, and report dates from `ipg_ez`. |
+| TSR Available to Ship | `GET /api/tsr-prep/avail-to-ship` | JSON — available-to-ship BL list from `ipg_ez`; params: `site`, `product_group`, `report_date`. |
+| TSR Pallet Sizes | `GET /api/tsr-prep/pallet-sizes` | JSON — pallet descriptions and dimensions from `Product_desc_size`. |
+| TSR Upload IPG EZ | `POST /api/tsr-prep/upload` | Multipart Excel upload — parses IPG EZ report and upserts rows into `ipg_ez`. |
+| Product Trend Top | `GET /api/analytics/product-trend-top` | JSON — top N products ranked by total shipped weight from `sp_get_all_shipped_product`; param: `top_n` (default 10). |
+| Product Trend Monthly | `GET /api/analytics/product-trend-monthly` | JSON — monthly weight and shipment count per top product; useful for multi-line growth chart. |
+| Product Diversity | `GET /api/analytics/product-diversity` | JSON — unique product count per month showing portfolio consolidation trend; fields: `year_month`, `unique_products`, `total_weight`, `total_shipments`. |
+| SW Transport Type by Year | `GET /api/analytics/sw-transport-type-by-year` | JSON — annual SW lbs by transport type (FTL, LTL, Intermodal, Export, Other) from `Transp Type.xlsx`. |
+| AMJK Frt YTD vs Avg | `GET /api/analytics/amjk-frt-ytd-vs-avg` | JSON — monthly freight cost and weight data by year via `sp_bl_lbs_cnt_carrier`; params: `site`, `product_group`. |
+| Pick Weight Trend | `GET /api/analytics/pick-weight-trend` | JSON — monthly pick weight data by year via `sp_bl_lbs_cnt_carrier`; params: `site`, `product_group`. |
+| LMI Page | `GET /maintenance/lmi` | LMI document analysis dashboard — lists available monthly LMI text files. |
+| LMI Analyze | `POST /maintenance/lmi/analyze` | Streaming — sends one LMI document to Ollama `deepseek-r1:8b` and streams the analysis response (strips `<think>` blocks). |
+| LMI Briefing Analysis | `GET /maintenance/lmi/briefing-analysis` | Streaming — cross-month LMI trend analysis across all available documents via Ollama. |
+| Freight ¢/lb Validation | `GET /maintenance/frt-validation` | Freight ¢/lb by product code validation page — cross-checks unit freight calculations. |
+| Truck Load Map | `GET /maintenance/truck-load-map` | Interactive truck trailer load planning tool — drag-and-drop pallet placement with product dimensions from `Product_desc_size`. |
+| Silos Current Inventory | `GET /maintenance/api/silos/inventory-current` | JSON — latest silo inventory snapshot per vessel from `fact_silo_status`. |
+| Silos Daily Inventory Trend | `GET /maintenance/api/silos/inventory-daily` | JSON — daily inventory trend per vessel/contents; params: `days` (default 30), optional `vessel_id`. |
+| Silos Consumption Rate | `GET /silos/consumption-rate` | JSON — per-contents burn rate (lbs/day) and days-remaining estimate from `agg_silo_consumption_rate`. Legacy route remains available at `GET /maintenance/api/silos/consumption-rate`. |
 
 ### Software Architectural Page
 The route reads a Markdown source file and renders it to HTML using **Pygments** for syntax highlighting. A **JavaScript-generated Bootstrap scrollspy TOC sidebar** is built from heading elements at page load. Required sections: Introduction, System Overview, Architectural Styles & Patterns, Technology Stack, Data Model, Folder Structure, API Endpoints, Deployment & Scaling, Security & Compliance, Future Roadmap.
@@ -228,6 +284,9 @@ Managed via `pyproject.toml` / `uv.lock`:
 | `openpyxl` | Read Excel workbooks (`.xlsx`) for freight cost analytics |
 | `beautifulsoup4` | HTML parsing for gas price scraper (`scripts/scrape_gas_prices.py`) |
 | `pandas` | DataFrame aggregation for Meeting Report All Site MTD shipped weight/pallet summary |
+| `pdfplumber` | PDF text extraction for QPQUPRFIL not-in-XFCMA reports |
+| `httpx` | Async HTTP client — used for Ollama streaming LMI analysis |
+| `openai` | OpenAI SDK — available for future AI features |
 
 ---
 

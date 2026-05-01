@@ -200,13 +200,46 @@ def _resolve_month_window(year_month: str | None) -> tuple[datetime.date, dateti
     return selected_first, month_end, effective_end, month_label
 
 
+def _resolve_selected_date(date_value: str | None) -> datetime.date | None:
+    """Parse an optional ISO date string (YYYY-MM-DD) into ``datetime.date``."""
+    if not date_value:
+        return None
+    try:
+        return datetime.date.fromisoformat(date_value)
+    except ValueError as exc:
+        raise ValueError(f"Invalid date '{date_value}'. Expected YYYY-MM-DD.") from exc
+
+
+def _resolve_window_from_date_or_month(
+    date_value: str | None,
+    year_month: str | None,
+) -> tuple[datetime.date, datetime.date, datetime.date, str]:
+    """Resolve a reporting window from one selected date, falling back to year_month behavior."""
+    selected_date = _resolve_selected_date(date_value)
+    if selected_date is not None:
+        month_start = selected_date.replace(day=1)
+        if month_start.month == 12:
+            next_month_first = datetime.date(month_start.year + 1, 1, 1)
+        else:
+            next_month_first = datetime.date(month_start.year, month_start.month + 1, 1)
+        month_end = next_month_first - datetime.timedelta(days=1)
+        month_label = month_start.strftime("%Y/%m")
+        return month_start, month_end, selected_date, month_label
+
+    return _resolve_month_window(year_month)
+
+
 def _build_all_site_mtd_rows(
     conn,
     product_group: str,
     year_month: str | None = None,
+    date_value: str | None = None,
 ) -> list[dict[str, object]]:
     """Build all-site MTD customer-vs-consignment totals from SP output using pandas."""
-    month_start, _month_end, selected_date, month_label = _resolve_month_window(year_month)
+    month_start, _month_end, selected_date, month_label = _resolve_window_from_date_or_month(
+        date_value=date_value,
+        year_month=year_month,
+    )
 
     results: list[dict[str, object]] = []
     dbapi_conn = conn.connection
@@ -291,9 +324,13 @@ def _build_today_rows(
     conn,
     product_group: str,
     year_month: str | None = None,
+    date_value: str | None = None,
 ) -> list[dict[str, object]]:
     """Build selected-month target-day customer-vs-consignment totals from SP output using pandas."""
-    _month_start, _month_end, target_date, _month_label = _resolve_month_window(year_month)
+    _month_start, _month_end, target_date, _month_label = _resolve_window_from_date_or_month(
+        date_value=date_value,
+        year_month=year_month,
+    )
     date_label = target_date.strftime("%Y/%m/%d")
 
     results: list[dict[str, object]] = []
@@ -521,6 +558,7 @@ async def meeting_report(request: Request) -> HTMLResponse:
 async def meeting_report_all_site_mtd(
     request: Request,
     product_group: str = Query(..., description="Product group identifier"),
+    date: str | None = Query(default=None, description="Selected report date in YYYY-MM-DD format"),
     year_month: str | None = Query(default=None, description="Year-month selector in YYYY-MM format"),
 ) -> HTMLResponse:
     """Render All Site MTD card partial independent of report date filter."""
@@ -533,9 +571,12 @@ async def meeting_report_all_site_mtd(
                 conn=conn,
                 product_group=product_group,
                 year_month=year_month,
+                date_value=date,
             )
     except Exception as exc:
         error = str(exc)
+
+    date_label = date.replace("-", "/") if date else None
 
     return templates.TemplateResponse(
         "home/all_site_mtd_card.html",
@@ -544,6 +585,7 @@ async def meeting_report_all_site_mtd(
             "all_site_mtd_rows": all_site_mtd_rows,
             "error": error,
             "product_group": product_group,
+            "date_label": date_label,
         },
     )
 
@@ -560,6 +602,7 @@ async def meeting_report_all_site_mtd(
 async def meeting_report_today_summary(
     request: Request,
     product_group: str = Query(..., description="Product group identifier"),
+    date: str | None = Query(default=None, description="Selected report date in YYYY-MM-DD format"),
     year_month: str | None = Query(default=None, description="Year-month selector in YYYY-MM format"),
 ) -> HTMLResponse:
     """Render Today Summary card partial."""
@@ -572,6 +615,7 @@ async def meeting_report_today_summary(
                 conn=conn,
                 product_group=product_group,
                 year_month=year_month,
+                date_value=date,
             )
     except Exception as exc:
         error = str(exc)
@@ -599,8 +643,10 @@ async def meeting_report_today_summary(
 async def meeting_report_warehouse_pallet_movement_mtd(request: Request) -> HTMLResponse:
     """Render Warehouse Pallet Movement MTD card partial independent of report filters."""
     year_month = request.query_params.get("year_month")
+    selected_date = request.query_params.get("date")
     today = datetime.date.today()
     month_label = today.strftime("%Y/%m")
+    effective_end = today
     date_from = today.replace(day=1).isoformat()
     date_to = today.isoformat()
     entry_to_date = 0
@@ -609,7 +655,10 @@ async def meeting_report_warehouse_pallet_movement_mtd(request: Request) -> HTML
     error = None
 
     try:
-        month_start, _month_end, effective_end, month_label = _resolve_month_window(year_month)
+        month_start, _month_end, effective_end, month_label = _resolve_window_from_date_or_month(
+            date_value=selected_date,
+            year_month=year_month,
+        )
         date_from = month_start.isoformat()
         date_to = effective_end.isoformat()
 
@@ -631,11 +680,14 @@ async def meeting_report_warehouse_pallet_movement_mtd(request: Request) -> HTML
     except Exception as exc:
         error = str(exc)
 
+    date_label = effective_end.strftime("%Y/%m/%d") if not error else today.strftime("%Y/%m/%d")
+
     return templates.TemplateResponse(
         "home/warehouse_pallet_movement_mtd_card.html",
         {
             "request": request,
             "month_label": month_label,
+            "date_label": date_label,
             "entry_to_date": entry_to_date,
             "exit_to_date": exit_to_date,
             "shipped_to_date": shipped_to_date,

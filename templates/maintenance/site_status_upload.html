@@ -36,42 +36,43 @@
 
     <!-- Row 1: Current inventory cards -->
     <div class="section-band mb-3">
-      <h2 class="section-band-title">
-        <i class="bi bi-clipboard2-pulse"></i>Current Inventory
+      <h2 class="section-band-title d-flex align-items-center gap-2">
+        <i class="bi bi-clipboard2-pulse"></i><span id="inventoryTitle">Current Inventory</span> (<span id="inventoryDate">--</span>)
+        <i class="bi bi-exclamation-circle text-muted"
+           style="font-size:.85rem; cursor:default;"
+           data-bs-toggle="tooltip"
+           data-bs-placement="top"
+            data-bs-html="true"
+            title="<div class='text-start'><div class='fw-semibold mb-1'>Inventory Fill-Level Legend</div><div>Green: above 60% (OK)</div><div>Yellow: 30% to 59% (Monitor)</div><div>Red: below 30% (Critical)</div></div>"></i>
       </h2>
     </div>
     <div id="inventoryCards" class="row g-3 mb-4"></div>
 
-    <!-- Row 2: Daily trend chart + consumption table -->
+    <!-- Row 2: Consumption Rate (today) + Consumption Rate History side by side -->
     <div class="row g-3 mb-4">
-      <div class="col-lg-7">
+      <div class="col-lg-6">
         <div class="card shadow-sm h-100">
-          <div class="card-header d-flex align-items-center justify-content-between">
-            <span><i class="bi bi-graph-up me-2"></i>Daily Avg % Full</span>
-            <select id="trendDays" class="form-select form-select-sm w-auto"
-                    onchange="loadTrend()" aria-label="Trend window">
-              <option value="30" selected>30 days</option>
-              <option value="60">60 days</option>
-              <option value="90">90 days</option>
-            </select>
-          </div>
-          <div class="card-body p-2">
-            <div id="trendChart" style="height:320px;"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-lg-5">
-        <div class="card shadow-sm h-100">
-          <div class="card-header">
-            <i class="bi bi-fire me-2"></i>Consumption Rate (latest day)
+          <div class="card-header d-flex align-items-center gap-2">
+            <i class="bi bi-fire me-2"></i><span id="burnRateTitle">Consumption Rate</span> (<span id="burnRateDate">--</span>)
+            <i class="bi bi-exclamation-circle text-muted"
+               id="burnRateHelp"
+               style="font-size:1rem; cursor:pointer;"
+               role="button"
+               tabindex="0"
+               aria-label="Consumption Rate explanation"
+               data-bs-toggle="popover"
+               data-bs-trigger="hover focus"
+               data-bs-placement="left"
+               data-bs-title="How Consumption Rate Is Calculated"
+               data-bs-html="true"
+               data-bs-content="<div class='small'><div class='mb-2'><strong>Formula 1:</strong> \(\Delta W_c(t)=\bar{W}_c(t)-\bar{W}_c(t-1)\)</div><div class='mb-2'><strong>Formula 2:</strong> \(D_c(t)=\frac{W_c(t)}{|\Delta W_c(t)|},\;\Delta W_c(t)&lt;0\)</div><div class='mb-2'><strong>Definitions:</strong> \(c\)=product code, \(t\)=today, \(\bar{W}_c(t)\)=today total weight for product \(c\) across all silos, \(\bar{W}_c(t-1)\)=yesterday total weight, \(D_c(t)\)=days left.</div><div><strong>Interpretation:</strong> \(\Delta W_c(t)&lt;0\) means net consumption; \(\Delta W_c(t)&gt;0\) means refill/inflow, so Days left is shown as —.</div></div>"></i>
           </div>
           <div class="card-body p-0">
             <div class="table-responsive">
               <table class="table table-sm table-striped table-hover mb-0">
                 <thead class="table-light sticky-top">
                   <tr>
-                    <th>Vessel</th>
+                    <th>Product</th>
                     <th class="text-end">Today (lbs)</th>
                     <th class="text-end">Δ vs prev</th>
                     <th class="text-end">Days left</th>
@@ -80,6 +81,85 @@
                 <tbody id="burnBody"></tbody>
               </table>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+          <div class="card-header d-flex align-items-center justify-content-between gap-2 flex-wrap">
+            <span><i class="bi bi-clock-history me-2"></i>Consumption Rate History</span>
+            <div class="d-flex align-items-center gap-2">
+              <select id="burnHistoryContent" class="form-select form-select-sm" style="min-width:150px;" onchange="loadBurnRateHistory()" aria-label="Filter consumption history by content">
+                <option value="">All content</option>
+              </select>
+              <select id="burnHistoryDays" class="form-select form-select-sm w-auto" onchange="loadBurnRateHistory()" aria-label="Consumption history window">
+                <option value="14">14 days</option>
+                <option value="30" selected>30 days</option>
+                <option value="60">60 days</option>
+                <option value="90">90 days</option>
+                <option value="180">180 days</option>
+                <option value="365">365 days</option>
+              </select>
+            </div>
+          </div>
+          <div class="card-body p-2">
+            <div id="burnHistoryChart" style="height:320px;width:100%;"></div>
+            <div id="burnHistoryEmpty" class="text-center text-muted py-3 d-none">
+              No history data found for this filter
+            </div>
+
+            <!-- Chart explanation -->
+            <div class="border-top pt-3 mt-2 px-1">
+              <p class="small fw-semibold text-secondary mb-2">
+                <i class="bi bi-info-circle me-1"></i>How to read this chart
+              </p>
+              <div class="row g-3 small">
+                <div class="col-md-6">
+                  <p class="fw-semibold text-body mb-1">Two overlapping series</p>
+                  <ul class="mb-2 text-muted ps-3">
+                    <li><span class="fw-semibold" style="color:#154e9a;">Blue line</span> <span class="text-muted">(left Y-axis)</span> — total weight of that product each day</li>
+                    <li><span class="fw-semibold text-success">Green</span> / <span class="fw-semibold text-danger">red bars</span> <span class="text-muted">(right Y-axis)</span> — daily \(\Delta\) vs previous snapshot
+                      <ul class="mb-0">
+                        <li>🟥 <strong>Red bar</strong> = net consumption (weight dropped)</li>
+                        <li>🟩 <strong>Green bar</strong> = net refill / inflow (weight increased)</li>
+                      </ul>
+                    </li>
+                  </ul>
+                </div>
+                <div class="col-md-6">
+                  <p class="fw-semibold text-body mb-1">Practical use</p>
+                  <ul class="text-muted ps-3 mb-0">
+                    <li>A consistently <strong>declining line</strong> = steady consumption, no restock</li>
+                    <li>A <strong>sharp drop then spike</strong> = consumption followed by a refill delivery</li>
+                    <li><strong>Days left &lt; 7</strong> in the today table = urgent restock needed</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 3: Daily Avg % Full — full width -->
+    <div class="row g-3 mb-4">
+      <div class="col-12">
+        <div class="card shadow-sm">
+          <div class="card-header d-flex align-items-center justify-content-between">
+            <span><i class="bi bi-graph-up me-2"></i>Daily Avg % Full</span>
+            <select id="trendDays" class="form-select form-select-sm w-auto"
+                    onchange="loadTrend()" aria-label="Trend window">
+              <option value="7" selected>7 days</option>
+              <option value="14">14 days</option>
+              <option value="30">30 days</option>
+              <option value="60">60 days</option>
+              <option value="90">90 days</option>
+            </select>
+          </div>
+          <div class="card-body p-2">
+            <div id="trendChart" style="height:320px;width:100%;"></div>
           </div>
         </div>
       </div>
@@ -130,18 +210,26 @@ const VESSEL_COLORS = [
   '#6d6875','#f4a261','#264653','#a8dadc','#c77dff'
 ];
 
-function alarmBadge(code, severity) {
-  if (!code || code === 'NONE' || severity === 0)
+function statusBadge(percentFull) {
+  if (percentFull == null || Number.isNaN(parseFloat(percentFull))) {
+    return '<span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Unknown</span>';
+  }
+
+  const pct = parseFloat(percentFull);
+  if (pct > 60) {
     return '<span class="badge bg-success-subtle text-success border border-success-subtle">OK</span>';
-  if (severity === 1)
-    return `<span class="badge bg-warning-subtle text-warning border border-warning-subtle"><i class="bi bi-exclamation-triangle me-1"></i>${code}</span>`;
-  return `<span class="badge bg-danger-subtle text-danger border border-danger-subtle"><i class="bi bi-exclamation-octagon me-1"></i>${code}</span>`;
+  }
+  if (pct >= 30) {
+    return '<span class="badge bg-warning-subtle text-warning border border-warning-subtle">Monitor</span>';
+  }
+  return '<span class="badge bg-danger-subtle text-danger border border-danger-subtle">Critical</span>';
 }
 
 function pctBar(pct) {
   if (pct == null) return '<span class="text-muted">—</span>';
   const p = parseFloat(pct).toFixed(1);
-  const color = pct >= 80 ? 'bg-danger' : pct >= 50 ? 'bg-warning' : 'bg-success';
+  const value = parseFloat(pct);
+  const color = value > 60 ? 'bg-success' : value >= 30 ? 'bg-warning' : 'bg-danger';
   return `
     <div class="d-flex align-items-center gap-2">
       <div class="progress flex-grow-1" style="height:10px;" role="progressbar"
@@ -164,11 +252,21 @@ function fmtDelta(v) {
   return `<span class="${cls}">${sign}${n.toLocaleString(undefined, {maximumFractionDigits:0})}</span>`;
 }
 
+function todayIsoLocal() {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
 async function loadInventory() {
   const res  = await fetch('/maintenance/api/silos/inventory-current');
   if (!res.ok) throw new Error('inventory-current ' + res.status);
   const json = await res.json();
   const rows = json.data || [];
+  const inventoryDateEl = document.getElementById('inventoryDate');
+  inventoryDateEl.textContent = todayIsoLocal();
 
   const container = document.getElementById('inventoryCards');
   if (!rows.length) {
@@ -183,7 +281,7 @@ async function loadInventory() {
         <div class="card-header py-2 d-flex align-items-center justify-content-between"
              style="border-left:4px solid ${VESSEL_COLORS[i % VESSEL_COLORS.length]};">
           <span class="fw-bold text-truncate" title="${r.vessel_name}">${r.vessel_name}</span>
-          ${alarmBadge(r.alarm_code, r.severity_level)}
+          ${statusBadge(r.percent_full)}
         </div>
         <div class="card-body py-3 px-3">
           <div class="mb-2">${pctBar(r.percent_full)}</div>
@@ -241,7 +339,8 @@ async function loadTrend() {
     plot_bgcolor:'transparent', paper_bgcolor:'transparent',
     legend:{orientation:'h', y:-0.22},
     font:{family:'Open Sans', size:12, color:'#132238'},
-    hovermode:'x unified'
+    hovermode:'x unified',
+    autosize:true
   };
 
   if (!traces.length) {
@@ -253,28 +352,148 @@ async function loadTrend() {
 }
 
 async function loadBurnRate() {
-  const res  = await fetch('/maintenance/api/silos/consumption-rate?days=2');
+  const res  = await fetch('/silos/consumption-rate?days=2');
   if (!res.ok) return;
   const json = await res.json();
   const rows = json.data || [];
+  const burnRateDateEl = document.getElementById('burnRateDate');
+  const inventoryDateEl = document.getElementById('inventoryDate');
 
   const latestDate = rows.reduce((mx, r) => r.snapshot_date > mx ? r.snapshot_date : mx, '');
   const latest     = rows.filter(r => r.snapshot_date === latestDate);
+  burnRateDateEl.textContent = latestDate || '--';
+  if (latestDate) inventoryDateEl.textContent = latestDate;
 
   const tbody = document.getElementById('burnBody');
   if (!latest.length) {
+    burnRateDateEl.textContent = '--';
     tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-3">No data yet</td></tr>';
     return;
   }
   tbody.innerHTML = latest.map(r => `
     <tr>
-      <td class="text-truncate" style="max-width:130px;" title="${r.vessel_name}">${r.vessel_name}</td>
+      <td class="text-truncate" style="max-width:130px;" title="${r.contents_code}">${r.contents_code}</td>
       <td class="text-end">${fmtWt(r.product_weight)}</td>
       <td class="text-end">${fmtDelta(r.weight_delta)}</td>
       <td class="text-end">${r.days_to_empty != null
           ? parseFloat(r.days_to_empty).toFixed(1) + 'd' : '—'}</td>
     </tr>`
   ).join('');
+}
+
+async function loadBurnRateHistory() {
+  const days = document.getElementById('burnHistoryDays').value;
+  const content = document.getElementById('burnHistoryContent').value;
+  const res = await fetch(`/silos/consumption-rate?days=${days}`);
+  if (!res.ok) return;
+
+  const json = await res.json();
+  const allRows = json.data || [];
+  const contentSelect = document.getElementById('burnHistoryContent');
+  const chartEl = document.getElementById('burnHistoryChart');
+  const emptyEl = document.getElementById('burnHistoryEmpty');
+
+  const contents = [...new Set(allRows.map(r => r.contents_code).filter(Boolean))].sort();
+  const currentSelected = contentSelect.value;
+  contentSelect.innerHTML = '<option value="">All content</option>' +
+    contents.map(c => `<option value="${c}">${c}</option>`).join('');
+  if (currentSelected && contents.includes(currentSelected)) {
+    contentSelect.value = currentSelected;
+  }
+
+  const rows = content
+    ? allRows.filter(r => r.contents_code === content)
+    : allRows;
+
+  if (!rows.length) {
+    emptyEl.classList.remove('d-none');
+    chartEl.classList.add('d-none');
+    chartEl.innerHTML = '';
+    return;
+  }
+  emptyEl.classList.add('d-none');
+  chartEl.classList.remove('d-none');
+
+  const traces = [];
+  if (content) {
+    const sorted = [...rows].sort((a, b) => (a.snapshot_date < b.snapshot_date ? -1 : 1));
+    traces.push({
+      type: 'scatter',
+      mode: 'lines+markers',
+      name: `${content} Weight`,
+      x: sorted.map(r => r.snapshot_date),
+      y: sorted.map(r => r.product_weight != null ? parseFloat(r.product_weight) : null),
+      line: {color: '#154e9a', width: 2},
+      marker: {size: 5},
+      yaxis: 'y1',
+    });
+    traces.push({
+      type: 'bar',
+      name: `${content} Δ vs prev`,
+      x: sorted.map(r => r.snapshot_date),
+      y: sorted.map(r => r.weight_delta != null ? parseFloat(r.weight_delta) : null),
+      marker: {
+        color: sorted.map(r => (parseFloat(r.weight_delta || 0) < 0 ? '#d32f2f' : '#2e7d32')),
+      },
+      opacity: 0.45,
+      yaxis: 'y2',
+    });
+  } else {
+    const grouped = {};
+    for (const r of rows) {
+      const key = r.contents_code || 'UNKNOWN';
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(r);
+    }
+
+    const topContents = Object.entries(grouped)
+      .map(([name, vals]) => {
+        const latest = [...vals].sort((a, b) => (a.snapshot_date < b.snapshot_date ? 1 : -1))[0];
+        return {name, latestWeight: parseFloat(latest?.product_weight || 0)};
+      })
+      .sort((a, b) => b.latestWeight - a.latestWeight)
+      .slice(0, 8)
+      .map(x => x.name);
+
+    topContents.forEach((name, i) => {
+      const series = grouped[name].sort((a, b) => (a.snapshot_date < b.snapshot_date ? -1 : 1));
+      traces.push({
+        type: 'scatter',
+        mode: 'lines+markers',
+        name,
+        x: series.map(r => r.snapshot_date),
+        y: series.map(r => r.product_weight != null ? parseFloat(r.product_weight) : null),
+        line: {color: VESSEL_COLORS[i % VESSEL_COLORS.length], width: 2},
+        marker: {size: 4},
+      });
+    });
+  }
+
+  const layout = {
+    margin: {l: 52, r: 52, t: 8, b: 52},
+    xaxis: {type: 'date', tickformat: '%b %d'},
+    yaxis: {title: 'Weight (lbs)', separatethousands: true, gridcolor: '#edf0f4'},
+    plot_bgcolor: 'transparent',
+    paper_bgcolor: 'transparent',
+    font: {family: 'Open Sans', size: 12, color: '#132238'},
+    hovermode: 'x unified',
+    legend: {orientation: 'h', y: -0.22},
+    barmode: 'overlay',
+    autosize: true,
+  };
+
+  if (content) {
+    layout.yaxis2 = {
+      title: 'Δ vs prev (lbs)',
+      overlaying: 'y',
+      side: 'right',
+      showgrid: false,
+      zeroline: true,
+      zerolinecolor: '#b8c2cc',
+    };
+  }
+
+  Plotly.react('burnHistoryChart', traces, layout, {responsive: true, displayModeBar: false});
 }
 
 function showToast(msg, type='success') {
@@ -344,7 +563,7 @@ async function handleUpload() {
     resultBox.classList.remove('d-none');
     fileInput.value = '';
     showToast('CSV uploaded. Refreshing dashboard…');
-    await Promise.all([loadInventory(), loadTrend(), loadBurnRate()]);
+    await Promise.all([loadInventory(), loadTrend(), loadBurnRate(), loadBurnRateHistory()]);
   } catch (err) {
     resultBox.className = 'alert alert-danger mt-3';
     resultBox.textContent = 'Upload failed: ' + err.message;
@@ -355,15 +574,60 @@ async function handleUpload() {
   }
 }
 
+// Init Bootstrap tooltips
+document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+  new bootstrap.Tooltip(el);
+});
+
+// Init larger popover for Consumption Rate help
+document.querySelectorAll('[data-bs-toggle="popover"]').forEach(el => {
+  const pop = new bootstrap.Popover(el, {
+    html: true,
+    customClass: 'burn-rate-help-popover'
+  });
+
+  el.addEventListener('shown.bs.popover', () => {
+    if (window.MathJax?.typesetPromise) {
+      const tip = document.querySelector('.popover.show');
+      if (tip) window.MathJax.typesetPromise([tip]).catch(() => {});
+    }
+  });
+});
+
 (async function init() {
   try {
-    await Promise.all([loadInventory(), loadTrend(), loadBurnRate()]);
+    await Promise.all([loadInventory(), loadTrend(), loadBurnRate(), loadBurnRateHistory()]);
   } catch (e) {
     console.warn('Dashboard load error:', e);
   } finally {
     document.getElementById('loadingRow').classList.add('d-none');
     document.getElementById('dashContent').classList.remove('d-none');
+    // Charts rendered while container was hidden — trigger resize so Plotly fills full width
+    window.dispatchEvent(new Event('resize'));
   }
 })();
 </script>
+
+<style>
+.burn-rate-help-popover {
+  --bs-popover-max-width: 520px;
+}
+
+.burn-rate-help-popover .popover-header {
+  font-weight: 700;
+}
+
+.burn-rate-help-popover .popover-body {
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+</style>
+
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['\\(', '\\)']] },
+  svg: { fontCache: 'global' }
+};
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 {% endblock %}

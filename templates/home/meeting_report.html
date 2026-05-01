@@ -20,41 +20,23 @@
     <div class="card-body">
       <div class="row g-3 align-items-end">
         <div class="col-sm-6 col-lg-3">
-          <label for="cardsYearMonth" class="form-label fw-semibold">
-            <i class="bi bi-calendar2-month me-1 text-primary"></i>Cards Year/Month
+          <label for="globalDate" class="form-label fw-semibold">
+            <i class="bi bi-calendar3 me-1 text-primary"></i>Report Date
           </label>
-          <input type="month" class="form-control" id="cardsYearMonth" name="year_month" />
+          <input type="date" class="form-control" id="globalDate" name="global_date" />
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ── All Site MTD card (independent from Truck Appointment Date) ─── -->
-  <div
-    id="allSiteMtdCard"
-    hx-get="/api/meeting-report/all-site-mtd?product_group=SW"
-    hx-trigger="load"
-    hx-swap="innerHTML"
-    class="mb-4"
-  ></div>
+  <!-- ── All Site MTD card ─────────────────────────────────────────────── -->
+  <div id="allSiteMtdCard" class="mb-4"></div>
 
-  <!-- ── Today Summary card (independent from Truck Appointment Date) ─── -->
-  <div
-    id="todaySummaryCard"
-    hx-get="/api/meeting-report/today-summary?product_group=SW"
-    hx-trigger="load"
-    hx-swap="innerHTML"
-    class="mb-4"
-  ></div>
+  <!-- ── Today Summary card ─────────────────────────────────────────────── -->
+  <div id="todaySummaryCard" class="mb-4"></div>
 
-  <!-- ── Warehouse Pallet Movement MTD card ─────────────────── -->
-  <div
-    id="warehousePalletMovementMtdCard"
-    hx-get="/api/meeting-report/warehouse-pallet-movement-mtd"
-    hx-trigger="load"
-    hx-swap="innerHTML"
-    class="mb-4"
-  ></div>
+  <!-- ── Warehouse Pallet Movement MTD card ─────────────────────────────── -->
+  <div id="warehousePalletMovementMtdCard" class="mb-4"></div>
 
   <!-- ── Filter form ──────────────────────────────────────────── -->
   <div class="card shadow-sm mb-4 filter-card">
@@ -140,28 +122,43 @@
 {% block scripts %}
 <script>
   (function () {
-    var yearMonthInput = document.getElementById('cardsYearMonth');
+    var globalDateInput = document.getElementById('globalDate');
     var productGroupInput = document.getElementById('product_group');
 
-    function getCurrentYearMonth() {
+    function getCurrentDateIso() {
       var now = new Date();
+      var day = String(now.getDate()).padStart(2, '0');
       var month = String(now.getMonth() + 1).padStart(2, '0');
-      return now.getFullYear() + '-' + month;
+      return now.getFullYear() + '-' + month + '-' + day;
     }
 
     function loadSummaryCards() {
-      var yearMonth = yearMonthInput.value || getCurrentYearMonth();
+      var selectedDate = globalDateInput.value || getCurrentDateIso();
+      var yearMonth = selectedDate.slice(0, 7);
       var productGroup = productGroupInput.value || 'SW';
-
-      htmx.ajax('GET', '/api/meeting-report/all-site-mtd?product_group=' + encodeURIComponent(productGroup) + '&year_month=' + encodeURIComponent(yearMonth), { target: '#allSiteMtdCard', swap: 'innerHTML' });
-      htmx.ajax('GET', '/api/meeting-report/today-summary?product_group=' + encodeURIComponent(productGroup) + '&year_month=' + encodeURIComponent(yearMonth), { target: '#todaySummaryCard', swap: 'innerHTML' });
-      htmx.ajax('GET', '/api/meeting-report/warehouse-pallet-movement-mtd?year_month=' + encodeURIComponent(yearMonth), { target: '#warehousePalletMovementMtdCard', swap: 'innerHTML' });
+      htmx.ajax('GET',
+        '/api/meeting-report/all-site-mtd?product_group=' + encodeURIComponent(productGroup)
+          + '&date=' + encodeURIComponent(selectedDate)
+          + '&year_month=' + encodeURIComponent(yearMonth),
+        { target: '#allSiteMtdCard', swap: 'innerHTML' }
+      );
+      htmx.ajax('GET',
+        '/api/meeting-report/today-summary?product_group=' + encodeURIComponent(productGroup)
+          + '&date=' + encodeURIComponent(selectedDate)
+          + '&year_month=' + encodeURIComponent(yearMonth),
+        { target: '#todaySummaryCard', swap: 'innerHTML' }
+      );
+      htmx.ajax('GET',
+        '/api/meeting-report/warehouse-pallet-movement-mtd?date=' + encodeURIComponent(selectedDate)
+          + '&year_month=' + encodeURIComponent(yearMonth),
+        { target: '#warehousePalletMovementMtdCard', swap: 'innerHTML' }
+      );
     }
 
-    yearMonthInput.value = getCurrentYearMonth();
+    globalDateInput.value = getCurrentDateIso();
     loadSummaryCards();
 
-    yearMonthInput.addEventListener('change', loadSummaryCards);
+    globalDateInput.addEventListener('change', loadSummaryCards);
     productGroupInput.addEventListener('change', loadSummaryCards);
   })();
 </script>

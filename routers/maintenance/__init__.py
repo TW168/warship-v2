@@ -1,0 +1,37 @@
+"""
+routers/maintenance/__init__.py — Maintenance section package router.
+
+This module is the single entry point for all ``/maintenance`` routes.
+It creates one parent ``APIRouter`` with the ``/maintenance`` prefix and
+includes each domain sub-module's router.
+
+Domain → module mapping
+-----------------------
+Shipping Status CRUD    →  shipping_status.py
+Freight Audit           →  freight_audit.py
+LMI Document Analysis   →  lmi.py
+Truck Load Map          →  truck_load_map.py
+Not-in-XFCMA           →  not_in_xfcma.py
+Silos (page + ETL + ML) →  silos/   (sub-package)
+
+Usage in main.py (unchanged from pre-refactor):
+    from routers import maintenance
+    app.include_router(maintenance.router)
+"""
+
+from fastapi import APIRouter
+
+from . import freight_audit, lmi, not_in_xfcma, shipping_status, truck_load_map
+from .silos import router as _silos_router
+
+# Parent router — every route in every sub-module is served under /maintenance
+router = APIRouter(prefix="/maintenance", tags=["Maintenance"])
+
+router.include_router(shipping_status.router)
+router.include_router(freight_audit.router)
+router.include_router(lmi.router)
+router.include_router(truck_load_map.router)
+router.include_router(not_in_xfcma.router)
+router.include_router(_silos_router)
+
+__all__ = ["router"]
