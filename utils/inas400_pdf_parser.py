@@ -181,7 +181,33 @@ def _extract_report_datetime(line_text: str) -> Optional[datetime]:
 # ---------------------------------------------------------------------------
 
 def _group_words_by_line(words: list[dict], y_tolerance: float = 3.0) -> list[list[dict]]:
-    """Cluster extracted word dicts into lines using their 'top' coordinate."""
+    """
+    Cluster extracted word dictionaries into text lines using their vertical position.
+    
+    PDF extraction often splits text within the same line into separate word objects.
+    This function groups words that appear at approximately the same vertical position
+    (Y coordinate) back into logical text lines.
+    
+    Args:
+        words: List of word dictionaries from pdfplumber, each containing:
+            - 'text': the actual text content
+            - 'x0': left edge coordinate
+            - 'top': top edge coordinate (Y position)
+            - 'x1': right edge coordinate 
+            - 'bottom': bottom edge coordinate
+        y_tolerance: Maximum vertical distance (points) between words to consider
+                    them on the same line. Default 3.0 points works well for
+                    standard AS400 report formatting.
+    
+    Returns:
+        List of lines, where each line is a list of word dictionaries sorted
+        from left to right by their x0 coordinate.
+    
+    Example:
+        Input words with tops [100, 102, 100, 150, 151] become:
+        - Line 1: words with tops [100, 102, 100] (within tolerance)
+        - Line 2: words with tops [150, 151] (within tolerance)
+    """
     if not words:
         return []
     sorted_words = sorted(words, key=lambda w: (w["top"], w["x0"]))
@@ -220,8 +246,33 @@ def _assign_to_columns(
     col_ranges: list[tuple[float, float]],
 ) -> list[str]:
     """
-    Map each word to the column whose x-centre is closest.
-    Multi-word values are joined with a space.
+    Assign words from a text line to fixed-width columns based on horizontal position.
+    
+    AS400 reports use fixed-width column formatting where data fields appear at
+    consistent horizontal positions. This function maps each extracted word to
+    the appropriate column by finding which column center is closest to the word's
+    horizontal center.
+    
+    Args:
+        line_words: List of word dictionaries from pdfplumber, each containing
+                   'text', 'x0' (left edge), 'x1' (right edge) coordinates.
+        col_ranges: List of column boundaries as (left, right) tuples defining
+                   the expected horizontal ranges for each data column.
+                   
+    Returns:
+        List of strings, one per column, with concatenated text content.
+        Multiple words assigned to the same column are joined with spaces.
+        Empty columns return empty strings.
+        
+    Example:
+        If col_ranges = [(0, 50), (50, 100), (100, 150)] and we have words
+        at positions 25, 75, 125, they get assigned to columns 0, 1, 2 respectively.
+        
+    Algorithm:
+        1. Calculate center point for each column range
+        2. For each word, find center point of word boundaries  
+        3. Assign word to column with closest center point
+        4. Join multiple words per column with spaces
     """
     result = [""] * len(col_ranges)
     col_centres = [(lo + hi) / 2.0 for lo, hi in col_ranges]

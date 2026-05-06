@@ -19,12 +19,14 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy import text
 
 from database import connect_to_database
+from logging_config import get_router_logger
 
 router = APIRouter(tags=["Maintenance"])
 templates = Jinja2Templates(directory="templates")
 
 # One shared engine for this module (created at import time)
 _engine = connect_to_database()
+logger = get_router_logger("maintenance.truck_load_map")
 
 
 @router.get(
@@ -77,9 +79,10 @@ async def truck_load_map(request: Request) -> HTMLResponse:
                 }
                 for r in rows
             ]
-    except Exception:
+    except Exception as e:
         # Graceful degradation — DB unavailable at page load is non-fatal
-        pass
+        logger.warning(f"Failed to load product dimensions from database: {e}")
+        products = []
 
     return templates.TemplateResponse(
         "maintenance/truck_load_map.html",

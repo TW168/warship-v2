@@ -15,6 +15,11 @@ from fastapi.templating import Jinja2Templates
 # Load .env from the same directory as main.py — works regardless of cwd
 load_dotenv(Path(__file__).parent / ".env")
 
+# Initialize logging before importing routers
+from logging_config import setup_logging, get_logger
+setup_logging(level="INFO")
+logger = get_logger(__name__)
+
 from routers import health, home, warehouse, shipping, tsr_prep, maintenance, about
 from routers.maintenance.silos.api import public_router as silos_public_router
 
@@ -33,6 +38,7 @@ templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Register all routers
+logger.info("Registering application routers...")
 app.include_router(health.router)
 app.include_router(home.router)
 app.include_router(warehouse.router)
@@ -41,6 +47,7 @@ app.include_router(tsr_prep.router)
 app.include_router(maintenance.router)
 app.include_router(about.router)
 app.include_router(silos_public_router)
+logger.info("All routers registered successfully")
 
 
 @app.get("/silos-status", response_class=HTMLResponse, include_in_schema=False)

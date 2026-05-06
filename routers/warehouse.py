@@ -18,12 +18,14 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy import text
 
 from database import connect_to_database
+from logging_config import get_router_logger
 from utils.product_forecast import compute_forecast
 
 router = APIRouter(tags=["Warehouse"])
 templates = Jinja2Templates(directory="templates")
 
 _engine = connect_to_database()
+logger = get_router_logger("warehouse")
 
 
 @router.get(
@@ -114,8 +116,10 @@ async def udc_summary(
                     else:
                         try:
                             row_dict[key] = int(val)
-                        except (TypeError, ValueError):
-                            pass
+                        except (TypeError, ValueError) as e:
+                            logger.debug(f"Could not convert value '{val}' to int for key '{key}': {e}")
+                            # Keep original value if conversion fails
+                            row_dict[key] = val
                 result.append(row_dict)
 
             return JSONResponse(content=result)

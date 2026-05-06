@@ -35,12 +35,14 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy import text
 
 from database import connect_to_database
+from logging_config import get_router_logger
 
 router = APIRouter(tags=["Maintenance"])
 templates = Jinja2Templates(directory="templates")
 
 # One shared engine for this module (created at import time)
 _engine = connect_to_database()
+logger = get_router_logger("maintenance.freight_audit")
 
 
 # ---------------------------------------------------------------------------
@@ -244,6 +246,7 @@ async def freight_audit_api(
                 )
 
     except Exception as exc:
+        logger.error(f"Freight audit calculation failed: {exc}")
         return JSONResponse(status_code=500, content={"error": str(exc)})
 
     return JSONResponse(

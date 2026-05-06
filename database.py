@@ -6,6 +6,9 @@ Provides a SQLAlchemy engine connected to the MySQL warship database.
 
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
+from logging_config import get_db_logger
+
+logger = get_db_logger()
 
 
 def connect_to_database(dbms: str = "mysql") -> Engine:
@@ -25,16 +28,23 @@ def connect_to_database(dbms: str = "mysql") -> Engine:
     port = 3306
     database = "warship"
 
+    logger.info(f"Connecting to {dbms} database at {host}:{port}/{database}")
+
     # Build the connection string using the specified DBMS and mysql-connector-python driver
     connection_string = f"{dbms}+mysqlconnector://{user}:{password}@{host}:{port}/{database}"
 
-    # pool_pre_ping=True: test each pooled connection before use; silently reconnects
-    # if MySQL closed it (e.g. after wait_timeout). Prevents the "works after reload"
-    # 500-error pattern caused by stale connections in the pool.
-    # pool_recycle=1800: force-recycle connections older than 30 min as an extra safeguard.
-    engine = create_engine(
-        connection_string,
-        pool_pre_ping=True,
-        pool_recycle=1800,
-    )
-    return engine
+    try:
+        # pool_pre_ping=True: test each pooled connection before use; silently reconnects
+        # if MySQL closed it (e.g. after wait_timeout). Prevents the "works after reload"
+        # 500-error pattern caused by stale connections in the pool.
+        # pool_recycle=1800: force-recycle connections older than 30 min as an extra safeguard.
+        engine = create_engine(
+            connection_string,
+            pool_pre_ping=True,
+            pool_recycle=1800,
+        )
+        logger.info("Database engine created successfully")
+        return engine
+    except Exception as e:
+        logger.error(f"Failed to create database engine: {e}")
+        raise

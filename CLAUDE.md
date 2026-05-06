@@ -49,10 +49,12 @@ uv run pytest
 warship-v2/
 ├── main.py                  # FastAPI app factory, mounts routers
 ├── database.py              # connect_to_database() engine factory
+├── logging_config.py        # Centralized logging configuration
 ├── pyproject.toml           # uv-managed dependencies and project metadata
 ├── uv.lock                  # committed — ensures reproducible builds on Dokploy
 ├── .venv/                   # local venv created by uv (gitignored)
 ├── .gitignore
+├── logs/                    # Application logs (created by logging_config.py)
 ├── Dockerfile               # for Dokploy deployment
 ├── README.md
 ├── .github/
@@ -70,6 +72,7 @@ warship-v2/
 │   │   ├── lmi.py               # LMI document analysis via Ollama deepseek-r1:8b
 │   │   ├── truck_load_map.py    # Truck trailer load planning tool
 │   │   ├── not_in_xfcma.py      # Not-in-XFCMA PDF upload + CRUD
+│   │   ├── shipment_scan.py     # Shipment scan Excel/CSV upload + management
 │   │   └── silos/               # Silos sub-package
 │   │       ├── __init__.py      # Silos sub-router, combines upload/api/anomaly_api
 │   │       ├── anomaly.py       # ML feature engineering + event generation helpers
@@ -92,6 +95,7 @@ warship-v2/
 │   ├── health.py
 │   ├── meeting_report.py
 │   ├── not_in_xfcma.py
+│   ├── shipment_scan.py
 │   ├── shipped_product.py
 │   ├── shipping_status.py
 │   ├── silos.py             # SiloAnomalyStatusUpdateRequest
@@ -129,6 +133,32 @@ database = "warship"
 
 The `connect_to_database()` function returns a SQLAlchemy `Engine`.
 
+### Logging (`logging_config.py`)
+Centralized logging infrastructure with structured output:
+
+```python
+# Initialize logging in main.py
+from logging_config import setup_logging, get_logger
+setup_logging(level="INFO")
+logger = get_logger(__name__)
+
+# Use in routers
+from logging_config import get_router_logger
+logger = get_router_logger("warehouse")
+
+# Use in utilities  
+from logging_config import get_util_logger
+logger = get_util_logger("pdf_parser")
+```
+
+**Features:**
+- Rotating file logs in `logs/warship.log` (10MB max, 5 backups)
+- Console output to stdout with INFO+ level
+- File output with DEBUG+ level for detailed troubleshooting
+- Consistent formatting: `timestamp - module - level - message`
+- Pre-configured loggers for routers, utilities, and database operations
+- All empty exception handlers have been replaced with proper error logging
+
 ### Routing Pattern
 - HTML pages use `Jinja2Templates.TemplateResponse()`
 - JSON API endpoints declare a Pydantic `response_model=` on the decorator and return a model instance — never a raw dict
@@ -165,6 +195,9 @@ The `connect_to_database()` function returns a SQLAlchemy `Engine`.
 | Upload not in XFCMA | `GET /maintenance/not-in-xfcma` | Maintenance page for PDF upload with success/failure indication only. |
 | Upload not in XFCMA API | `GET/POST/PUT/DELETE /maintenance/api/not-in-xfcma...` | JSON CRUD endpoints for `not_in_xfcma` (`id`, `report_datetime`, `product_code`, `manu_order`, `item`, `pallet`, `location`, `rolls`, `length`, `weight`, `grade`, `last_in_date`, `created_at_utc`, `source_file`). List supports optional filters: `product_code`, `date_from`, `date_to`. |
 | Upload not in XFCMA PDF API | `POST /maintenance/api/not-in-xfcma/upload` | Multipart PDF upload endpoint. Parses QPQUPRFIL report rows and bulk inserts mapped records into `not_in_xfcma`; re-uploading the same filename replaces that file's prior rows. |
+| Shipment Scan | `GET /maintenance/shipment-scan` | Maintenance page for Excel/CSV shipment scan file upload with recent uploads list. |
+| Shipment Scan Upload API | `POST /maintenance/api/shipment-scan/upload` | Multipart Excel/CSV upload endpoint. Parses shipment scan files and stores data as JSON records in `shipment_scan` table with duplicate detection by filename and file size. |
+| Shipment Scan List API | `GET /maintenance/api/shipment-scan` | JSON endpoint to list shipment scan records with pagination and optional filename filtering. Returns records with parsed data, upload metadata, and file information. |
 | Silos Status | `GET /silos-status` | Canonical page for daily Site Status CSV upload into `silo_status`, including Current Inventory cards, Daily Avg % Full trend, current Consumption Rate card, and Consumption Rate History card (content filter + lookback window). Legacy maintenance URLs `GET /maintenance/silos-status` and `GET /maintenance/site-status-upload` now 307-redirect to this root route. |
 | Upload Site Status CSV API | `POST /maintenance/api/site-status/upload` | Multipart CSV upload endpoint. Validates required headers, parses rows, auto-creates `silo_status` table if missing, bulk inserts rows, rejects duplicate filenames, and triggers anomaly feature/event refresh for the uploaded snapshot date. |
 | Silos Anomaly Features API | `GET /maintenance/api/silos/anomaly-features` | JSON — historical feature-engineering dataset for anomaly detection (`risk_score`, rolling stats, z-score, run length) from `silo_ml_features_daily`; filters: `days`, `min_risk`, optional `contents_code`. |
