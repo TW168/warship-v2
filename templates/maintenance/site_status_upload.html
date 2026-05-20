@@ -292,8 +292,8 @@ async function loadInventory() {
             <i class="bi bi-box me-1"></i>${r.contents_code || '—'}
           </div>
           <div class="small text-muted">
-            <i class="bi bi-clock me-1"></i>${
-              r.last_measurement_time
+            <i class="bi bi-clock me-1"></i>$
+              {r.last_measurement_time
                 ? r.last_measurement_time.replace('T',' ').slice(0,16)
                 : '—'}
           </div>
