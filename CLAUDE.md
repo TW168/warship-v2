@@ -73,6 +73,7 @@ warship-v2/
 │   │   ├── truck_load_map.py    # Truck trailer load planning tool
 │   │   ├── not_in_xfcma.py      # Not-in-XFCMA PDF upload + CRUD
 │   │   ├── shipment_scan.py     # Shipment scan Excel/CSV upload + management
+│   │   ├── sales_summary.py     # MKORSHDK daily sales summary PDF upload + list
 │   │   └── silos/               # Silos sub-package
 │   │       ├── __init__.py      # Silos sub-router, combines upload/api/anomaly_api
 │   │       ├── anomaly.py       # ML feature engineering + event generation helpers
@@ -95,6 +96,7 @@ warship-v2/
 │   ├── health.py
 │   ├── meeting_report.py
 │   ├── not_in_xfcma.py
+│   ├── sales_summary.py
 │   ├── shipment_scan.py
 │   ├── shipped_product.py
 │   ├── shipping_status.py
@@ -198,6 +200,9 @@ logger = get_util_logger("pdf_parser")
 | Shipment Scan | `GET /maintenance/shipment-scan` | Maintenance page for Excel/CSV shipment scan file upload with recent uploads list. |
 | Shipment Scan Upload API | `POST /maintenance/api/shipment-scan/upload` | Multipart Excel/CSV upload endpoint. Parses shipment scan files and stores data as JSON records in `shipment_scan` table with duplicate detection by filename and file size. |
 | Shipment Scan List API | `GET /maintenance/api/shipment-scan` | JSON endpoint to list shipment scan records with pagination and optional filename filtering. Returns records with parsed data, upload metadata, and file information. |
+| Sales Summary Upload | `GET /maintenance/sales-summary` | Maintenance page for uploading MKORSHDK daily sales summary PDF files and viewing recent parsed rows. |
+| Sales Summary Upload API | `POST /maintenance/api/sales-summary/upload` | Multipart PDF upload endpoint. Parses product-level daily/MTD order, shipment, and backlog metrics and inserts rows into `sales_summary` while preserving upload history. |
+| Sales Summary List API | `GET /maintenance/api/sales-summary` | JSON endpoint to list `sales_summary` rows with pagination and optional filters (`run_date`, `source_file`). |
 | Silos Status | `GET /silos-status` | Canonical page for daily Site Status CSV upload into `silo_status`, including Current Inventory cards, Daily Avg % Full trend, current Consumption Rate card, and Consumption Rate History card (content filter + lookback window). Legacy maintenance URLs `GET /maintenance/silos-status` and `GET /maintenance/site-status-upload` now 307-redirect to this root route. |
 | Upload Site Status CSV API | `POST /maintenance/api/site-status/upload` | Multipart CSV upload endpoint. Validates required headers, parses rows, auto-creates `silo_status` table if missing, bulk inserts rows, rejects duplicate filenames, and triggers anomaly feature/event refresh for the uploaded snapshot date. |
 | Silos Anomaly Features API | `GET /maintenance/api/silos/anomaly-features` | JSON — historical feature-engineering dataset for anomaly detection (`risk_score`, rolling stats, z-score, run length) from `silo_ml_features_daily`; filters: `days`, `min_risk`, optional `contents_code`. |

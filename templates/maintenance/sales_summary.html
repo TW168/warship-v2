@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}Sales Summary Upload{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="row mb-3">
+    <div class="col">
+      <h1 class="fw-bold" style="color: #154e9a;">
+        <i class="bi bi-file-earmark-bar-graph me-2"></i>Sales Summary Upload
+      </h1>
+      <p class="text-muted mb-0">Upload daily MKORSHDK PDF files and store parsed rows in MySQL.</p>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-xl-4 col-lg-5">
+      <div class="card shadow-sm">
+        <div class="card-header bg-light border-bottom">
+          <h5 class="mb-0"><i class="bi bi-cloud-arrow-up me-2"></i>Upload PDF</h5>
+        </div>
+        <div class="card-body">
+          <label for="pdfFile" class="form-label fw-semibold">Select PDF file(s)</label>
+          <input type="file" class="form-control mb-3" id="pdfFile" accept=".pdf,application/pdf" multiple>
+          <button class="btn btn-primary w-100" id="uploadBtn" onclick="handleUpload()">
+            <i class="bi bi-cloud-upload me-2"></i>Upload and Save to MySQL
+          </button>
+          <div id="uploadResult" class="alert mt-3 d-none" role="alert"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-xl-8 col-lg-7">
+      <div class="card shadow-sm">
+        <div class="card-header bg-light border-bottom d-flex justify-content-between align-items-center">
+          <h5 class="mb-0"><i class="bi bi-table me-2"></i>Recent Parsed Rows</h5>
+          <button class="btn btn-sm btn-outline-primary" onclick="loadRows()">
+            <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+          </button>
+        </div>
+        <div class="card-body">
+          <div id="rowsContainer">
+            <div class="text-muted">Loading...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+async function handleUpload() {
+  const fileInput = document.getElementById('pdfFile');
+  const btn = document.getElementById('uploadBtn');
+  const result = document.getElementById('uploadResult');
+  const files = Array.from(fileInput.files || []);
+
+  if (!files.length) {
+    result.className = 'alert alert-warning mt-3';
+    result.textContent = 'Please select at least one PDF file.';
+    result.classList.remove('d-none');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Uploading...';
+  result.classList.add('d-none');
+
+  const formData = new FormData();
+  for (const f of files) formData.append('files', f);
+
+  try {
+    const res = await fetch('/maintenance/api/sales-summary/upload', { method: 'POST', body: formData });
+    const payload = await res.json();
+    if (!res.ok) throw new Error(payload.detail || ('HTTP ' + res.status));
+
+    result.className = 'alert alert-success mt-3';
+    let msg = payload.message;
+    if (payload.files && payload.files.length) {
+      msg += '\n\n' + payload.files.map(f => '- ' + f.file + ': ' + f.inserted + ' rows').join('\n');
+    }
+    result.innerText = msg;
+    result.classList.remove('d-none');
+    fileInput.value = '';
+    await loadRows();
+  } catch (err) {
+    result.className = 'alert alert-danger mt-3';
+    result.textContent = 'Upload failed: ' + err.message;
+    result.classList.remove('d-none');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-cloud-upload me-2"></i>Upload and Save to MySQL';
+  }
+}
+
+async function loadRows() {
+  const container = document.getElementById('rowsContainer');
+  container.innerHTML = '<div class="text-muted">Loading...</div>';
+
+  try {
+    const res = await fetch('/maintenance/api/sales-summary?limit=50');
+    const payload = await res.json();
+    if (!res.ok) throw new Error(payload.detail || payload.error || ('HTTP ' + res.status));
+
+    const records = payload.records || [];
+    if (!records.length) {
+      container.innerHTML = '<div class="text-muted">No rows found yet.</div>';
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="table-responsive">
+        <table class="table table-striped table-hover table-sm align-middle">
+          <thead class="table-light sticky-top">
+            <tr>
+              <th>Uploaded</th>
+              <th>Run Date</th>
+              <th>Product</th>
+              <th>Daily Qty</th>
+              <th>MTD Qty</th>
+              <th>Backlog</th>
+              <th>Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${records.map(r => `
+              <tr>
+                <td>${new Date(r.uploaded_at_utc).toLocaleString()}</td>
+                <td>${r.run_date}</td>
+                <td>${escapeHtml((r.product_class || '') + ' ' + (r.product_name || ''))}</td>
+                <td>${Number(r.daily_shipment_qty || 0).toLocaleString()}</td>
+                <td>${Number(r.mtd_shipment_qty || 0).toLocaleString()}</td>
+                <td>${Number(r.total_backlog_qty || 0).toLocaleString()}</td>
+                <td><small>${escapeHtml(r.source_file)}</small></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+      <div class="text-muted small">Showing ${records.length} row(s)</div>
+    `;
+  } catch (err) {
+    container.innerHTML = `<div class="alert alert-danger mb-0">Failed to load rows: ${escapeHtml(err.message)}</div>`;
+  }
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = String(text || '');
+  return div.innerHTML;
+}
+
+loadRows();
+</script>
+{% endblock %}
