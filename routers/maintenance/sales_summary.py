@@ -10,7 +10,7 @@ Routes:
 from __future__ import annotations
 
 import tempfile
-from datetime import date, datetime
+from datetime import date, datetime, time, timedelta
 from pathlib import Path
 
 from fastapi import APIRouter, File, HTTPException, Query, Request, UploadFile
@@ -29,6 +29,27 @@ from utils.sales_summary_pdf_parser import parse_sales_summary_pdf
 router = APIRouter(tags=["Maintenance"])
 templates = Jinja2Templates(directory="templates")
 _engine = connect_to_database()
+
+
+def _coerce_time(value) -> time:
+    """Normalize DB TIME values into a ``datetime.time``.
+
+    mysql-connector may return TIME as ``datetime.timedelta``.
+    """
+    if isinstance(value, time):
+        return value
+    if isinstance(value, timedelta):
+        total_seconds = int(value.total_seconds())
+        hours = (total_seconds // 3600) % 24
+        minutes = (total_seconds % 3600) // 60
+        seconds = total_seconds % 60
+        return time(hours, minutes, seconds)
+    if isinstance(value, str):
+        try:
+            return datetime.strptime(value, "%H:%M:%S").time()
+        except ValueError:
+            pass
+    return time(0, 0, 0)
 
 
 def _ensure_sales_summary_table() -> None:
@@ -83,7 +104,7 @@ def _row_to_model(row) -> SalesSummaryRow:
         unit=row.unit,
         run_date=row.run_date,
         business_date=row.business_date,
-        run_time=row.run_time,
+        run_time=_coerce_time(row.run_time),
         product_class=row.product_class,
         product_name=row.product_name,
         daily_order_qty=int(row.daily_order_qty),
