@@ -159,10 +159,9 @@ async function loadRecords() {
 // Render records table
 function renderRecords(records, total) {
   const container = document.getElementById('recordsContainer');
-  
-  // Cache records for viewRecord function
+
   recordsCache = records;
-  
+
   if (!records || records.length === 0) {
     container.innerHTML = `
       <div class="text-center py-4 text-muted">
@@ -175,104 +174,42 @@ function renderRecords(records, total) {
 
   const tableHtml = `
     <div class="table-responsive">
-      <table class="table table-sm table-hover">
+      <table class="table table-sm table-hover align-middle">
         <thead class="table-light sticky-top">
           <tr>
-            <th>File Name</th>
-            <th>Upload Date</th>
-            <th>Shipment Data</th>
+            <th>Uploaded (Texas time)</th>
+            <th>Rows</th>
+            <th>Scan Date</th>
+            <th>Pallet</th>
+            <th>BOL</th>
+            <th>Status</th>
+            <th>Name</th>
             <th>Size</th>
-            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          ${records.map(record => `
+          ${records.map(r => `
             <tr>
-              <td>
-                <i class="bi bi-file-earmark-text text-primary me-1"></i>
-                ${escapeHtml(record.source_file)}
-              </td>
-              <td>
-                <small class="text-muted">
-                  ${new Date(record.uploaded_at).toLocaleString()}
-                </small>
-              </td>
-              <td>
-                <div class="small">
-                  ${record.tracking_number ? `<span class="badge bg-info me-1">${escapeHtml(record.tracking_number)}</span>` : ''}
-                  ${record.status ? `<span class="badge bg-secondary me-1">${escapeHtml(record.status)}</span>` : ''}
-                  ${record.carrier ? `<div class="text-muted">${escapeHtml(record.carrier)}</div>` : ''}
-                  ${record.weight ? `<div class="text-muted">${record.weight} lbs</div>` : ''}
-                </div>
-              </td>
-              <td>
-                <small class="text-muted">
-                  ${formatFileSize(record.file_size)}
-                </small>
-              </td>
-              <td>
-                <button class="btn btn-outline-secondary btn-sm" 
-                        onclick="viewRecord(${record.id})" title="View Details">
-                  <i class="bi bi-eye"></i>
-                </button>
-              </td>
+              <td><small class="text-muted">${r.uploaded_at ? new Date(r.uploaded_at).toLocaleString() : '—'}</small></td>
+              <td><span class="badge bg-primary-subtle text-primary-emphasis border">${r.row_count || 1}</span></td>
+              <td><small>${r.scan_datetime ? new Date(r.scan_datetime).toLocaleString() : '—'}</small></td>
+              <td>${r.pallet ? escapeHtml(r.pallet) : '<span class="text-muted">—</span>'}</td>
+              <td>${r.bol ? escapeHtml(r.bol) : '<span class="text-muted">—</span>'}</td>
+              <td>${r.status ? `<span class="badge bg-secondary">${escapeHtml(r.status)}</span>` : '<span class="text-muted">—</span>'}</td>
+              <td>${r.name ? escapeHtml(r.name) : '<span class="text-muted">—</span>'}</td>
+              <td><small class="text-muted">${formatFileSize(r.file_size)}</small></td>
             </tr>
           `).join('')}
         </tbody>
       </table>
     </div>
-    ${total > 20 ? `<div class="text-muted small mt-2">Showing 20 of ${total} total records</div>` : ''}
+    ${total > 20 ? `<p class="text-muted small mt-2">Showing 20 of ${total} uploads</p>` : ''}
   `;
-  
+
   container.innerHTML = tableHtml;
 }
 
-// View individual record details
-function viewRecord(id) {
-  const record = recordsCache.find(r => r.id === id);
-  if (!record) {
-    alert('Record not found');
-    return;
-  }
-  
-  let details = `Shipment Scan Record #${id}\n\n`;
-  details += `File: ${record.source_file}\n`;
-  details += `Uploaded: ${new Date(record.uploaded_at).toLocaleString()}\n\n`;
-  
-  details += `=== SHIPMENT DETAILS ===\n`;
-  if (record.tracking_number) details += `Tracking: ${record.tracking_number}\n`;
-  if (record.shipment_id) details += `Shipment ID: ${record.shipment_id}\n`;
-  if (record.order_number) details += `Order: ${record.order_number}\n`;
-  if (record.bol_number) details += `BOL: ${record.bol_number}\n`;
-  if (record.status) details += `Status: ${record.status}\n`;
-  if (record.carrier) details += `Carrier: ${record.carrier}\n`;
-  
-  if (record.origin || record.destination) {
-    details += `\n=== LOCATIONS ===\n`;
-    if (record.origin) details += `From: ${record.origin}\n`;
-    if (record.destination) details += `To: ${record.destination}\n`;
-    if (record.current_location) details += `Current: ${record.current_location}\n`;
-  }
-  
-  if (record.weight || record.package_count || record.pallet_count) {
-    details += `\n=== PACKAGE INFO ===\n`;
-    if (record.weight) details += `Weight: ${record.weight} lbs\n`;
-    if (record.package_count) details += `Packages: ${record.package_count}\n`;
-    if (record.pallet_count) details += `Pallets: ${record.pallet_count}\n`;
-  }
-  
-  if (record.shipper || record.consignee) {
-    details += `\n=== PARTIES ===\n`;
-    if (record.shipper) details += `Shipper: ${record.shipper}\n`;
-    if (record.consignee) details += `Consignee: ${record.consignee}\n`;
-  }
-  
-  if (record.notes) {
-    details += `\nNotes: ${record.notes}\n`;
-  }
-  
-  alert(details);
-}
+
 
 // Cache records for viewing
 let recordsCache = [];
@@ -283,6 +220,8 @@ function escapeHtml(text) {
   div.textContent = text;
   return div.innerHTML;
 }
+
+
 
 function formatFileSize(bytes) {
   if (bytes === 0) return '0 Bytes';
