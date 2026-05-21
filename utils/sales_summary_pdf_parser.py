@@ -14,7 +14,7 @@ Expected data row shape (after product text):
 from __future__ import annotations
 
 import re
-from datetime import date, datetime, time
+from datetime import date, datetime, time, timedelta
 from pathlib import Path
 
 import pdfplumber
@@ -83,13 +83,6 @@ def parse_sales_summary_pdf(pdf_path: Path) -> tuple[dict, list[dict]]:
                     if unit_match:
                         meta["unit"] = unit_match.group(1).strip()
 
-                    all_dates = re.findall(r"\bDATE\s*:\s*(\d{1,2}/\d{1,2}/\d{2})", line)
-                    if all_dates:
-                        try:
-                            meta["business_date"] = datetime.strptime(all_dates[-1], "%m/%d/%y").date()
-                        except ValueError:
-                            pass
-
                     run_time_match = re.search(r"RUN TIME\s*:\s*(\d{1,2}:\d{2}:\d{2})", line)
                     if run_time_match:
                         try:
@@ -141,8 +134,7 @@ def parse_sales_summary_pdf(pdf_path: Path) -> tuple[dict, list[dict]]:
 
     if meta["run_date"] is None:
         meta["run_date"] = date.today()
-    if meta["business_date"] is None:
-        meta["business_date"] = meta["run_date"]
+    meta["business_date"] = meta["run_date"] - timedelta(days=1)
     if meta["run_time"] is None:
         meta["run_time"] = time(0, 0, 0)
 

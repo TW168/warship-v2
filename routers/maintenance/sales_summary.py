@@ -175,6 +175,7 @@ async def upload_sales_summary(files: list[UploadFile] = File(...)) -> JSONRespo
 
             for row in parsed_rows:
                 run_date_value = meta.get("run_date") or date.today()
+                business_date_value = meta.get("business_date") or (run_date_value - timedelta(days=1))
                 insert_params.append(
                     {
                         "source_file": filename,
@@ -182,7 +183,7 @@ async def upload_sales_summary(files: list[UploadFile] = File(...)) -> JSONRespo
                         "department": meta.get("department"),
                         "unit": meta.get("unit"),
                         "run_date": run_date_value,
-                        "business_date": run_date_value - timedelta(days=1),
+                        "business_date": business_date_value,
                         "run_time": meta.get("run_time"),
                         **row,
                     }
