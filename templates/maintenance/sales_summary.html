@@ -231,7 +231,7 @@ function renderTopProducts() {
     productMap.set(name, current);
   }
 
-  const items = [...productMap.values()].sort((a, b) => b[metric] - a[metric]).slice(0, 7);
+  const items = [...productMap.values()].sort((a, b) => b[metric] - a[metric]).slice(0, 10);
 
   if (!items.length) {
     header.textContent = metric === 'qty' ? 'MTD Shipment Qty' : 'MTD Shipment Revenue';
