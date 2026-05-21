@@ -1,23 +1,146 @@
 {% extends "base.html" %}
 
-{% block title %}Sales Summary Upload{% endblock %}
+{% block title %}Sales Summary{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4">
   <div class="row mb-3">
     <div class="col">
       <h1 class="fw-bold" style="color: #154e9a;">
-        <i class="bi bi-file-earmark-bar-graph me-2"></i>Sales Summary Upload
+        <i class="bi bi-file-earmark-bar-graph me-2"></i>Sales Summary
       </h1>
-      <p class="text-muted mb-0">Upload daily MKORSHDK PDF files and store parsed rows in MySQL.</p>
+    </div>
+  </div>
+
+  <div class="row g-4 mb-1">
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-header bg-light border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <h5 class="mb-0">
+            <i class="bi bi-graph-up-arrow me-2"></i>Sales Performance
+          </h5>
+          <small id="perfRunDate" class="text-muted">Loading latest report...</small>
+        </div>
+        <div class="card-body">
+          <div id="perfError" class="alert alert-warning d-none mb-3" role="alert"></div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6 col-xl-3">
+              <div class="border rounded p-3 h-100 bg-light-subtle">
+                <div class="small text-muted">Daily Orders Qty</div>
+                <div id="dailyOrderQty" class="h4 mb-0">-</div>
+              </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+              <div class="border rounded p-3 h-100 bg-light-subtle">
+                <div class="small text-muted">Daily Shipments Qty</div>
+                <div id="dailyShipQty" class="h4 mb-0">-</div>
+              </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+              <div class="border rounded p-3 h-100 bg-light-subtle">
+                <div class="small text-muted">MTD Orders Qty</div>
+                <div id="mtdOrderQty" class="h4 mb-0">-</div>
+              </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+              <div class="border rounded p-3 h-100 bg-light-subtle">
+                <div class="small text-muted">MTD Shipments Qty</div>
+                <div id="mtdShipQty" class="h4 mb-0">-</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-lg-6">
+              <div class="border rounded p-3 h-100">
+                <div class="fw-semibold mb-2">Order-to-Shipment Conversion</div>
+                <div class="d-flex justify-content-between align-items-center small mb-1">
+                  <span>Daily Conversion</span>
+                  <strong id="dailyConversionPct">-</strong>
+                </div>
+                <div class="progress mb-3" style="height: 10px;">
+                  <div id="dailyConversionBar" class="progress-bar bg-primary" role="progressbar" style="width: 0%"></div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center small mb-1">
+                  <span>MTD Conversion</span>
+                  <strong id="mtdConversionPct">-</strong>
+                </div>
+                <div class="progress" style="height: 10px;">
+                  <div id="mtdConversionBar" class="progress-bar bg-success" role="progressbar" style="width: 0%"></div>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-6">
+              <div class="border rounded p-3 h-100">
+                <div class="fw-semibold mb-2">Revenue (Qty × Unit Price)</div>
+                <div class="row g-2">
+                  <div class="col-6">
+                    <div class="small text-muted">Daily Orders</div>
+                    <div id="dailyOrderRevenue" class="fw-semibold">-</div>
+                  </div>
+                  <div class="col-6">
+                    <div class="small text-muted">Daily Shipments</div>
+                    <div id="dailyShipRevenue" class="fw-semibold">-</div>
+                  </div>
+                  <div class="col-6">
+                    <div class="small text-muted">MTD Orders</div>
+                    <div id="mtdOrderRevenue" class="fw-semibold">-</div>
+                  </div>
+                  <div class="col-6">
+                    <div class="small text-muted">MTD Shipments</div>
+                    <div id="mtdShipRevenue" class="fw-semibold">-</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="border rounded p-3">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+              <div class="fw-semibold">Top-Selling Products</div>
+              <select id="topMetric" class="form-select form-select-sm" style="width:auto;" onchange="renderTopProducts()">
+                <option value="qty" selected>By MTD Shipment Qty</option>
+                <option value="revenue">By MTD Shipment Revenue</option>
+              </select>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-sm table-striped table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Rank</th>
+                    <th>Product</th>
+                    <th class="text-end" id="topMetricHeader">MTD Shipment Qty</th>
+                  </tr>
+                </thead>
+                <tbody id="topProductsBody">
+                  <tr><td colspan="3" class="text-muted">Loading...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
   <div class="row g-4">
-    <div class="col-xl-4 col-lg-5">
+    <div class="col-xl-5 col-lg-6">
       <div class="card shadow-sm">
         <div class="card-header bg-light border-bottom">
-          <h5 class="mb-0"><i class="bi bi-cloud-arrow-up me-2"></i>Upload PDF</h5>
+          <h5 class="mb-0 d-flex align-items-center gap-2">
+            <span><i class="bi bi-cloud-arrow-up me-2"></i>Upload PDF</span>
+            <button
+              type="button"
+              class="btn btn-link p-0 text-muted"
+              data-bs-toggle="tooltip"
+              data-bs-placement="right"
+              title="Upload daily MKORSHDK... PDF files and store parsed rows in MySQL."
+              aria-label="Upload PDF guidance"
+            >
+              <i class="bi bi-info-circle"></i>
+            </button>
+          </h5>
         </div>
         <div class="card-body">
           <label for="pdfFile" class="form-label fw-semibold">Select PDF file(s)</label>
@@ -29,26 +152,179 @@
         </div>
       </div>
     </div>
-
-    <div class="col-xl-8 col-lg-7">
-      <div class="card shadow-sm">
-        <div class="card-header bg-light border-bottom d-flex justify-content-between align-items-center">
-          <h5 class="mb-0"><i class="bi bi-table me-2"></i>Recent Parsed Rows</h5>
-          <button class="btn btn-sm btn-outline-primary" onclick="loadRows()">
-            <i class="bi bi-arrow-clockwise me-1"></i>Refresh
-          </button>
-        </div>
-        <div class="card-body">
-          <div id="rowsContainer">
-            <div class="text-muted">Loading...</div>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 </div>
 
 <script>
+let latestSalesRows = [];
+
+const NON_PRODUCT_TTL_LABELS = new Set([
+  'AMTOPTTL',
+  'BOPPTTL',
+  'ISCCTTL',
+  'SCTTL',
+  'STRETCHWRTTL',
+  'CONCENTRATTTL',
+]);
+
+function normalizeLabel(value) {
+  return String(value || '')
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, '');
+}
+
+function isNonProductTtlRow(row) {
+  const productClass = normalizeLabel(row.product_class);
+  const productName = normalizeLabel(row.product_name);
+  const combined = normalizeLabel(`${row.product_class || ''} ${row.product_name || ''}`);
+  return NON_PRODUCT_TTL_LABELS.has(productClass)
+    || NON_PRODUCT_TTL_LABELS.has(productName)
+    || NON_PRODUCT_TTL_LABELS.has(combined);
+}
+
+function toNumber(value) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function formatNumber(value) {
+  return toNumber(value).toLocaleString();
+}
+
+function formatPercent(value) {
+  return `${(toNumber(value) * 100).toFixed(1)}%`;
+}
+
+function formatCurrency(value) {
+  return toNumber(value).toLocaleString(undefined, {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
+function setConversionBar(id, ratio) {
+  const bar = document.getElementById(id);
+  const pct = Math.max(0, Math.min(100, toNumber(ratio) * 100));
+  bar.style.width = `${pct}%`;
+}
+
+function renderTopProducts() {
+  const tbody = document.getElementById('topProductsBody');
+  const metric = document.getElementById('topMetric').value;
+  const header = document.getElementById('topMetricHeader');
+
+  if (!latestSalesRows.length) {
+    tbody.innerHTML = '<tr><td colspan="3" class="text-muted">No rows available.</td></tr>';
+    return;
+  }
+
+  const productMap = new Map();
+  for (const r of latestSalesRows) {
+    if (isNonProductTtlRow(r)) continue;
+
+    const name = `${r.product_class || ''} ${r.product_name || ''}`.trim() || 'Unknown Product';
+    const current = productMap.get(name) || { name, qty: 0, revenue: 0 };
+    current.qty += toNumber(r.mtd_shipment_qty);
+    current.revenue += toNumber(r.mtd_shipment_qty) * toNumber(r.mtd_shipment_unit_price);
+    productMap.set(name, current);
+  }
+
+  const items = [...productMap.values()].sort((a, b) => b[metric] - a[metric]).slice(0, 7);
+
+  if (!items.length) {
+    header.textContent = metric === 'qty' ? 'MTD Shipment Qty' : 'MTD Shipment Revenue';
+    tbody.innerHTML = '<tr><td colspan="3" class="text-muted">No product rows available.</td></tr>';
+    return;
+  }
+
+  header.textContent = metric === 'qty' ? 'MTD Shipment Qty' : 'MTD Shipment Revenue';
+  tbody.innerHTML = items.map((item, idx) => `
+    <tr>
+      <td>${idx + 1}</td>
+      <td>${item.name}</td>
+      <td class="text-end">${metric === 'qty' ? formatNumber(item.qty) : formatCurrency(item.revenue)}</td>
+    </tr>
+  `).join('');
+}
+
+async function loadSalesPerformance() {
+  const errorBox = document.getElementById('perfError');
+  const runDateLabel = document.getElementById('perfRunDate');
+  errorBox.classList.add('d-none');
+
+  try {
+    const res = await fetch('/maintenance/api/sales-summary?limit=1000');
+    const payload = await res.json();
+    if (!res.ok) throw new Error(payload.detail || payload.error || ('HTTP ' + res.status));
+
+    const records = (payload.records || []).filter((r) => !r.is_total_row);
+    if (!records.length) {
+      latestSalesRows = [];
+      runDateLabel.textContent = 'No report data found';
+      renderTopProducts();
+      return;
+    }
+
+    const latestBusinessDate = records.reduce(
+      (max, r) => (r.business_date > max ? r.business_date : max),
+      records[0].business_date
+    );
+    latestSalesRows = records.filter((r) => r.business_date === latestBusinessDate);
+    if (!latestSalesRows.length) {
+      // Fallback to returned rows so the dashboard still renders when date fields are inconsistent.
+      latestSalesRows = records.slice(0, 150);
+    }
+    runDateLabel.textContent = `Latest business date: ${latestBusinessDate}`;
+
+    const totals = latestSalesRows.reduce((acc, r) => {
+      acc.dailyOrderQty += toNumber(r.daily_order_qty);
+      acc.dailyShipQty += toNumber(r.daily_shipment_qty);
+      acc.mtdOrderQty += toNumber(r.mtd_order_qty);
+      acc.mtdShipQty += toNumber(r.mtd_shipment_qty);
+      acc.dailyOrderRevenue += toNumber(r.daily_order_qty) * toNumber(r.daily_order_unit_price);
+      acc.dailyShipRevenue += toNumber(r.daily_shipment_qty) * toNumber(r.daily_shipment_unit_price);
+      acc.mtdOrderRevenue += toNumber(r.mtd_order_qty) * toNumber(r.mtd_order_unit_price);
+      acc.mtdShipRevenue += toNumber(r.mtd_shipment_qty) * toNumber(r.mtd_shipment_unit_price);
+      return acc;
+    }, {
+      dailyOrderQty: 0,
+      dailyShipQty: 0,
+      mtdOrderQty: 0,
+      mtdShipQty: 0,
+      dailyOrderRevenue: 0,
+      dailyShipRevenue: 0,
+      mtdOrderRevenue: 0,
+      mtdShipRevenue: 0,
+    });
+
+    const dailyConversion = totals.dailyOrderQty > 0 ? totals.dailyShipQty / totals.dailyOrderQty : 0;
+    const mtdConversion = totals.mtdOrderQty > 0 ? totals.mtdShipQty / totals.mtdOrderQty : 0;
+
+    document.getElementById('dailyOrderQty').textContent = formatNumber(totals.dailyOrderQty);
+    document.getElementById('dailyShipQty').textContent = formatNumber(totals.dailyShipQty);
+    document.getElementById('mtdOrderQty').textContent = formatNumber(totals.mtdOrderQty);
+    document.getElementById('mtdShipQty').textContent = formatNumber(totals.mtdShipQty);
+    document.getElementById('dailyConversionPct').textContent = formatPercent(dailyConversion);
+    document.getElementById('mtdConversionPct').textContent = formatPercent(mtdConversion);
+    document.getElementById('dailyOrderRevenue').textContent = formatCurrency(totals.dailyOrderRevenue);
+    document.getElementById('dailyShipRevenue').textContent = formatCurrency(totals.dailyShipRevenue);
+    document.getElementById('mtdOrderRevenue').textContent = formatCurrency(totals.mtdOrderRevenue);
+    document.getElementById('mtdShipRevenue').textContent = formatCurrency(totals.mtdShipRevenue);
+    setConversionBar('dailyConversionBar', dailyConversion);
+    setConversionBar('mtdConversionBar', mtdConversion);
+
+    renderTopProducts();
+  } catch (err) {
+    latestSalesRows = [];
+    errorBox.textContent = `Unable to load sales performance: ${err.message}`;
+    errorBox.classList.remove('d-none');
+    runDateLabel.textContent = 'Data unavailable';
+    renderTopProducts();
+  }
+}
+
 async function handleUpload() {
   const fileInput = document.getElementById('pdfFile');
   const btn = document.getElementById('uploadBtn');
@@ -82,7 +358,7 @@ async function handleUpload() {
     result.innerText = msg;
     result.classList.remove('d-none');
     fileInput.value = '';
-    await loadRows();
+    await loadSalesPerformance();
   } catch (err) {
     result.className = 'alert alert-danger mt-3';
     result.textContent = 'Upload failed: ' + err.message;
@@ -93,63 +369,12 @@ async function handleUpload() {
   }
 }
 
-async function loadRows() {
-  const container = document.getElementById('rowsContainer');
-  container.innerHTML = '<div class="text-muted">Loading...</div>';
+loadSalesPerformance();
 
-  try {
-    const res = await fetch('/maintenance/api/sales-summary?limit=50');
-    const payload = await res.json();
-    if (!res.ok) throw new Error(payload.detail || payload.error || ('HTTP ' + res.status));
-
-    const records = payload.records || [];
-    if (!records.length) {
-      container.innerHTML = '<div class="text-muted">No rows found yet.</div>';
-      return;
-    }
-
-    container.innerHTML = `
-      <div class="table-responsive">
-        <table class="table table-striped table-hover table-sm align-middle">
-          <thead class="table-light sticky-top">
-            <tr>
-              <th>Uploaded</th>
-              <th>Run Date</th>
-              <th>Product</th>
-              <th>Daily Qty</th>
-              <th>MTD Qty</th>
-              <th>Backlog</th>
-              <th>Source</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${records.map(r => `
-              <tr>
-                <td>${new Date(r.uploaded_at_utc).toLocaleString()}</td>
-                <td>${r.run_date}</td>
-                <td>${escapeHtml((r.product_class || '') + ' ' + (r.product_name || ''))}</td>
-                <td>${Number(r.daily_shipment_qty || 0).toLocaleString()}</td>
-                <td>${Number(r.mtd_shipment_qty || 0).toLocaleString()}</td>
-                <td>${Number(r.total_backlog_qty || 0).toLocaleString()}</td>
-                <td><small>${escapeHtml(r.source_file)}</small></td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </div>
-      <div class="text-muted small">Showing ${records.length} row(s)</div>
-    `;
-  } catch (err) {
-    container.innerHTML = `<div class="alert alert-danger mb-0">Failed to load rows: ${escapeHtml(err.message)}</div>`;
-  }
+if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+  document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach((el) => {
+    new bootstrap.Tooltip(el);
+  });
 }
-
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = String(text || '');
-  return div.innerHTML;
-}
-
-loadRows();
 </script>
 {% endblock %}
