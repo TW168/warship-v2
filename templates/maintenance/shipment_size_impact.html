@@ -1,0 +1,551 @@
+{% extends "base.html" %}
+{% block title %}Shipment Size Impact{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4" id="shipment-size-impact-root" data-api-path="{{ api_path }}">
+
+  <div class="mb-4">
+    <h1 class="page-header h3 mb-0">
+      <i class="bi bi-layers-half me-2" aria-hidden="true"></i>Shipment Size Impact Analysis
+    </h1>
+    <p class="text-muted small mt-1 mb-0">
+      Decomposes monthly shipped volume into load count and average lbs per load to show workload and staging pressure from smaller shipments.
+    </p>
+  </div>
+
+  <div class="card shadow-sm mb-4 filter-card">
+    <div class="card-header fw-semibold">
+      <i class="bi bi-funnel me-2"></i>Filters
+    </div>
+    <div class="card-body py-3">
+      <form id="impact-filter-form" class="row g-2 align-items-end">
+        <div class="col-sm-6 col-md-2">
+          <label for="impact-date-from" class="form-label form-label-sm fw-semibold mb-1">Date From</label>
+          <input type="date" id="impact-date-from" class="form-control form-control-sm" aria-label="Date from" />
+        </div>
+        <div class="col-sm-6 col-md-2">
+          <label for="impact-date-to" class="form-label form-label-sm fw-semibold mb-1">Date To</label>
+          <input type="date" id="impact-date-to" class="form-control form-control-sm" aria-label="Date to" />
+        </div>
+        <div class="col-sm-6 col-md-2">
+          <label for="impact-site" class="form-label form-label-sm fw-semibold mb-1">Site</label>
+          <select id="impact-site" class="form-select form-select-sm" aria-label="Site">
+            <option value="AMAZ">AMAZ</option>
+            <option value="AMIN">AMIN</option>
+            <option value="AMJK" selected>AMJK</option>
+            <option value="AMSC">AMSC</option>
+            <option value="PFCH">PFCH</option>
+            <option value="TXAS">TXAS</option>
+            <option value="VAMT">VAMT</option>
+          </select>
+        </div>
+        <div class="col-sm-6 col-md-2">
+          <label for="impact-product-group" class="form-label form-label-sm fw-semibold mb-1">Product Group</label>
+          <select id="impact-product-group" class="form-select form-select-sm" aria-label="Product group">
+            <option value="SW" selected>SW</option>
+            <option value="BP">BP</option>
+            <option value="CT">CT</option>
+          </select>
+        </div>
+        <div class="col-sm-6 col-md-2">
+          <div class="form-check pt-4 mt-1">
+            <input class="form-check-input" type="checkbox" id="impact-exclude-carriers" />
+            <label class="form-check-label small fw-semibold" for="impact-exclude-carriers">
+              Exclude SAIA-IP/CWF-IP
+            </label>
+          </div>
+        </div>
+        <div class="col-auto">
+          <button type="submit" class="btn btn-primary btn-sm">
+            <i class="bi bi-graph-up-arrow me-1"></i>Run Analysis
+          </button>
+        </div>
+        <div class="col-auto">
+          <span class="text-muted small" id="impact-filter-label"></span>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="impact-loading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading analysis...</span>
+    </div>
+  </div>
+
+  <div id="impact-error" class="alert alert-danger d-none"></div>
+
+  <div id="impact-results" class="d-none">
+
+    <div class="row g-3 mb-4">
+      <div class="col-sm-6 col-lg-3">
+        <div class="card h-100 shadow-sm">
+          <div class="card-body text-center">
+            <div class="small text-muted mb-1">Latest Avg lbs/load</div>
+            <div class="small text-secondary mb-1">A = W / L</div>
+            <div class="fw-bold fs-4" id="kpi-avg-load">-</div>
+            <div class="small text-muted" id="kpi-avg-load-prior">-</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-6 col-lg-3">
+        <div class="card h-100 shadow-sm">
+          <div class="card-body text-center">
+            <div class="small text-muted mb-1">Latest Load Count</div>
+            <div class="small text-secondary mb-1">L = distinct BL count</div>
+            <div class="fw-bold fs-4" id="kpi-load-count">-</div>
+            <div class="small text-muted" id="kpi-total-weight">-</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-6 col-lg-3">
+        <div class="card h-100 shadow-sm border-start border-4 border-warning">
+          <div class="card-body text-center">
+            <div class="small text-muted mb-1">Extra Loads from Smaller Shipments</div>
+            <div class="small text-secondary mb-1">W₁[(1/A₁) - (1/A₀)]</div>
+            <div class="fw-bold fs-4" id="kpi-extra-loads">-</div>
+            <div class="small text-muted">Current month vs same month last year</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-6 col-lg-3">
+        <div class="card h-100 shadow-sm">
+          <div class="card-body text-center">
+            <div class="small text-muted mb-1">Volume Change Split</div>
+            <div class="small text-secondary mb-1">ΔW ≈ Load Effect + Size Effect</div>
+            <div class="fw-bold fs-6" id="kpi-effect-split">-</div>
+            <div class="small text-muted">Load effect vs shipment-size effect</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+      <div class="col-12 col-xl-6">
+        <div class="card shadow-sm h-100">
+          <div class="card-header fw-semibold">
+            <i class="bi bi-arrow-down-up me-2"></i>Average Lbs per Load Trend
+          </div>
+          <div class="card-body">
+            <div id="avg-load-chart" style="height:340px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-xl-6">
+        <div class="card shadow-sm h-100">
+          <div class="card-header fw-semibold">
+            <i class="bi bi-stack me-2"></i>Loads per Million Lbs (Workload Intensity)
+          </div>
+          <div class="card-body">
+            <div id="intensity-chart" style="height:340px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+      <div class="col-12">
+        <div class="card shadow-sm h-100">
+          <div class="card-header fw-semibold">
+            <i class="bi bi-bar-chart me-2"></i>Monthly YoY Decomposition (Lbs)
+          </div>
+          <div class="card-body">
+            <div id="decomposition-chart" style="height:460px; width:100%;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+      <div class="card-header fw-semibold">
+        <i class="bi bi-table me-2"></i>Monthly Detail Table
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm table-striped table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Month</th>
+                <th class="text-end">Total Lbs</th>
+                <th class="text-end">Loads</th>
+                <th class="text-end">Avg Lbs/Load</th>
+                <th class="text-end">Loads per 1M lbs</th>
+                <th class="text-end">YoY Avg Lbs/Load</th>
+                <th class="text-end">Load Effect (lbs)</th>
+                <th class="text-end">Shipment-Size Effect (lbs)</th>
+                <th class="text-end">Extra Loads</th>
+              </tr>
+            </thead>
+            <tbody id="impact-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <span class="fw-semibold">
+          <i class="bi bi-info-circle me-2"></i>How To Read This Analysis
+        </span>
+        <button
+          class="btn btn-sm btn-outline-primary"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#impact-explanation-collapse"
+          aria-expanded="false"
+          aria-controls="impact-explanation-collapse"
+        >
+          Expand Explanation
+        </button>
+      </div>
+      <div id="impact-explanation-collapse" class="collapse">
+        <div class="card-body">
+          <p class="fw-semibold mb-2">1) What the filters do</p>
+          <p class="mb-1"><strong>Date From / Date To:</strong> defines the shipment rows included in the analysis window.</p>
+          <p class="mb-1"><strong>Site:</strong> narrows the analysis to one operating site such as AMJK or TXAS.</p>
+          <p class="mb-1"><strong>Product Group:</strong> narrows the analysis to one product family such as SW, BP, or CT.</p>
+          <p class="mb-3"><strong>Exclude SAIA-IP/CWF-IP:</strong> removes those carriers before all calculations are built.</p>
+
+          <p class="fw-semibold mb-2">2) Core relationship used on the page</p>
+          <p class="mb-2">\[
+            W = L \times A
+          \]</p>
+          <p class="mb-3">
+            \(W\) = total shipped pounds, \(L\) = distinct load count, and \(A\) = average pounds per load.
+            This is the base identity behind the KPI cards, charts, and detail table.
+          </p>
+
+          <p class="fw-semibold mb-2">3) What each KPI card means</p>
+
+          <p class="mb-1"><strong>Latest Avg lbs/load</strong></p>
+          <p class="mb-2">\[
+            A = \frac{W}{L}
+          \]</p>
+          <p class="mb-2">
+            This is the average weight per shipment in the latest month that can be compared to the same month last year.
+            If it falls, each shipment is lighter on average.
+          </p>
+          <p class="mb-3">
+            <strong>Prior year line:</strong> shows the same value for the same month last year so the user can compare current shipment size versus prior-year shipment size.
+          </p>
+
+          <p class="mb-1"><strong>Latest Load Count</strong></p>
+          <p class="mb-2">\[
+            L = \text{distinct BL count}
+          \]</p>
+          <p class="mb-2">
+            This is the number of shipment loads handled in that latest comparable month.
+            It measures shipment frequency, not weight.
+          </p>
+          <p class="mb-3">
+            <strong>Total lbs line:</strong> shows \(W\) for that same month so the viewer can see shipment count together with total tonnage moved.
+          </p>
+
+          <p class="mb-1"><strong>Extra Loads from Smaller Shipments</strong></p>
+          <p class="mb-2">\[
+            	ext{Extra Loads} = W_1\left(\frac{1}{A_1} - \frac{1}{A_0}\right)
+          \]</p>
+          <p class="mb-2">
+            This estimates how many additional loads are being handled only because average shipment size became smaller versus the same month last year.
+            Positive values mean smaller shipment size is creating extra operational work.
+          </p>
+          <p class="mb-3">
+            <strong>Why the gold frame:</strong> this card is visually highlighted because it is the operational warning KPI.
+            It translates smaller shipment size into extra handling pressure, staging pressure, and dock activity.
+          </p>
+
+          <p class="mb-1"><strong>Volume Change Split</strong></p>
+          <p class="mb-2">\[
+            \Delta W = W_1 - W_0
+          \]</p>
+          <p class="mb-2">\[
+            	ext{Load Effect} = (L_1-L_0)\frac{A_0+A_1}{2}
+          \]</p>
+          <p class="mb-2">\[
+            	ext{Size Effect} = (A_1-A_0)\frac{L_0+L_1}{2}
+          \]</p>
+          <p class="mb-2">\[
+            \Delta W \approx \text{Load Effect} + \text{Size Effect}
+          \]</p>
+          <p class="mb-3">
+            This card explains whether the change in volume is being driven more by shipment frequency or by shipment size.
+          </p>
+
+          <p class="fw-semibold mb-2">4) What each chart means</p>
+          <p class="mb-2">
+            <strong>Average Lbs per Load Trend:</strong> shows \(A\) by month and year. If the line goes down, shipments are getting lighter on average.
+          </p>
+          <p class="mb-2">
+            <strong>Loads per Million Lbs (Workload Intensity):</strong> shows
+            \(I = \frac{L}{W/1{,}000{,}000}\). If it goes up, more loads are needed to move the same tonnage.
+          </p>
+          <p class="mb-3">
+            <strong>Monthly YoY Decomposition (Lbs):</strong> splits year-over-year volume change into Load Effect and Size Effect.
+            A negative Size Effect means smaller shipment size is hurting volume and increasing operational pressure.
+          </p>
+
+          <p class="fw-semibold mb-2">5) What each table column means</p>
+          <p class="mb-1"><strong>Month:</strong> reporting month in YYYY-MM.</p>
+          <p class="mb-1"><strong>Total Lbs:</strong> monthly shipped pounds, \(W\).</p>
+          <p class="mb-1"><strong>Loads:</strong> monthly distinct BL count, \(L\).</p>
+          <p class="mb-1"><strong>Avg Lbs/Load:</strong> average shipment size, \(A = W/L\).</p>
+          <p class="mb-1"><strong>Loads per 1M lbs:</strong> workload intensity, \(I = L/(W/1{,}000{,}000)\).</p>
+          <p class="mb-1"><strong>YoY Avg Lbs/Load:</strong> prior-year same-month average shipment size.</p>
+          <p class="mb-1"><strong>Load Effect (lbs):</strong> portion of YoY volume change explained by load-count change.</p>
+          <p class="mb-1"><strong>Shipment-Size Effect (lbs):</strong> portion of YoY volume change explained by average lbs/load change.</p>
+          <p class="mb-3"><strong>Extra Loads:</strong> estimated additional load count caused only by smaller shipment size versus last year.</p>
+
+          <p class="fw-semibold mb-2">6) How to read the page</p>
+          <p class="mb-1">Start with the filters to define the business slice.</p>
+          <p class="mb-1">Use the KPI cards to understand the latest comparable month.</p>
+          <p class="mb-1">Use the three charts to see trend, workload intensity, and cause split.</p>
+          <p class="mb-0">Use the detail table when you need the exact monthly values behind the visuals.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<script>
+  window.MathJax = {
+    tex: {
+      inlineMath: [['\\(', '\\)']],
+      displayMath: [['\\[', '\\]']]
+    }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var root = document.getElementById('shipment-size-impact-root');
+  var apiPath = root.getAttribute('data-api-path');
+
+  function fmtNum(n, d) {
+    var digits = (typeof d === 'number') ? d : 0;
+    return Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: digits, maximumFractionDigits: digits });
+  }
+
+  function setDefaults() {
+    var now = new Date();
+    var today = now.toISOString().slice(0, 10);
+    document.getElementById('impact-date-to').value = today;
+    document.getElementById('impact-date-from').value = '2023-01-01';
+  }
+
+  function readFilters() {
+    return {
+      date_from: document.getElementById('impact-date-from').value,
+      date_to: document.getElementById('impact-date-to').value,
+      site: document.getElementById('impact-site').value,
+      product_group: document.getElementById('impact-product-group').value,
+      exclude_carriers: document.getElementById('impact-exclude-carriers').checked,
+    };
+  }
+
+  function toggleLoading(isLoading) {
+    document.getElementById('impact-loading').classList.toggle('d-none', !isLoading);
+  }
+
+  function showError(message) {
+    var errorBox = document.getElementById('impact-error');
+    errorBox.textContent = message;
+    errorBox.classList.remove('d-none');
+    document.getElementById('impact-results').classList.add('d-none');
+  }
+
+  function clearError() {
+    document.getElementById('impact-error').classList.add('d-none');
+    document.getElementById('impact-error').textContent = '';
+  }
+
+  function buildQuery(params) {
+    var sp = new URLSearchParams();
+    Object.keys(params).forEach(function (key) {
+      var value = params[key];
+      if (value !== null && value !== undefined && value !== '') {
+        sp.set(key, String(value));
+      }
+    });
+    return sp.toString();
+  }
+
+  function renderSummary(latest, filters) {
+    var avg = latest.avg_lbs_per_load || 0;
+    var priorAvg = latest.prior_year_avg_lbs_per_load || 0;
+    var extraLoads = latest.extra_loads_due_to_smaller_shipments || 0;
+
+    document.getElementById('kpi-avg-load').textContent = fmtNum(avg, 2);
+    document.getElementById('kpi-avg-load-prior').textContent =
+      'Prior year: ' + (priorAvg ? fmtNum(priorAvg, 2) : 'N/A');
+
+    document.getElementById('kpi-load-count').textContent = fmtNum(latest.load_count || 0);
+    document.getElementById('kpi-total-weight').textContent = 'Total lbs: ' + fmtNum(latest.total_weight_lbs || 0);
+
+    document.getElementById('kpi-extra-loads').textContent = fmtNum(extraLoads, 2);
+
+    var loadEffect = latest.load_effect_lbs || 0;
+    var sizeEffect = latest.shipment_size_effect_lbs || 0;
+    document.getElementById('kpi-effect-split').textContent =
+      'Load: ' + fmtNum(loadEffect) + ' | Size: ' + fmtNum(sizeEffect);
+
+    document.getElementById('impact-filter-label').textContent =
+      filters.site + ' · ' + filters.product_group + ' · ' + filters.date_from + ' to ' + filters.date_to;
+
+  }
+
+  function renderAvgLoadChart(series) {
+    var traces = series.map(function (yearSeries) {
+      return {
+        x: yearSeries.data.map(function (m) { return m.month; }),
+        y: yearSeries.data.map(function (m) { return m.avg_lbs_per_load; }),
+        type: 'scatter',
+        mode: 'lines+markers',
+        name: String(yearSeries.year),
+      };
+    });
+
+    Plotly.newPlot('avg-load-chart', traces, {
+      xaxis: { title: 'Month', dtick: 1 },
+      yaxis: { title: 'Avg lbs per load' },
+      margin: { t: 20, r: 20, b: 50, l: 70 },
+      paper_bgcolor: '#ffffff',
+      plot_bgcolor: '#ffffff',
+      legend: { orientation: 'h', y: -0.25 },
+    }, { responsive: true, displayModeBar: false });
+  }
+
+  function renderIntensityChart(series) {
+    var traces = series.map(function (yearSeries) {
+      return {
+        x: yearSeries.data.map(function (m) { return m.month; }),
+        y: yearSeries.data.map(function (m) { return m.loads_per_million_lbs; }),
+        type: 'scatter',
+        mode: 'lines+markers',
+        name: String(yearSeries.year),
+      };
+    });
+
+    Plotly.newPlot('intensity-chart', traces, {
+      xaxis: { title: 'Month', dtick: 1 },
+      yaxis: { title: 'Loads per 1M lbs' },
+      margin: { t: 20, r: 20, b: 50, l: 70 },
+      paper_bgcolor: '#ffffff',
+      plot_bgcolor: '#ffffff',
+      legend: { orientation: 'h', y: -0.25 },
+    }, { responsive: true, displayModeBar: false });
+  }
+
+  function renderDecompositionChart(rows) {
+    var comparable = rows.filter(function (row) {
+      return row.load_effect_lbs !== null && row.shipment_size_effect_lbs !== null;
+    });
+
+    var labels = comparable.map(function (row) {
+      return row.year + '-' + String(row.month).padStart(2, '0');
+    });
+
+    Plotly.newPlot('decomposition-chart', [
+      {
+        x: labels,
+        y: comparable.map(function (row) { return row.load_effect_lbs; }),
+        name: 'Load Effect',
+        type: 'bar',
+      },
+      {
+        x: labels,
+        y: comparable.map(function (row) { return row.shipment_size_effect_lbs; }),
+        name: 'Shipment-Size Effect',
+        type: 'bar',
+      }
+    ], {
+      autosize: true,
+      barmode: 'relative',
+      xaxis: { title: 'Month', automargin: true, tickangle: -35 },
+      yaxis: { title: 'YoY delta (lbs)' },
+      margin: { t: 20, r: 20, b: 100, l: 70 },
+      paper_bgcolor: '#ffffff',
+      plot_bgcolor: '#ffffff',
+      legend: { orientation: 'h', y: -0.25, x: 0 },
+    }, { responsive: true, displayModeBar: false });
+  }
+
+  function renderTable(rows) {
+    var body = document.getElementById('impact-table-body');
+    body.innerHTML = '';
+
+    rows.forEach(function (row) {
+      var ym = row.year + '-' + String(row.month).padStart(2, '0');
+      var tr = document.createElement('tr');
+      if (row.extra_loads_due_to_smaller_shipments !== null && row.extra_loads_due_to_smaller_shipments > 0) {
+        tr.classList.add('table-warning');
+      }
+
+      tr.innerHTML = [
+        '<td class="fw-semibold">' + ym + '</td>',
+        '<td class="text-end">' + fmtNum(row.total_weight_lbs) + '</td>',
+        '<td class="text-end">' + fmtNum(row.load_count) + '</td>',
+        '<td class="text-end">' + fmtNum(row.avg_lbs_per_load, 2) + '</td>',
+        '<td class="text-end">' + fmtNum(row.loads_per_million_lbs, 2) + '</td>',
+        '<td class="text-end">' + (row.prior_year_avg_lbs_per_load !== null ? fmtNum(row.prior_year_avg_lbs_per_load, 2) : '-') + '</td>',
+        '<td class="text-end">' + (row.load_effect_lbs !== null ? fmtNum(row.load_effect_lbs) : '-') + '</td>',
+        '<td class="text-end">' + (row.shipment_size_effect_lbs !== null ? fmtNum(row.shipment_size_effect_lbs) : '-') + '</td>',
+        '<td class="text-end fw-semibold">' + (row.extra_loads_due_to_smaller_shipments !== null ? fmtNum(row.extra_loads_due_to_smaller_shipments, 2) : '-') + '</td>'
+      ].join('');
+
+      body.appendChild(tr);
+    });
+  }
+
+  async function runAnalysis() {
+    clearError();
+    toggleLoading(true);
+
+    var filters = readFilters();
+    var query = buildQuery(filters);
+
+    try {
+      var res = await fetch(apiPath + '?' + query);
+      if (!res.ok) {
+        var err = await res.json();
+        throw new Error(err.error || 'Unable to load shipment-size impact analysis');
+      }
+
+      var payload = await res.json();
+      renderSummary(payload.latest_summary || {}, filters);
+      renderAvgLoadChart(payload.series || []);
+      renderIntensityChart(payload.series || []);
+      renderDecompositionChart(payload.monthly_table || []);
+      renderTable(payload.monthly_table || []);
+
+      document.getElementById('impact-results').classList.remove('d-none');
+    } catch (err) {
+      showError(err.message || String(err));
+    } finally {
+      toggleLoading(false);
+    }
+  }
+
+  document.getElementById('impact-filter-form').addEventListener('submit', function (event) {
+    event.preventDefault();
+    runAnalysis();
+  });
+
+  var explanationCollapse = document.getElementById('impact-explanation-collapse');
+  explanationCollapse.addEventListener('shown.bs.collapse', function () {
+    if (window.MathJax && window.MathJax.typesetPromise) {
+      window.MathJax.typesetPromise([explanationCollapse]);
+    }
+  });
+
+  setDefaults();
+  runAnalysis();
+})();
+</script>
+{% endblock %}

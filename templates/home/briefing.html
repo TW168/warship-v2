@@ -36,6 +36,81 @@
       page-break-inside: avoid;
     }
 
+    /* Print one chart section per page while keeping chart + explanation together */
+    .briefing-grid > [class*="col-"]:not(.print-page) {
+      display: none !important;
+    }
+    .print-page {
+      display: block !important;
+      width: 100% !important;
+      break-before: page;
+      page-break-before: always;
+      break-after: page;
+      page-break-after: always;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+    .briefing-grid > .print-page {
+      display: block !important;
+    }
+    .print-page:first-of-type {
+      break-before: auto;
+      page-break-before: auto;
+    }
+    .print-page .card,
+    .print-page .card-body,
+    .print-page .card-footer,
+    .print-page .print-explanation {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+    .print-page .print-subpage {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+    .print-page .print-subpage + .print-subpage {
+      break-before: page;
+      page-break-before: always;
+    }
+
+    /* Expand print chart heights to show all data; reduce explanation padding */
+    #frtYtdChart,
+    #weightTrendChart,
+    #carrierChart {
+      height: 320px !important;
+    }
+    #frtCplbChart {
+      height: 360px !important;
+    }
+    #ccBubbleChart,
+    #customerTreeMap {
+      height: 340px !important;
+    }
+    #productTrendChart {
+      height: 320px !important;
+      margin-bottom: 0.5rem !important;
+    }
+    #productDiversityChart {
+      height: 280px !important;
+    }
+    
+    /* Reduce explanation text size and spacing for print */
+    .print-explanation {
+      font-size: 0.7rem !important;
+      line-height: 1.3 !important;
+      margin-top: 0.4rem !important;
+    }
+    .card-footer {
+      padding: 0.5rem 0.75rem !important;
+      font-size: 0.7rem !important;
+    }
+
+    /* Hide non-chart details that can push explanation to the next page */
+    #ccTableWrap,
+    #topProductsSummary {
+      display: none !important;
+    }
+
     /* Card header titles: force dark text + visible border when bg is stripped */
     .card-header {
       background: #e8edf4 !important;
@@ -208,7 +283,7 @@
     </div>
 
     <!-- 3. Freight Cost Trend by Year ──────────────── -->
-    <div class="col-md-6">
+    <div class="col-md-6 print-page">
       <div class="card shadow-sm h-100">
         <div class="card-header card-header-primary d-flex align-items-center justify-content-between">
           <span>
@@ -248,6 +323,10 @@
         </div>
         <div class="card-body p-2">
           <div id="frtYtdChart" style="height:320px;"></div>
+          <div class="print-explanation d-none d-print-block mt-2 text-muted" style="font-size:0.78rem;">
+            Explanation: Monthly freight cost intensity in ¢/lb by year. Lower lines indicate better freight efficiency.
+            Compare year-over-year trajectory and recent-month inflections to spot cost drift early.
+          </div>
         </div>
         <div class="card-footer text-muted" style="font-size:0.75rem;">
           Source: Warship database · <code>sp_bl_lbs_cnt_carrier</code> · ¢/lb monthly trends by year (2023–2026).
@@ -256,7 +335,7 @@
     </div>
 
     <!-- 4. Pick Weight Trend by Year ──────────────── -->
-    <div class="col-md-6">
+    <div class="col-md-6 print-page">
       <div class="card shadow-sm h-100">
         <div class="card-header card-header-primary d-flex align-items-center justify-content-between">
           <span>
@@ -296,6 +375,10 @@
         </div>
         <div class="card-body p-2">
           <div id="weightTrendChart" style="height:320px;"></div>
+          <div class="print-explanation d-none d-print-block mt-2 text-muted" style="font-size:0.78rem;">
+            Explanation: Monthly shipped pick weight by year. Rising volume with flat unit freight suggests healthier operations.
+            Use this chart with cost metrics to distinguish demand growth from transport inefficiency.
+          </div>
         </div>
         <div class="card-footer text-muted" style="font-size:0.75rem;">
           Source: Warship database · <code>sp_bl_lbs_cnt_carrier</code> · Pick weight monthly trends by year (2023–2026).
@@ -339,6 +422,10 @@
         </div>
         <div class="card-body p-2">
           <div id="carrierChart" style="height:320px;"></div>
+          <div class="print-explanation d-none d-print-block mt-2 text-muted" style="font-size:0.78rem;">
+            Explanation: YTD carrier share by unique BL load count. Higher concentration raises operational and pricing risk.
+            Use this to rebalance carrier mix where a single carrier dominates critical lanes.
+          </div>
         </div>
         <div class="card-footer text-muted" style="font-size:0.75rem;">
           Source: Warship database · <code>sp_bl_lbs_cnt_carrier</code> · YTD unique BL load share by carrier.
@@ -357,7 +444,7 @@
   <div class="row g-4 briefing-grid mt-2">
 
     <!-- 3. Freight ¢/lb by Product Code (YTD) + explanation — keep on one printed page -->
-    <div class="col-12 print-group-boxplot">
+    <div class="col-12 print-group-boxplot print-page">
       <div class="card shadow-sm">
         <div class="card-header card-header-primary d-flex align-items-center justify-content-between">
           <span>
@@ -374,10 +461,24 @@
                title="&lt;b&gt;How to read this boxplot&lt;/b&gt;&lt;br&gt;Each box = one product code, sorted by median ¢/lb.&lt;br&gt;Box: Q1–Q3 (IQR). Median: Q2.&lt;br&gt;Whiskers: 1.5×IQR. Dots: outliers.&lt;br&gt;Lower ¢/lb = more efficient."
                aria-label="Chart explanation"></i>
           </span>
-          <span id="frtCplbSpinner"
-                class="spinner-border spinner-border-sm text-white opacity-75"
-                role="status" aria-label="Loading chart"
-                style="width:1rem;height:1rem;"></span>
+          <div class="d-flex align-items-center gap-2">
+            <select id="frtCplbSite" class="form-select form-select-sm" style="width:auto; font-size:0.75rem;">
+              <option value="AMJK">AMJK</option>
+              <option value="TXAS">TXAS</option>
+              <option value="AMIN">AMIN</option>
+              <option value="AMAZ">AMAZ</option>
+            </select>
+            <select id="frtCplbProduct" class="form-select form-select-sm" style="width:auto; font-size:0.75rem;">
+              <option value="SW">SW</option>
+              <option value="BP">BP</option>
+              <option value="CT">CT</option>
+              <option value="YA">YA</option>
+            </select>
+            <span id="frtCplbSpinner"
+                  class="spinner-border spinner-border-sm text-white opacity-75"
+                  role="status" aria-label="Loading chart"
+                  style="width:1rem;height:1rem;"></span>
+          </div>
         </div>
         <div class="card-body p-2">
           <div id="frtCplbChart" style="height:500px;"></div>
@@ -392,7 +493,7 @@
       </div>
 
       <!-- Boxplot explanation -->
-      <div class="card shadow-sm border-start border-4 border-info mt-4" style="break-inside:avoid; page-break-inside:avoid;">
+      <div class="card shadow-sm border-start border-4 border-info mt-4 print-explanation" style="break-inside:avoid; page-break-inside:avoid;">
         <div class="card-body py-3">
           <h6 class="fw-semibold mb-2"><i class="bi bi-info-circle me-2 text-info"></i>About This Chart</h6>
           <div class="row g-4" style="font-size:0.875rem;">
@@ -446,7 +547,7 @@
 
 
     <!-- Carrier Cost Per Pound Analysis — YTD -->
-    <div class="col-12">
+    <div class="col-12 print-page">
       <div class="card shadow-sm">
         <div class="card-header card-header-primary d-flex align-items-center justify-content-between">
           <span>
@@ -456,10 +557,24 @@
               <span id="briefingSharedSiteLabelCc">AMJK</span> · <span id="briefingSharedProductLabelCc">SW</span> · YTD
             </span>
           </span>
-          <span id="ccSpinner"
-                class="spinner-border spinner-border-sm text-white opacity-75"
-                role="status" aria-label="Loading"
-                style="width:1rem;height:1rem;"></span>
+          <div class="d-flex align-items-center gap-2">
+            <select id="ccSite" class="form-select form-select-sm" style="width:auto; font-size:0.75rem;">
+              <option value="AMJK">AMJK</option>
+              <option value="TXAS">TXAS</option>
+              <option value="AMIN">AMIN</option>
+              <option value="AMAZ">AMAZ</option>
+            </select>
+            <select id="ccProduct" class="form-select form-select-sm" style="width:auto; font-size:0.75rem;">
+              <option value="SW">SW</option>
+              <option value="BP">BP</option>
+              <option value="CT">CT</option>
+              <option value="YA">YA</option>
+            </select>
+            <span id="ccSpinner"
+                  class="spinner-border spinner-border-sm text-white opacity-75"
+                  role="status" aria-label="Loading"
+                  style="width:1rem;height:1rem;"></span>
+          </div>
         </div>
         <div class="card-body p-3">
           <!-- Summary tiles -->
@@ -491,6 +606,10 @@
           </div>
           <!-- Bubble chart -->
           <div id="ccBubbleChart" style="height:420px;"></div>
+          <div class="print-explanation d-none d-print-block mt-2 text-muted" style="font-size:0.78rem;">
+            Explanation: Carrier comparison where X = total weight, Y = ¢/lb, and bubble size = total freight spend.
+            Prioritize carriers high on ¢/lb and large in spend for the biggest improvement impact.
+          </div>
           <!-- Compact table -->
           <div class="table-responsive mt-3" id="ccTableWrap" style="display:none;">
             <table class="table table-striped table-hover table-sm mb-0">
@@ -516,7 +635,7 @@
     </div>
 
     <!-- Top N Customer Tree Map — Current Month -->
-    <div class="col-12">
+    <div class="col-12 print-page">
       <div class="card shadow-sm">
         <div class="card-header card-header-primary d-flex align-items-center justify-content-between">
           <span>
@@ -526,13 +645,31 @@
               <span id="briefingSharedSiteLabelCust">AMJK</span> · <span id="briefingSharedProductLabelCust">SW</span> · This Month
             </span>
           </span>
-          <span id="customerTreeSpinner"
-                class="spinner-border spinner-border-sm text-white opacity-75"
-                role="status" aria-label="Loading"
-                style="width:1rem;height:1rem;"></span>
+          <div class="d-flex align-items-center gap-2">
+            <select id="customerTreeSite" class="form-select form-select-sm" style="width:auto; font-size:0.75rem;">
+              <option value="AMJK">AMJK</option>
+              <option value="TXAS">TXAS</option>
+              <option value="AMIN">AMIN</option>
+              <option value="AMAZ">AMAZ</option>
+            </select>
+            <select id="customerTreeProduct" class="form-select form-select-sm" style="width:auto; font-size:0.75rem;">
+              <option value="SW">SW</option>
+              <option value="BP">BP</option>
+              <option value="CT">CT</option>
+              <option value="YA">YA</option>
+            </select>
+            <span id="customerTreeSpinner"
+                  class="spinner-border spinner-border-sm text-white opacity-75"
+                  role="status" aria-label="Loading"
+                  style="width:1rem;height:1rem;"></span>
+          </div>
         </div>
         <div class="card-body p-3">
           <div id="customerTreeMap" style="height:420px;"></div>
+          <div class="print-explanation d-none d-print-block mt-2 text-muted" style="font-size:0.78rem;">
+            Explanation: Current-month customer concentration by shipped weight. Larger tiles represent larger volume exposure.
+            Use this to identify concentration risk and prioritize account-level service planning.
+          </div>
         </div>
         <div class="card-footer text-muted" style="font-size:0.75rem;">
           Source: Warship database · <code>sp_bl_lbs_cnt_carrier_customer</code> · <span id="briefingSharedSiteFooterCust">AMJK</span> · <span id="briefingSharedProductFooterCust">SW</span> · Current Month.
@@ -546,7 +683,7 @@
         <div class="card-header card-header-primary d-flex align-items-center justify-content-between">
           <span>
             <i class="bi bi-box-arrow-in-right me-2" aria-hidden="true"></i>
-            Warehouse Pallet Entry / Exit
+            Warehouse Pallet Entry /
             <span class="badge text-bg-light text-secondary fw-normal ms-1" style="font-size:0.7rem;"
                   id="palletMonthLabel">MTD</span>
           </span>
@@ -576,7 +713,7 @@
     </div>
 
     <!-- Product Trend Analysis — Growth & Consolidation ────────── -->
-    <div class="col-12">
+    <div class="col-12 print-page">
       <div class="card shadow-sm">
         <div class="card-header card-header-primary d-flex align-items-center justify-content-between">
           <span>
@@ -632,13 +769,25 @@
             </div>
           </div>
           
-          <!-- Monthly trend chart -->
-          <h6 class="fw-semibold mb-2">Monthly Weight Trend (Top 5 Products)</h6>
-          <div id="productTrendChart" style="height:340px; margin-bottom:2rem;"></div>
-          
-          <!-- Portfolio diversity chart -->
-          <h6 class="fw-semibold mb-2">Product Diversity Over Time</h6>
-          <div id="productDiversityChart" style="height:280px;"></div>
+          <div class="print-subpage">
+            <!-- Monthly trend chart -->
+            <h6 class="fw-semibold mb-2">Monthly Weight Trend (Top 5 Products)</h6>
+            <div id="productTrendChart" style="height:340px; margin-bottom:1rem;"></div>
+            <div class="print-explanation d-none d-print-block mt-2 text-muted" style="font-size:0.78rem;">
+              Explanation: Trend lines track monthly volume movement for the top five products.
+              Persistent upward or downward movement signals where to adjust carrier capacity and inventory planning.
+            </div>
+          </div>
+
+          <div class="print-subpage mt-4">
+            <!-- Portfolio diversity chart -->
+            <h6 class="fw-semibold mb-2">Product Diversity Over Time</h6>
+            <div id="productDiversityChart" style="height:280px;"></div>
+            <div class="print-explanation d-none d-print-block mt-2 text-muted" style="font-size:0.78rem;">
+              Explanation: Monthly unique product count indicates portfolio breadth and concentration risk.
+              Falling diversity with stable volume implies heavier reliance on fewer SKUs.
+            </div>
+          </div>
         </div>
         <div class="card-footer text-muted" style="font-size:0.75rem;">
           Source: Warship database · <code>sp_get_all_shipped_product</code> · <span id="productTrendFooterSite">AMJK</span> · <span id="productTrendFooterProduct">SW</span> · Monthly aggregated shipped weight by product code.
@@ -932,6 +1081,21 @@
     product_group: 'SW'
   };
 
+  var freightCplbFilters = {
+    site: 'AMJK',
+    product_group: 'SW'
+  };
+
+  var carrierCostFilters = {
+    site: 'AMJK',
+    product_group: 'SW'
+  };
+
+  var customerTreeFilters = {
+    site: 'AMJK',
+    product_group: 'SW'
+  };
+
   function getBriefingDateRange() {
     var today = new Date();
     var yyyy = today.getFullYear();
@@ -950,23 +1114,6 @@
   }
 
   function syncSharedSectionLabels(site, productGroup) {
-    setTextById('briefingSharedSiteLabelCplb', site);
-    setTextById('briefingSharedProductLabelCplb', productGroup);
-    setTextById('briefingSharedSiteFooterCplb', site);
-    setTextById('briefingSharedProductFooterCplb', productGroup);
-    setTextById('briefingSharedSiteAboutCplb', site);
-    setTextById('briefingSharedProductAboutCplb', productGroup);
-
-    setTextById('briefingSharedSiteLabelCc', site);
-    setTextById('briefingSharedProductLabelCc', productGroup);
-    setTextById('briefingSharedSiteFooterCc', site);
-    setTextById('briefingSharedProductFooterCc', productGroup);
-
-    setTextById('briefingSharedSiteLabelCust', site);
-    setTextById('briefingSharedProductLabelCust', productGroup);
-    setTextById('briefingSharedSiteFooterCust', site);
-    setTextById('briefingSharedProductFooterCust', productGroup);
-
     setTextById('productTrendSiteLabel', site);
     setTextById('productTrendProductLabel', productGroup);
     setTextById('productTrendFooterSite', site);
@@ -976,8 +1123,31 @@
     setTextById('recommendationProductLabel', productGroup);
 
     var yr = String(getBriefingDateRange().year);
-    setTextById('briefingSharedYearCplb', yr);
-    setTextById('briefingSharedYearCc', yr);
+  }
+
+  function syncFreightCplbLabels(site, productGroup) {
+    setTextById('briefingSharedSiteLabelCplb', site);
+    setTextById('briefingSharedProductLabelCplb', productGroup);
+    setTextById('briefingSharedSiteFooterCplb', site);
+    setTextById('briefingSharedProductFooterCplb', productGroup);
+    setTextById('briefingSharedSiteAboutCplb', site);
+    setTextById('briefingSharedProductAboutCplb', productGroup);
+    setTextById('briefingSharedYearCplb', String(getBriefingDateRange().year));
+  }
+
+  function syncCarrierCostLabels(site, productGroup) {
+    setTextById('briefingSharedSiteLabelCc', site);
+    setTextById('briefingSharedProductLabelCc', productGroup);
+    setTextById('briefingSharedSiteFooterCc', site);
+    setTextById('briefingSharedProductFooterCc', productGroup);
+    setTextById('briefingSharedYearCc', String(getBriefingDateRange().year));
+  }
+
+  function syncCustomerTreeLabels(site, productGroup) {
+    setTextById('briefingSharedSiteLabelCust', site);
+    setTextById('briefingSharedProductLabelCust', productGroup);
+    setTextById('briefingSharedSiteFooterCust', site);
+    setTextById('briefingSharedProductFooterCust', productGroup);
   }
 
   /* ── Freight ¢/lb by Product Code — YTD boxplot ──────────────────────
@@ -1484,7 +1654,7 @@
     var dateTo   = y + '-' + m + '-' + d;
 
     var monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-    document.getElementById('palletMonthLabel').textContent = monthNames[now.getMonth()] + ' ' + y;
+    document.getElementById('palletMonthLabel').textContent = 'AMJK · SW · ' + monthNames[now.getMonth()] + ' ' + y;
 
     fetch('/api/warehouse/pallet-entry-exit?date_from=' + dateFrom + '&date_to=' + dateTo)
       .then(function (r) { return r.json(); })
@@ -1805,11 +1975,44 @@ function loadProductTrendAnalysisByFilters(site, productGroup) {
 
 function refreshSharedBriefingSections() {
   syncSharedSectionLabels(briefingSharedFilters.site, briefingSharedFilters.product_group);
-  loadFreightCplbByProduct(briefingSharedFilters.site, briefingSharedFilters.product_group);
-  loadCarrierCostAnalysisByFilters(briefingSharedFilters.site, briefingSharedFilters.product_group);
-  loadTopCustomerTreeMapByFilters(briefingSharedFilters.site, briefingSharedFilters.product_group);
   loadProductTrendAnalysisByFilters(briefingSharedFilters.site, briefingSharedFilters.product_group);
 }
+
+document.getElementById('frtCplbSite').addEventListener('change', function (e) {
+  freightCplbFilters.site = e.target.value;
+  syncFreightCplbLabels(freightCplbFilters.site, freightCplbFilters.product_group);
+  loadFreightCplbByProduct(freightCplbFilters.site, freightCplbFilters.product_group);
+});
+
+document.getElementById('frtCplbProduct').addEventListener('change', function (e) {
+  freightCplbFilters.product_group = e.target.value;
+  syncFreightCplbLabels(freightCplbFilters.site, freightCplbFilters.product_group);
+  loadFreightCplbByProduct(freightCplbFilters.site, freightCplbFilters.product_group);
+});
+
+document.getElementById('ccSite').addEventListener('change', function (e) {
+  carrierCostFilters.site = e.target.value;
+  syncCarrierCostLabels(carrierCostFilters.site, carrierCostFilters.product_group);
+  loadCarrierCostAnalysisByFilters(carrierCostFilters.site, carrierCostFilters.product_group);
+});
+
+document.getElementById('ccProduct').addEventListener('change', function (e) {
+  carrierCostFilters.product_group = e.target.value;
+  syncCarrierCostLabels(carrierCostFilters.site, carrierCostFilters.product_group);
+  loadCarrierCostAnalysisByFilters(carrierCostFilters.site, carrierCostFilters.product_group);
+});
+
+document.getElementById('customerTreeSite').addEventListener('change', function (e) {
+  customerTreeFilters.site = e.target.value;
+  syncCustomerTreeLabels(customerTreeFilters.site, customerTreeFilters.product_group);
+  loadTopCustomerTreeMapByFilters(customerTreeFilters.site, customerTreeFilters.product_group);
+});
+
+document.getElementById('customerTreeProduct').addEventListener('change', function (e) {
+  customerTreeFilters.product_group = e.target.value;
+  syncCustomerTreeLabels(customerTreeFilters.site, customerTreeFilters.product_group);
+  loadTopCustomerTreeMapByFilters(customerTreeFilters.site, customerTreeFilters.product_group);
+});
 
 document.getElementById('productTrendSite').addEventListener('change', function (e) {
   briefingSharedFilters.site = e.target.value;
@@ -1822,6 +2025,12 @@ document.getElementById('productTrendProduct').addEventListener('change', functi
 });
 
 refreshSharedBriefingSections();
+syncFreightCplbLabels(freightCplbFilters.site, freightCplbFilters.product_group);
+loadFreightCplbByProduct(freightCplbFilters.site, freightCplbFilters.product_group);
+syncCarrierCostLabels(carrierCostFilters.site, carrierCostFilters.product_group);
+loadCarrierCostAnalysisByFilters(carrierCostFilters.site, carrierCostFilters.product_group);
+syncCustomerTreeLabels(customerTreeFilters.site, customerTreeFilters.product_group);
+loadTopCustomerTreeMapByFilters(customerTreeFilters.site, customerTreeFilters.product_group);
 </script>
 {% endblock %}
 {% endblock %}
