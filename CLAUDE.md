@@ -69,6 +69,7 @@ warship-v2/
 │   │   ├── __init__.py      # Parent router (prefix=/maintenance), includes all sub-routers
 │   │   ├── shipping_status.py   # ShippingStatus CRUD
 │   │   ├── freight_audit.py     # Freight ¢/lb audit (3 independent methods)
+│   │   ├── shipment_size_impact.py # Volume decomposition and shipment-size workload analysis
 │   │   ├── lmi.py               # LMI document analysis via Ollama deepseek-r1:8b
 │   │   ├── truck_load_map.py    # Truck trailer load planning tool
 │   │   ├── not_in_xfcma.py      # Not-in-XFCMA PDF upload + CRUD
@@ -194,6 +195,8 @@ logger = get_util_logger("pdf_parser")
 | Shipping Status CRUD | `GET /maintenance/shipping-status` | Maintenance data-entry page for table `shipping_status` with inline update/delete and create form. |
 | Shipping Status API | `GET/POST/PUT/DELETE /maintenance/api/shipping-status...` | JSON CRUD endpoints for `shipping_status` (`id`, `Date`, `Customer`, `Con_Hou`, `Con_Rem`, `Con_PHO`, `Con_CHA`, `Total`, `Hou_ship`, `Rem_ship`, `Con`). |
 | Freight ¢/lb Audit | `GET /maintenance/freight-audit` | Cross-checks ¢/lb calculations across all pages using 3 independent methods (Unit_Freight weighted avg, Freight_Amount all-in, SP). Shows per-carrier breakdown and sample BL verification. |
+| Shipment Size Impact | `GET /maintenance/shipment-size-impact` | Decomposes monthly shipped volume as `load_count × avg_lbs_per_load` and highlights workload/staging pressure from smaller shipments. |
+| Shipment Size Impact API | `GET /maintenance/api/shipment-size-impact` | JSON endpoint powered by `sp_bl_lbs_cnt_carrier`; returns monthly total lbs, load count, avg lbs/load, loads per million lbs, and YoY load-vs-size decomposition effects. |
 | Upload not in XFCMA | `GET /maintenance/not-in-xfcma` | Maintenance page for PDF upload with success/failure indication only. |
 | Upload not in XFCMA API | `GET/POST/PUT/DELETE /maintenance/api/not-in-xfcma...` | JSON CRUD endpoints for `not_in_xfcma` (`id`, `report_datetime`, `product_code`, `manu_order`, `item`, `pallet`, `location`, `rolls`, `length`, `weight`, `grade`, `last_in_date`, `created_at_utc`, `source_file`). List supports optional filters: `product_code`, `date_from`, `date_to`. |
 | Upload not in XFCMA PDF API | `POST /maintenance/api/not-in-xfcma/upload` | Multipart PDF upload endpoint. Parses QPQUPRFIL report rows and bulk inserts mapped records into `not_in_xfcma`; re-uploading the same filename replaces that file's prior rows. |
@@ -222,12 +225,13 @@ logger = get_util_logger("pdf_parser")
 | TSR Available to Ship | `GET /api/tsr-prep/avail-to-ship` | JSON — available-to-ship BL list from `ipg_ez`; params: `site`, `product_group`, `report_date`. |
 | TSR Pallet Sizes | `GET /api/tsr-prep/pallet-sizes` | JSON — pallet descriptions and dimensions from `Product_desc_size`. |
 | TSR Upload IPG EZ | `POST /api/tsr-prep/upload` | Multipart Excel upload — parses IPG EZ report and upserts rows into `ipg_ez`. |
-| Product Trend Top | `GET /api/analytics/product-trend-top` | JSON — top N products ranked by total shipped weight from `sp_get_all_shipped_product`; param: `top_n` (default 10). |
-| Product Trend Monthly | `GET /api/analytics/product-trend-monthly` | JSON — monthly weight and shipment count per top product; useful for multi-line growth chart. |
-| Product Diversity | `GET /api/analytics/product-diversity` | JSON — unique product count per month showing portfolio consolidation trend; fields: `year_month`, `unique_products`, `total_weight`, `total_shipments`. |
+| Product Trend Top | `GET /api/analytics/product-trend-top` | JSON — top N products ranked by total shipped weight from `sp_get_all_shipped_product`; params: `top_n`, `site`, `product_group`, `start_date`, `end_date`. |
+| Product Trend Monthly | `GET /api/analytics/product-trend-monthly` | JSON — monthly weight and shipment count per top product; params: `top_n`, `site`, `product_group`, `start_date`, `end_date`. |
+| Product Diversity | `GET /api/analytics/product-diversity` | JSON — unique product count per month showing portfolio consolidation trend; params: `site`, `product_group`, `start_date`, `end_date`; fields: `year_month`, `unique_products`, `total_weight`, `total_shipments`. |
 | SW Transport Type by Year | `GET /api/analytics/sw-transport-type-by-year` | JSON — annual SW lbs by transport type (FTL, LTL, Intermodal, Export, Other) from `Transp Type.xlsx`. |
 | AMJK Frt YTD vs Avg | `GET /api/analytics/amjk-frt-ytd-vs-avg` | JSON — monthly freight cost and weight data by year via `sp_bl_lbs_cnt_carrier`; params: `site`, `product_group`. |
 | Pick Weight Trend | `GET /api/analytics/pick-weight-trend` | JSON — monthly pick weight data by year via `sp_bl_lbs_cnt_carrier`; params: `site`, `product_group`. |
+| YTD Carrier Usage | `GET /api/analytics/carrier-usage-ytd` | JSON — YTD unique BL load-count share by carrier via `sp_bl_lbs_cnt_carrier`; params: `site`, `product_group`, `exclude_carriers`. |
 | LMI Page | `GET /maintenance/lmi` | LMI document analysis dashboard — lists available monthly LMI text files. |
 | LMI Analyze | `POST /maintenance/lmi/analyze` | Streaming — sends one LMI document to Ollama `deepseek-r1:8b` and streams the analysis response (strips `<think>` blocks). |
 | LMI Briefing Analysis | `GET /maintenance/lmi/briefing-analysis` | Streaming — cross-month LMI trend analysis across all available documents via Ollama. |

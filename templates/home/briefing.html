@@ -315,16 +315,33 @@
             <i class="bi bi-pie-chart me-2" aria-hidden="true"></i>
             YTD Carrier Usage
             <span class="badge text-bg-light text-secondary fw-normal ms-1" style="font-size:0.7rem;">
-              AMJK · SW · by load count
+              <span id="carrierTrendSiteLabel">AMJK</span> · <span id="carrierTrendProductLabel">SW</span> · by load count
             </span>
           </span>
-          <span id="carrierSpinner"
-                class="spinner-border spinner-border-sm text-white opacity-75"
-                role="status" aria-label="Loading chart"
-                style="width:1rem;height:1rem;"></span>
+          <div class="d-flex align-items-center gap-2">
+            <select id="carrierTrendSite" class="form-select form-select-sm" style="width:auto; font-size:0.75rem;">
+              <option value="AMJK">AMJK</option>
+              <option value="TXAS">TXAS</option>
+              <option value="AMIN">AMIN</option>
+              <option value="AMAZ">AMAZ</option>
+            </select>
+            <select id="carrierTrendProduct" class="form-select form-select-sm" style="width:auto; font-size:0.75rem;">
+              <option value="SW">SW</option>
+              <option value="BP">BP</option>
+              <option value="CT">CT</option>
+              <option value="YA">YA</option>
+            </select>
+            <span id="carrierSpinner"
+                  class="spinner-border spinner-border-sm text-white opacity-75"
+                  role="status" aria-label="Loading chart"
+                  style="width:1rem;height:1rem;"></span>
+          </div>
         </div>
         <div class="card-body p-2">
           <div id="carrierChart" style="height:320px;"></div>
+        </div>
+        <div class="card-footer text-muted" style="font-size:0.75rem;">
+          Source: Warship database · <code>sp_bl_lbs_cnt_carrier</code> · YTD unique BL load share by carrier.
         </div>
       </div>
     </div>
@@ -347,7 +364,7 @@
             <i class="bi bi-bar-chart-steps me-2" aria-hidden="true"></i>
             Freight ¢/lb by Product Code
             <span class="badge text-bg-light text-secondary fw-normal ms-1" style="font-size:0.7rem;">
-              AMJK · SW · YTD
+              <span id="briefingSharedSiteLabelCplb">AMJK</span> · <span id="briefingSharedProductLabelCplb">SW</span> · YTD
             </span>
             <i class="bi bi-info-circle ms-2"
                style="font-size:0.85rem; cursor:pointer; opacity:0.85;"
@@ -366,7 +383,7 @@
           <div id="frtCplbChart" style="height:500px;"></div>
         </div>
         <div class="card-footer text-muted" style="font-size:0.75rem;">
-          Source: Warship database · AMJK · SW · YTD 2026. Top 50 products by shipped weight. Each box = product code.
+          Source: Warship database · <span id="briefingSharedSiteFooterCplb">AMJK</span> · <span id="briefingSharedProductFooterCplb">SW</span> · YTD <span id="briefingSharedYearCplb">2026</span>. Top 50 products by shipped weight. Each box = product code.
           Sorted by median ¢/lb (low → high).<br>
           <a href="/maintenance/frt-validation" class="text-decoration-none">
             <i class="bi bi-search me-1"></i>Validate these results
@@ -409,7 +426,7 @@
               </p>
               <p class="fw-semibold mb-1 mt-2">Source</p>
               <p class="text-muted mb-0">
-                Warship database (AMJK · SW · Jan 1 – today). Top 50 product codes by total shipped weight YTD.
+                Warship database (<span id="briefingSharedSiteAboutCplb">AMJK</span> · <span id="briefingSharedProductAboutCplb">SW</span> · Jan 1 – today). Top 50 product codes by total shipped weight YTD.
                 Each data point = one truck load (BL Number).
               </p>
             </div>
@@ -436,7 +453,7 @@
             <i class="bi bi-graph-up me-2" aria-hidden="true"></i>
             Carrier Cost Per Pound Analysis
             <span class="badge text-bg-light text-secondary fw-normal ms-1" style="font-size:0.7rem;">
-              AMJK · SW · YTD
+              <span id="briefingSharedSiteLabelCc">AMJK</span> · <span id="briefingSharedProductLabelCc">SW</span> · YTD
             </span>
           </span>
           <span id="ccSpinner"
@@ -493,7 +510,7 @@
           </div>
         </div>
         <div class="card-footer text-muted" style="font-size:0.75rem;">
-          Source: Warship database · <code>sp_carrier_cost_per_pound</code> · AMJK · SW · YTD 2026.
+          Source: Warship database · <code>sp_carrier_cost_per_pound</code> · <span id="briefingSharedSiteFooterCc">AMJK</span> · <span id="briefingSharedProductFooterCc">SW</span> · YTD <span id="briefingSharedYearCc">2026</span>.
         </div>
       </div>
     </div>
@@ -506,7 +523,7 @@
             <i class="bi bi-diagram-3 me-2" aria-hidden="true"></i>
             Top 20 Customers (Tree Map)
             <span class="badge text-bg-light text-secondary fw-normal ms-1" style="font-size:0.7rem;">
-              AMJK · SW · This Month
+              <span id="briefingSharedSiteLabelCust">AMJK</span> · <span id="briefingSharedProductLabelCust">SW</span> · This Month
             </span>
           </span>
           <span id="customerTreeSpinner"
@@ -518,7 +535,7 @@
           <div id="customerTreeMap" style="height:420px;"></div>
         </div>
         <div class="card-footer text-muted" style="font-size:0.75rem;">
-          Source: Warship database · <code>sp_bl_lbs_cnt_carrier_customer</code> · AMJK · SW · Current Month.
+          Source: Warship database · <code>sp_bl_lbs_cnt_carrier_customer</code> · <span id="briefingSharedSiteFooterCust">AMJK</span> · <span id="briefingSharedProductFooterCust">SW</span> · Current Month.
         </div>
       </div>
     </div>
@@ -566,13 +583,27 @@
             <i class="bi bi-graph-up me-2" aria-hidden="true"></i>
             Product Trend Analysis
             <span class="badge text-bg-light text-secondary fw-normal ms-1" style="font-size:0.7rem;">
-              AMJK · SW · 2023–2026
+              <span id="productTrendSiteLabel">AMJK</span> · <span id="productTrendProductLabel">SW</span> · <span id="productTrendRangeLabel">2023–2026</span>
             </span>
           </span>
-          <span id="productTrendSpinner"
-                class="spinner-border spinner-border-sm text-white opacity-75"
-                role="status" aria-label="Loading"
-                style="width:1rem;height:1rem;"></span>
+          <div class="d-flex align-items-center gap-2">
+            <select id="productTrendSite" class="form-select form-select-sm" style="width:auto; font-size:0.75rem;">
+              <option value="AMJK">AMJK</option>
+              <option value="TXAS">TXAS</option>
+              <option value="AMIN">AMIN</option>
+              <option value="AMAZ">AMAZ</option>
+            </select>
+            <select id="productTrendProduct" class="form-select form-select-sm" style="width:auto; font-size:0.75rem;">
+              <option value="SW">SW</option>
+              <option value="BP">BP</option>
+              <option value="CT">CT</option>
+              <option value="YA">YA</option>
+            </select>
+            <span id="productTrendSpinner"
+                  class="spinner-border spinner-border-sm text-white opacity-75"
+                  role="status" aria-label="Loading"
+                  style="width:1rem;height:1rem;"></span>
+          </div>
         </div>
         <div class="card-body p-3">
           <!-- Top products summary -->
@@ -610,7 +641,7 @@
           <div id="productDiversityChart" style="height:280px;"></div>
         </div>
         <div class="card-footer text-muted" style="font-size:0.75rem;">
-          Source: Warship database · <code>sp_get_all_shipped_product</code> · AMJK · SW · Monthly aggregated shipped weight by product code.
+          Source: Warship database · <code>sp_get_all_shipped_product</code> · <span id="productTrendFooterSite">AMJK</span> · <span id="productTrendFooterProduct">SW</span> · Monthly aggregated shipped weight by product code.
         </div>
       </div>
     </div>
@@ -621,6 +652,9 @@
         <div class="card-header card-header-primary d-flex align-items-center">
           <i class="bi bi-lightbulb me-2" aria-hidden="true"></i>
           Recommended Actions
+          <span class="badge text-bg-light text-secondary fw-normal ms-2" style="font-size:0.7rem;">
+            <span id="recommendationSiteLabel">AMJK</span> · <span id="recommendationProductLabel">SW</span>
+          </span>
         </div>
         <div class="card-body px-3 py-3">
           <div class="row g-3" id="recommendationsContent" style="display:none;">
@@ -893,22 +927,73 @@
     });
   }
 
+  var briefingSharedFilters = {
+    site: 'AMJK',
+    product_group: 'SW'
+  };
+
+  function getBriefingDateRange() {
+    var today = new Date();
+    var yyyy = today.getFullYear();
+    var mm = String(today.getMonth() + 1).padStart(2, '0');
+    var dd = String(today.getDate()).padStart(2, '0');
+    return {
+      year: yyyy,
+      startDate: yyyy + '-01-01',
+      endDate: yyyy + '-' + mm + '-' + dd
+    };
+  }
+
+  function setTextById(id, value) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = value;
+  }
+
+  function syncSharedSectionLabels(site, productGroup) {
+    setTextById('briefingSharedSiteLabelCplb', site);
+    setTextById('briefingSharedProductLabelCplb', productGroup);
+    setTextById('briefingSharedSiteFooterCplb', site);
+    setTextById('briefingSharedProductFooterCplb', productGroup);
+    setTextById('briefingSharedSiteAboutCplb', site);
+    setTextById('briefingSharedProductAboutCplb', productGroup);
+
+    setTextById('briefingSharedSiteLabelCc', site);
+    setTextById('briefingSharedProductLabelCc', productGroup);
+    setTextById('briefingSharedSiteFooterCc', site);
+    setTextById('briefingSharedProductFooterCc', productGroup);
+
+    setTextById('briefingSharedSiteLabelCust', site);
+    setTextById('briefingSharedProductLabelCust', productGroup);
+    setTextById('briefingSharedSiteFooterCust', site);
+    setTextById('briefingSharedProductFooterCust', productGroup);
+
+    setTextById('productTrendSiteLabel', site);
+    setTextById('productTrendProductLabel', productGroup);
+    setTextById('productTrendFooterSite', site);
+    setTextById('productTrendFooterProduct', productGroup);
+
+    setTextById('recommendationSiteLabel', site);
+    setTextById('recommendationProductLabel', productGroup);
+
+    var yr = String(getBriefingDateRange().year);
+    setTextById('briefingSharedYearCplb', yr);
+    setTextById('briefingSharedYearCc', yr);
+  }
+
   /* ── Freight ¢/lb by Product Code — YTD boxplot ──────────────────────
-     Fetches /api/shipping/shipped-products (AMJK, SW, Jan 1 → today).
+     Fetches /api/shipping/shipped-products (selected site/group, Jan 1 → today).
      Top 50 products by weight, sorted by median ¢/lb ascending.
   ──────────────────────────────────────────────────────────────────── */
-  (function () {
-    const today = new Date();
-    const yyyy  = today.getFullYear();
-    const mm    = String(today.getMonth() + 1).padStart(2, '0');
-    const dd    = String(today.getDate()).padStart(2, '0');
-    const url   = '/api/shipping/shipped-products?site=AMJK&product_group=SW'
-                + '&start_date=' + yyyy + '-01-01'
-                + '&end_date='   + yyyy + '-' + mm + '-' + dd;
+  function loadFreightCplbByProduct(site, productGroup) {
+    var range = getBriefingDateRange();
+    var url = '/api/shipping/shipped-products?site=' + site + '&product_group=' + productGroup
+            + '&start_date=' + range.startDate + '&end_date=' + range.endDate;
+
+    document.getElementById('frtCplbSpinner').style.display = 'inline-block';
 
     function median(arr) {
-      const s = arr.slice().sort(function (a, b) { return a - b; });
-      const mid = Math.floor(s.length / 2);
+      var s = arr.slice().sort(function (a, b) { return a - b; });
+      var mid = Math.floor(s.length / 2);
       return s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2;
     }
 
@@ -918,12 +1003,11 @@
         return r.json();
       })
       .then(function (data) {
-        const groups = {};
-        const wtTotals = {};
-        const carrierCounts = {};
+        var groups = {};
+        var wtTotals = {};
 
         data.forEach(function (row) {
-          const prod = row.product_code || '(unknown)';
+          var prod = row.product_code || '(unknown)';
           if (row.unit_freight != null) {
             if (!groups[prod]) groups[prod] = [];
             groups[prod].push(row.unit_freight);
@@ -931,43 +1015,16 @@
           if (row.pick_weight != null) {
             wtTotals[prod] = (wtTotals[prod] || 0) + row.pick_weight;
           }
-
-          const cid = row.carrier_id || '(unknown)';
-          if (cid !== 'CWF-IP' && cid !== 'SAIA-IP') {
-            carrierCounts[cid] = (carrierCounts[cid] || 0) + 1;
-          }
         });
 
-        const carrierLabels = Object.keys(carrierCounts);
-        const carrierValues = carrierLabels.map(function (c) { return carrierCounts[c]; });
-        Plotly.newPlot('carrierChart', [{
-          type: 'pie',
-          labels: carrierLabels,
-          values: carrierValues,
-          hole: 0.35,
-          textinfo: 'percent',
-          hovertemplate: '%{label}<br>%{value} loads (%{percent})<extra></extra>',
-          marker: {
-            colors: ['#154e9a','#42a5f5','#66bb6a','#ffa726','#ef5350',
-                     '#ab47bc','#26c6da','#d4e157','#8d6e63','#78909c'],
-          },
-        }], {
-          margin: { t: 20, r: 20, b: 20, l: 20 },
-          paper_bgcolor: '#ffffff',
-          font: { family: 'Open Sans, sans-serif', size: 11 },
-          showlegend: true,
-          legend: { orientation: 'h', x: 0, y: -0.15, font: { size: 10 } },
-        }, { responsive: true, displayModeBar: false });
-        document.getElementById('carrierSpinner').style.display = 'none';
-
-        const top50 = Object.keys(wtTotals)
+        var top50 = Object.keys(wtTotals)
           .sort(function (a, b) { return wtTotals[b] - wtTotals[a]; })
           .slice(0, 50);
-        const products = top50
+        var products = top50
           .filter(function (p) { return groups[p]; })
           .sort(function (a, b) { return median(groups[a]) - median(groups[b]); });
 
-        const traces = products.map(function (p) {
+        var traces = products.map(function (p) {
           return {
             type: 'box',
             name: p,
@@ -990,15 +1047,87 @@
         document.getElementById('frtCplbSpinner').style.display = 'none';
       })
       .catch(function (err) {
-        ['frtCplbChart', 'carrierChart'].forEach(function (id) {
-          document.getElementById(id).innerHTML =
+        document.getElementById('frtCplbChart').innerHTML =
+          '<div class="alert alert-warning m-3">' +
+          '<i class="bi bi-exclamation-triangle me-2"></i>' +
+          'Chart unavailable: ' + err.message + '</div>';
+        document.getElementById('frtCplbSpinner').style.display = 'none';
+      });
+  }
+
+  /* ── YTD Carrier Usage by Load Count ───────────────────────────
+     Fetches /api/analytics/carrier-usage-ytd with site/product filters.
+  ──────────────────────────────────────────────────────────────────── */
+  (function () {
+    var currentSite = 'AMJK';
+    var currentProduct = 'SW';
+
+    function loadCarrierUsageChart() {
+      document.getElementById('carrierSpinner').style.display = 'inline-block';
+
+      var url = '/api/analytics/carrier-usage-ytd?site=' + currentSite +
+                '&product_group=' + currentProduct;
+
+      fetch(url)
+        .then(function (r) {
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return r.json();
+        })
+        .then(function (data) {
+          var rows = Array.isArray(data.by_carrier) ? data.by_carrier : [];
+          if (rows.length === 0) {
+            document.getElementById('carrierChart').innerHTML =
+              '<div class="alert alert-info m-3">No YTD carrier usage data available.</div>';
+            document.getElementById('carrierSpinner').style.display = 'none';
+            return;
+          }
+
+          var carrierLabels = rows.map(function (r) { return r.carrier_id; });
+          var carrierValues = rows.map(function (r) { return r.load_count; });
+
+          Plotly.newPlot('carrierChart', [{
+            type: 'pie',
+            labels: carrierLabels,
+            values: carrierValues,
+            hole: 0.35,
+            textinfo: 'percent',
+            hovertemplate: '%{label}<br>%{value} loads (%{percent})<extra></extra>',
+            marker: {
+              colors: ['#154e9a','#42a5f5','#66bb6a','#ffa726','#ef5350',
+                       '#ab47bc','#26c6da','#d4e157','#8d6e63','#78909c'],
+            },
+          }], {
+            margin: { t: 20, r: 20, b: 20, l: 20 },
+            paper_bgcolor: '#ffffff',
+            font: { family: 'Open Sans, sans-serif', size: 11 },
+            showlegend: true,
+            legend: { orientation: 'h', x: 0, y: -0.15, font: { size: 10 } },
+          }, { responsive: true, displayModeBar: false });
+
+          document.getElementById('carrierTrendSiteLabel').textContent = currentSite;
+          document.getElementById('carrierTrendProductLabel').textContent = currentProduct;
+          document.getElementById('carrierSpinner').style.display = 'none';
+        })
+        .catch(function (err) {
+          document.getElementById('carrierChart').innerHTML =
             '<div class="alert alert-warning m-3">' +
             '<i class="bi bi-exclamation-triangle me-2"></i>' +
             'Chart unavailable: ' + err.message + '</div>';
+          document.getElementById('carrierSpinner').style.display = 'none';
         });
-        document.getElementById('frtCplbSpinner').style.display = 'none';
-        document.getElementById('carrierSpinner').style.display = 'none';
-      });
+    }
+
+    document.getElementById('carrierTrendSite').addEventListener('change', function (e) {
+      currentSite = e.target.value;
+      loadCarrierUsageChart();
+    });
+
+    document.getElementById('carrierTrendProduct').addEventListener('change', function (e) {
+      currentProduct = e.target.value;
+      loadCarrierUsageChart();
+    });
+
+    loadCarrierUsageChart();
   })();
 
 
@@ -1227,19 +1356,17 @@
 
 
   /* ── Carrier Cost Per Pound Analysis — YTD ─────────────────────────────
-     Fetches /api/carrier-cost-analysis with AMJK · SW · Jan 1 → today.
+     Fetches /api/carrier-cost-analysis with shared site/group filters.
      Renders summary tiles, bubble chart, and compact table.
   ──────────────────────────────────────────────────────────────────── */
-  (function () {
-    var today = new Date();
-    var yyyy  = today.getFullYear();
-    var mm    = String(today.getMonth() + 1).padStart(2, '0');
-    var dd    = String(today.getDate()).padStart(2, '0');
-    var url   = '/api/carrier-cost-analysis'
-              + '?site=AMJK&product_group=SW'
-              + '&date_from=' + yyyy + '-01-01'
-              + '&date_to='   + yyyy + '-' + mm + '-' + dd;
+  function loadCarrierCostAnalysisByFilters(site, productGroup) {
+    var range = getBriefingDateRange();
+    var url = '/api/carrier-cost-analysis'
+            + '?site=' + site + '&product_group=' + productGroup
+            + '&date_from=' + range.startDate
+            + '&date_to=' + range.endDate;
 
+    document.getElementById('ccSpinner').style.display = 'inline-block';
     function fmtNum(n) { return n.toLocaleString(); }
     function fmtCost(n) { return '$' + n.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}); }
     function fmtCpp(n) { return n.toFixed(2) + '¢/lb'; }
@@ -1345,7 +1472,7 @@
         document.getElementById('ccBubbleChart').innerHTML =
           '<div class="alert alert-warning m-3"><i class="bi bi-exclamation-triangle me-2"></i>Carrier data unavailable: ' + err.message + '</div>';
       });
-  })();
+  }
 
   /* ── Warehouse Pallet Entry / Exit — current month ──────────── */
   (function () {
@@ -1477,14 +1604,13 @@
   }
 
 // --- Top N Customer Tree Map (Plotly) ---
-(function () {
-  var today = new Date();
-  var yyyy = today.getFullYear();
-  var mm = String(today.getMonth() + 1).padStart(2, '0');
-  var dd = String(today.getDate()).padStart(2, '0');
-  var start = yyyy + '-' + mm + '-01';
-  var end = yyyy + '-' + mm + '-' + dd;
-  var url = '/api/shipping/top-customers?site=AMJK&product_group=SW&start_date=' + start + '&end_date=' + end + '&top_n=20';
+function loadTopCustomerTreeMapByFilters(site, productGroup) {
+  var range = getBriefingDateRange();
+  var start = String(range.year) + '-' + String(new Date().getMonth() + 1).padStart(2, '0') + '-01';
+  var end = range.endDate;
+  var url = '/api/shipping/top-customers?site=' + site + '&product_group=' + productGroup + '&start_date=' + start + '&end_date=' + end + '&top_n=20';
+
+  document.getElementById('customerTreeSpinner').style.display = 'inline-block';
 
   fetch(url)
     .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
@@ -1519,20 +1645,28 @@
       document.getElementById('customerTreeSpinner').style.display = 'none';
       document.getElementById('customerTreeMap').innerHTML = '<div class="alert alert-warning m-3"><i class="bi bi-exclamation-triangle me-2"></i>Customer data unavailable: ' + err.message + '</div>';
     });
-})();
+}
 
 // --- Product Trend Analysis (from Warship DB / stored procedures) ---
-(function () {
+function loadProductTrendAnalysisByFilters(site, productGroup) {
+  var range = getBriefingDateRange();
+  var startDate = '2023-01-01';
+  var endDate = range.endDate;
+  var rangeEndYear = String(range.year);
+
+  setTextById('productTrendRangeLabel', '2023-' + rangeEndYear);
+  document.getElementById('productTrendSpinner').style.display = 'inline-block';
+
   Promise.all([
-    fetch('/api/analytics/product-trend-top?top_n=5').then(function (r) {
+    fetch('/api/analytics/product-trend-top?top_n=5&site=' + site + '&product_group=' + productGroup + '&start_date=' + startDate + '&end_date=' + endDate).then(function (r) {
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
     }),
-    fetch('/api/analytics/product-trend-monthly?top_n=5').then(function (r) {
+    fetch('/api/analytics/product-trend-monthly?top_n=5&site=' + site + '&product_group=' + productGroup + '&start_date=' + startDate + '&end_date=' + endDate).then(function (r) {
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
     }),
-    fetch('/api/analytics/product-diversity').then(function (r) {
+    fetch('/api/analytics/product-diversity?site=' + site + '&product_group=' + productGroup + '&start_date=' + startDate + '&end_date=' + endDate).then(function (r) {
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
     }),
@@ -1667,7 +1801,27 @@
     var diversityChart = document.getElementById('productDiversityChart');
     if (diversityChart) diversityChart.innerHTML = errMsg;
   });
-})();
+}
+
+function refreshSharedBriefingSections() {
+  syncSharedSectionLabels(briefingSharedFilters.site, briefingSharedFilters.product_group);
+  loadFreightCplbByProduct(briefingSharedFilters.site, briefingSharedFilters.product_group);
+  loadCarrierCostAnalysisByFilters(briefingSharedFilters.site, briefingSharedFilters.product_group);
+  loadTopCustomerTreeMapByFilters(briefingSharedFilters.site, briefingSharedFilters.product_group);
+  loadProductTrendAnalysisByFilters(briefingSharedFilters.site, briefingSharedFilters.product_group);
+}
+
+document.getElementById('productTrendSite').addEventListener('change', function (e) {
+  briefingSharedFilters.site = e.target.value;
+  refreshSharedBriefingSections();
+});
+
+document.getElementById('productTrendProduct').addEventListener('change', function (e) {
+  briefingSharedFilters.product_group = e.target.value;
+  refreshSharedBriefingSections();
+});
+
+refreshSharedBriefingSections();
 </script>
 {% endblock %}
 {% endblock %}

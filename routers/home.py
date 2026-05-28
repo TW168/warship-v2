@@ -14,6 +14,7 @@ Includes:
   GET /api/analytics/product-trend-top         — Top N products by total weight (JSON)
   GET /api/analytics/product-trend-monthly     — Monthly trend for top products (JSON)
   GET /api/analytics/product-diversity         — Unique products per month (JSON)
+    GET /api/analytics/carrier-usage-ytd         — YTD carrier usage by load count (JSON)
 """
 
 from collections import defaultdict
@@ -1007,18 +1008,27 @@ async def freight_cost_by_plant() -> JSONResponse:
     "/api/analytics/product-trend-top",
     summary="Top N products by total weight from stored procedure data",
     description=(
-        "Loads shipped-product rows from sp_get_all_shipped_product and returns the top N "
-        "products ranked by total shipped weight. "
+        "Loads shipped-product rows from sp_get_all_shipped_product for a site/product/date range "
+        "and returns the top N products ranked by total shipped weight. "
         "Each product includes: product_code, total_weight, shipment_count, avg_weight. "
         "Useful for identifying portfolio leaders and consolidation trends."
     ),
 )
 async def product_trend_top(
-    top_n: int = Query(default=10, ge=1, le=50, description="Number of top products to return")
+    top_n: int = Query(default=10, ge=1, le=50, description="Number of top products to return"),
+    site: str = Query(default="AMJK", description="Site code, e.g. AMJK"),
+    product_group: str = Query(default="SW", description="Product group, e.g. SW"),
+    start_date: str = Query(default="2023-01-01", description="Inclusive start date (YYYY-MM-DD)"),
+    end_date: str = Query(default=datetime.date.today().isoformat(), description="Inclusive end date (YYYY-MM-DD)"),
 ) -> JSONResponse:
     """Get top N products by total weight."""
     try:
-        rows = load_product_data_from_sp()
+        rows = load_product_data_from_sp(
+            site=site,
+            product_group=product_group,
+            start_date=start_date,
+            end_date=end_date,
+        )
         products = get_top_products(rows, top_n=top_n)
         return JSONResponse(content=products)
     except Exception as exc:
@@ -1035,11 +1045,20 @@ async def product_trend_top(
     ),
 )
 async def product_trend_monthly(
-        top_n: int = Query(default=5, ge=1, le=20, description="Number of top products")
+        top_n: int = Query(default=5, ge=1, le=20, description="Number of top products"),
+        site: str = Query(default="AMJK", description="Site code, e.g. AMJK"),
+        product_group: str = Query(default="SW", description="Product group, e.g. SW"),
+        start_date: str = Query(default="2023-01-01", description="Inclusive start date (YYYY-MM-DD)"),
+        end_date: str = Query(default=datetime.date.today().isoformat(), description="Inclusive end date (YYYY-MM-DD)"),
     ) -> JSONResponse:
         """Get monthly trend data for top products."""
         try:
-            rows = load_product_data_from_sp()
+            rows = load_product_data_from_sp(
+                site=site,
+                product_group=product_group,
+                start_date=start_date,
+                end_date=end_date,
+            )
             products = get_top_products(rows, top_n=top_n)
     
             result = []
@@ -1065,10 +1084,20 @@ async def product_trend_monthly(
         "Each element: {year_month, unique_products, total_weight, total_shipments}"
     ),
 )
-async def product_diversity() -> JSONResponse:
+async def product_diversity(
+    site: str = Query(default="AMJK", description="Site code, e.g. AMJK"),
+    product_group: str = Query(default="SW", description="Product group, e.g. SW"),
+    start_date: str = Query(default="2023-01-01", description="Inclusive start date (YYYY-MM-DD)"),
+    end_date: str = Query(default=datetime.date.today().isoformat(), description="Inclusive end date (YYYY-MM-DD)"),
+) -> JSONResponse:
     """Get monthly product diversity metrics."""
     try:
-        rows = load_product_data_from_sp()
+        rows = load_product_data_from_sp(
+            site=site,
+            product_group=product_group,
+            start_date=start_date,
+            end_date=end_date,
+        )
         diversity = get_product_diversity_over_time(rows)
         return JSONResponse(content=diversity)
     except Exception as exc:
@@ -1452,3 +1481,123 @@ async def pick_weight_trend(
             "total_records_final": len(df)
         }
     })
+
+
+@router.get(
+    "/api/analytics/carrier-usage-ytd",
+    summary="YTD carrier usage by load count",
+    description=(
+        "Calls warship.sp_bl_lbs_cnt_carrier for the current year-to-date range "
+        "and returns per-carrier usage based on unique load count (BL_Number)."
+    ),
+)
+async def carrier_usage_ytd(
+    site: str = Query(default="AMJK", description="Site code, e.g. 'AMJK'"),
+    product_group: str = Query(default="SW", description="Product group, e.g. 'SW'"),
+    exclude_carriers: bool = Query(default=True, description="Exclude SAIA-IP and CWF-IP carriers"),
+) -> JSONResponse:
+    """Return YTD carrier usage split by unique load count for a site/product group."""
+    today = datetime.date.today()
+    start_of_year = datetime.date(today.year, 1, 1)
+
+    try:
+        with _engine.connect() as conn:
+            dbapi_conn = conn.connection
+            cursor = dbapi_conn.cursor(dictionary=True)
+            try:
+                cursor.callproc(
+                    "sp_bl_lbs_cnt_carrier",
+                    [
+                        start_of_year.isoformat(),
+                        today.isoformat(),
+                        site,
+                        product_group,
+                    ],
+                )
+
+                sp_rows: list[dict] = []
+                for result_set in cursor.stored_results():
+                    sp_rows.extend(result_set.fetchall())
+            finally:
+                cursor.close()
+    except Exception as exc:
+        return JSONResponse(status_code=500, content={"error": str(exc)})
+
+    if not sp_rows:
+        return JSONResponse(status_code=404, content={"error": "No data found for specified parameters"})
+
+    df = pd.DataFrame(sp_rows)
+
+    carrier_col = next((c for c in df.columns if "carrier" in c.lower()), None)
+    if not carrier_col:
+        return JSONResponse(status_code=500, content={"error": "Missing carrier column in stored procedure result"})
+
+    bl_col = next((c for c in df.columns if c.lower() == "bl_number"), None)
+    if not bl_col:
+        return JSONResponse(status_code=500, content={"error": "Missing BL_Number column in stored procedure result"})
+
+    records_after_carrier_filter = len(df)
+    if exclude_carriers:
+        excluded_carrier_list = ["SAIA-IP", "CWF-IP"]
+        df = df[~df[carrier_col].isin(excluded_carrier_list)]
+        records_after_carrier_filter = len(df)
+
+    if df.empty:
+        return JSONResponse(
+            content={
+                "site": site,
+                "product_group": product_group,
+                "as_of": today.isoformat(),
+                "start_date": start_of_year.isoformat(),
+                "exclude_carriers": exclude_carriers,
+                "excluded_carriers": ["SAIA-IP", "CWF-IP"] if exclude_carriers else [],
+                "total_loads": 0,
+                "by_carrier": [],
+                "metadata": {
+                    "total_records_original": len(sp_rows),
+                    "total_records_after_filter": records_after_carrier_filter,
+                },
+            }
+        )
+
+    df[carrier_col] = df[carrier_col].fillna("(unknown)").replace("", "(unknown)")
+
+    grouped = (
+        df.groupby(carrier_col, dropna=False)[bl_col]
+        .nunique()
+        .reset_index(name="load_count")
+        .sort_values("load_count", ascending=False)
+    )
+
+    total_loads = int(grouped["load_count"].sum())
+    if total_loads > 0:
+        grouped["share_pct"] = (grouped["load_count"] / total_loads) * 100.0
+    else:
+        grouped["share_pct"] = 0.0
+
+    by_carrier = [
+        {
+            "carrier_id": str(row[carrier_col]),
+            "load_count": int(row["load_count"]),
+            "share_pct": round(float(row["share_pct"]), 2),
+        }
+        for _, row in grouped.iterrows()
+    ]
+
+    return JSONResponse(
+        content={
+            "site": site,
+            "product_group": product_group,
+            "as_of": today.isoformat(),
+            "start_date": start_of_year.isoformat(),
+            "exclude_carriers": exclude_carriers,
+            "excluded_carriers": ["SAIA-IP", "CWF-IP"] if exclude_carriers else [],
+            "total_loads": total_loads,
+            "by_carrier": by_carrier,
+            "metadata": {
+                "total_records_original": len(sp_rows),
+                "total_records_after_filter": records_after_carrier_filter,
+                "total_carriers": len(by_carrier),
+            },
+        }
+    )
