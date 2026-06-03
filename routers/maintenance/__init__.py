@@ -33,7 +33,6 @@ from . import (
     shipment_scan,
     shipment_size_impact,
     shipping_status,
-    transp_type,
     truck_load_map,
 )
 from .silos import router as _silos_router
@@ -50,7 +49,6 @@ router.include_router(truck_load_map.router)
 router.include_router(not_in_xfcma.router)
 router.include_router(shipment_scan.router)
 router.include_router(sales_summary.router)
-router.include_router(transp_type.router)
 router.include_router(_silos_router)
 
 __all__ = ["router"]
