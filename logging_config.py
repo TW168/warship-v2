@@ -67,6 +67,11 @@ def setup_logging(
     file_handler.setLevel(logging.DEBUG)
     file_handler.setFormatter(formatter)
     root_logger.addHandler(file_handler)
+
+    # Prevent WatchFiles INFO events from creating a reload/log feedback loop.
+    # With project-wide reload enabled, writing "1 change detected" into the
+    # log file can itself become a watched change and trigger repeated events.
+    logging.getLogger("watchfiles.main").setLevel(logging.WARNING)
     
     return root_logger
 

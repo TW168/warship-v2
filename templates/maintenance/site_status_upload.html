@@ -8,13 +8,9 @@
   <!-- ── Page header ─────────────────────────────────────────────────────── -->
   <div class="row mb-4">
     <div class="col">
-      <h1 class="page-header">
-        <i class="bi bi-bar-chart-steps"></i>Silos Status
+      <h1 class="fw-bold" style="color: #154e9a;">
+        <i class="bi bi-bar-chart-steps me-2"></i>Silos Status
       </h1>
-    </div>
-    <div class="col-auto align-self-start pt-1">
-      <span id="refreshBadge" class="badge bg-light text-muted border d-none"
-            style="font-size:0.78rem;"></span>
     </div>
   </div>
 
@@ -289,22 +285,15 @@ async function loadInventory() {
             <i class="bi bi-box me-1"></i>${r.contents_code || '—'}
           </div>
           <div class="small text-muted">
-            <i class="bi bi-clock me-1"></i>$
-              {r.last_measurement_time
-                ? r.last_measurement_time.replace('T',' ').slice(0,16)
-                : '—'}
+            <i class="bi bi-clock me-1"></i>${r.last_measurement_time
+              ? r.last_measurement_time.replace('T',' ').slice(0,16)
+              : '—'}
           </div>
         </div>
       </div>
     </div>`
   ).join('');
 
-  const refreshed = rows[0] && rows[0].refreshed_at;
-  if (refreshed) {
-    const badge = document.getElementById('refreshBadge');
-    badge.textContent = 'Data as of ' + refreshed.replace('T',' ').slice(0,16) + ' UTC';
-    badge.classList.remove('d-none');
-  }
 }
 
 async function loadTrend() {

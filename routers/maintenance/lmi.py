@@ -64,6 +64,63 @@ _MONTH_MAP = {
 # Pattern to extract the LMI composite score from report text
 _SCORE_RE = re.compile(r"LMI[®\s]{0,5}at\s+([\d]+\.[\d]+)", re.IGNORECASE)
 
+# Pattern to extract the Transportation Prices sub-index level (0–100) from
+# report text. Matches "Transportation Prices at 76.8", "Transportation Prices
+# (69.5", "Transportation Prices Index is at 80.8". The two-digit requirement
+# (\d{2}) deliberately skips parenthetical month-over-month changes like "(+1.8".
+_TP_RE = re.compile(
+    r"Transportation Prices(?:\s+Index)?(?:\s+is)?\s*(?:at|to|\()\s*(\d{2}\.\d)",
+    re.IGNORECASE,
+)
+
+
+def get_transportation_prices_series() -> list[dict]:
+    """Parse the LMI ``.txt`` reports for the monthly Transportation Prices level.
+
+    Returns a chronological list of ``{"month": "YYYY-MM", "value": float}``.
+    Files that do not yield a parseable reading are skipped. This is a
+    best-effort macro signal used as context elsewhere (e.g. the freight ¢/lb
+    driver page), so callers must tolerate an empty list.
+    """
+    series: list[dict] = []
+    for path in sorted(_LMI_DIR.glob("*.txt")):
+        match = re.match(r"lmi_([a-z]+)_?(\d{4})", path.stem.lower())
+        if not match:
+            continue
+        month_num = _MONTH_MAP.get(match.group(1)[:3])
+        if not month_num:
+            continue
+        text_body = path.read_text(encoding="utf-8", errors="ignore")
+        tp = _TP_RE.search(text_body)
+        if tp:
+            series.append({"month": f"{match.group(2)}-{month_num:02d}", "value": float(tp.group(1))})
+    series.sort(key=lambda x: x["month"])
+    return series
+
+
+def get_latest_transportation_prices() -> dict | None:
+    """Return the most recent Transportation Prices reading and its direction.
+
+    Shape: ``{"month", "value", "prev_value", "direction"}`` where direction is
+    ``"rising" | "falling" | "flat"``. Returns ``None`` if nothing parseable.
+    An LMI sub-index above 50 means freight prices are expanding (rising).
+    """
+    series = get_transportation_prices_series()
+    if not series:
+        return None
+    latest = series[-1]
+    prev = series[-2] if len(series) >= 2 else None
+    direction = "flat"
+    if prev:
+        delta = latest["value"] - prev["value"]
+        direction = "rising" if delta > 0.3 else ("falling" if delta < -0.3 else "flat")
+    return {
+        "month": latest["month"],
+        "value": latest["value"],
+        "prev_value": prev["value"] if prev else None,
+        "direction": direction,
+    }
+
 
 # ---------------------------------------------------------------------------
 # Request model

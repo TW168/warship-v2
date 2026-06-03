@@ -1,0 +1,664 @@
+{% extends "base.html" %}
+{% block title %}Freight ¢/lb Driver{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4"
+     id="freight-driver-root"
+     data-api-path="{{ api_path }}"
+     data-risers-path="{{ risers_path }}"
+     data-products-path="{{ shipped_products_path }}"
+     data-site="{{ preset_site }}"
+     data-product-group="{{ preset_product_group }}"
+     data-product-code="{{ preset_product_code }}">
+
+  <div class="mb-4">
+    <h1 class="page-header h3 mb-0">
+      <i class="bi bi-arrow-down-up me-2" aria-hidden="true"></i>Freight ¢/lb Driver Analysis
+    </h1>
+    <p class="text-muted small mt-1 mb-0">
+      Finds the products whose freight ¢/lb moved the most year-over-year — <strong>rising or falling</strong> — and explains
+      why: splitting the change into carrier-mix, carrier-rate, and destination effects, with shipment-size context, the
+      costliest loads, and LMI market context.
+    </p>
+  </div>
+
+  <!-- ── Filters ─────────────────────────────────────────── -->
+  <div class="card shadow-sm mb-4 filter-card">
+    <div class="card-header fw-semibold"><i class="bi bi-funnel me-2"></i>Filters</div>
+    <div class="card-body py-3">
+      <form id="fd-filter-form" class="row g-2 align-items-end">
+        <div class="col-sm-6 col-md-2">
+          <label for="fd-site" class="form-label form-label-sm fw-semibold mb-1">Site</label>
+          <select id="fd-site" class="form-select form-select-sm" aria-label="Site">
+            <option value="AMJK">AMJK</option>
+            <option value="TXAS">TXAS</option>
+            <option value="AMIN">AMIN</option>
+            <option value="AMAZ">AMAZ</option>
+          </select>
+        </div>
+        <div class="col-sm-6 col-md-2">
+          <label for="fd-product-group" class="form-label form-label-sm fw-semibold mb-1">Product Group</label>
+          <select id="fd-product-group" class="form-select form-select-sm" aria-label="Product group">
+            <option value="SW">SW</option>
+            <option value="BP">BP</option>
+            <option value="CT">CT</option>
+            <option value="YA">YA</option>
+          </select>
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <label for="fd-product-code" class="form-label form-label-sm fw-semibold mb-1">Product Code</label>
+          <input type="text" id="fd-product-code" class="form-control form-control-sm"
+                 list="fd-product-list" placeholder="Pick or type a product…" aria-label="Product code" />
+          <datalist id="fd-product-list"></datalist>
+        </div>
+        <div class="col-sm-6 col-md-2">
+          <label for="fd-date-from" class="form-label form-label-sm fw-semibold mb-1">Date From</label>
+          <input type="date" id="fd-date-from" class="form-control form-control-sm"
+                 aria-label="Date from" value="{{ default_date_from }}" />
+        </div>
+        <div class="col-sm-6 col-md-2">
+          <label for="fd-date-to" class="form-label form-label-sm fw-semibold mb-1">Date To</label>
+          <input type="date" id="fd-date-to" class="form-control form-control-sm"
+                 aria-label="Date to" value="{{ default_date_to }}" />
+        </div>
+        <div class="col-auto">
+          <button type="submit" class="btn btn-primary btn-sm">
+            <i class="bi bi-graph-up-arrow me-1"></i>Run
+          </button>
+        </div>
+        <div class="col-auto">
+          <span class="text-muted small" id="fd-filter-label"></span>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="fd-error" class="alert alert-danger d-none"></div>
+
+  <!-- ── Biggest ¢/lb increases ──────────────────────────── -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-header card-header-primary d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <span><i class="bi bi-sort-numeric-down me-2"></i><span id="fd-movers-title">Biggest ¢/lb Increases</span>
+        <span class="badge text-bg-light text-secondary fw-normal ms-1" id="fd-risers-period" style="font-size:0.7rem;"></span>
+      </span>
+      <div class="d-flex align-items-center gap-2">
+        <div class="btn-group btn-group-sm" role="group" aria-label="Movement direction">
+          <input type="radio" class="btn-check" name="fd-direction" id="fd-dir-increase" value="increase" autocomplete="off" checked>
+          <label class="btn btn-light" for="fd-dir-increase"><i class="bi bi-arrow-up me-1"></i>Increases</label>
+          <input type="radio" class="btn-check" name="fd-direction" id="fd-dir-decrease" value="decrease" autocomplete="off">
+          <label class="btn btn-light" for="fd-dir-decrease"><i class="bi bi-arrow-down me-1"></i>Decreases</label>
+        </div>
+        <span id="fd-risers-spinner" class="spinner-border spinner-border-sm text-white opacity-75 d-none"
+              role="status" aria-label="Loading" style="width:1rem;height:1rem;"></span>
+      </div>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-sm table-striped table-hover mb-0 align-middle">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th class="text-end">Prior ¢/lb</th>
+              <th class="text-end">Current ¢/lb</th>
+              <th class="text-end">Δ ¢/lb</th>
+              <th class="text-end">%</th>
+              <th class="text-end">Current Weight (lbs)</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="fd-risers-body">
+            <tr><td colspan="7" class="text-center text-muted py-3">Run the filters to load risers…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card-footer text-muted" style="font-size:0.75rem;">
+      Ranked by YoY increase in blended ¢/lb. Click a row to see why it rose.
+    </div>
+  </div>
+
+  <!-- ── Drill-down (rendered after a product is chosen) ─── -->
+  <div id="fd-drilldown" class="d-none">
+
+    <div class="card shadow-sm mb-3 border-start border-4 border-info" id="fd-verdict-card">
+      <div class="card-body py-3">
+        <h6 class="fw-semibold mb-1"><i class="bi bi-lightbulb me-2 text-info"></i><span id="fd-verdict-title">Why It Changed</span> —
+          <span id="fd-verdict-product"></span></h6>
+        <p class="mb-1" id="fd-verdict-headline" style="font-size:0.95rem;"></p>
+        <p class="text-muted mb-1" id="fd-verdict-detail" style="font-size:0.85rem;"></p>
+        <p class="mb-0" id="fd-market-context" style="font-size:0.82rem;"></p>
+      </div>
+    </div>
+
+    <!-- KPI tiles -->
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-lg-3">
+        <div class="card h-100 shadow-sm"><div class="card-body text-center">
+          <div class="small text-muted mb-1">Prior ¢/lb</div>
+          <div class="fw-bold fs-4" id="fd-kpi-prior">-</div>
+          <div class="small text-muted" id="fd-kpi-prior-period">-</div>
+        </div></div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="card h-100 shadow-sm"><div class="card-body text-center">
+          <div class="small text-muted mb-1">Current ¢/lb</div>
+          <div class="fw-bold fs-4" id="fd-kpi-current">-</div>
+          <div class="small text-muted" id="fd-kpi-current-period">-</div>
+        </div></div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="card h-100 shadow-sm border-start border-4 border-warning"><div class="card-body text-center">
+          <div class="small text-muted mb-1">Δ ¢/lb (YoY)</div>
+          <div class="fw-bold fs-4" id="fd-kpi-delta">-</div>
+          <div class="small text-muted">Primary driver: <span id="fd-kpi-driver" class="fw-semibold">-</span></div>
+        </div></div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="card h-100 shadow-sm"><div class="card-body text-center">
+          <div class="small text-muted mb-1">Avg Shipment Size</div>
+          <div class="fw-bold fs-4" id="fd-kpi-size">-</div>
+          <div class="small text-muted" id="fd-kpi-size-delta">-</div>
+        </div></div>
+      </div>
+    </div>
+
+    <!-- Bridge + trend -->
+    <div class="row g-3 mb-4 align-items-stretch">
+      <div class="col-12 col-xl-6">
+        <div class="card shadow-sm h-100">
+          <div class="card-header fw-semibold"><i class="bi bi-bar-chart-steps me-2"></i>¢/lb Change Bridge (Prior → Current)</div>
+          <div class="card-body"><div id="fd-waterfall" style="height:360px;"></div></div>
+        </div>
+      </div>
+      <div class="col-12 col-xl-6">
+        <div class="card shadow-sm h-100">
+          <div class="card-header fw-semibold"><i class="bi bi-graph-up me-2"></i>Monthly ¢/lb — This Year vs Prior Years</div>
+          <div class="card-body"><div id="fd-trend" style="height:360px;"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Carrier table -->
+    <div class="card shadow-sm mb-4">
+      <div class="card-header fw-semibold"><i class="bi bi-truck me-2"></i>Carrier Breakdown (Current vs Prior)</div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm table-striped table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Carrier</th>
+                <th class="text-end">Prior Share</th>
+                <th class="text-end">Current Share</th>
+                <th class="text-end">Δ Share</th>
+                <th class="text-end">Prior ¢/lb</th>
+                <th class="text-end">Current ¢/lb</th>
+                <th class="text-end">Δ ¢/lb</th>
+                <th class="text-end">Mix Effect</th>
+                <th class="text-end">Rate Effect</th>
+              </tr>
+            </thead>
+            <tbody id="fd-carrier-body"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card-footer text-muted" style="font-size:0.75rem;">
+        Mix effect = volume shifting between carriers · Rate effect = same carrier charging a different ¢/lb.
+        Row in bold = the carrier contributing the most to the change.
+      </div>
+    </div>
+
+    <!-- Destination (ship-to state) breakdown -->
+    <div class="card shadow-sm mb-4" id="fd-destination-card">
+      <div class="card-header fw-semibold"><i class="bi bi-geo-alt me-2"></i>Destination Breakdown (Ship-to State, Current vs Prior)</div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm table-striped table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Destination</th>
+                <th class="text-end">Prior Share</th>
+                <th class="text-end">Current Share</th>
+                <th class="text-end">Δ Share</th>
+                <th class="text-end">Prior ¢/lb</th>
+                <th class="text-end">Current ¢/lb</th>
+                <th class="text-end">Δ ¢/lb</th>
+                <th class="text-end">Mix Effect</th>
+                <th class="text-end">Rate Effect</th>
+              </tr>
+            </thead>
+            <tbody id="fd-destination-body"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card-footer text-muted" style="font-size:0.75rem;" id="fd-destination-footer">
+        A parallel lens on the same change: mix = shipping more to costlier states · rate = ¢/lb change within a state.
+      </div>
+    </div>
+
+    <!-- Outliers -->
+    <div class="card shadow-sm mb-4">
+      <div class="card-header fw-semibold"><i class="bi bi-exclamation-triangle me-2"></i>Costliest Loads (Current Window)</div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm table-striped table-hover mb-0">
+            <thead>
+              <tr><th>BL</th><th>Date</th><th>Carrier</th><th class="text-end">¢/lb</th><th class="text-end">Weight (lbs)</th></tr>
+            </thead>
+            <tbody id="fd-outlier-body"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card-footer text-muted" style="font-size:0.75rem;">A few small/expensive loads can pull the average up.</div>
+    </div>
+
+  </div>
+
+  <!-- ── Method / caveat explanation ─────────────────────── -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-header d-flex align-items-center justify-content-between">
+      <span class="fw-semibold"><i class="bi bi-info-circle me-2"></i>How This Analysis Works</span>
+      <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse"
+              data-bs-target="#fd-method-collapse" aria-expanded="false" aria-controls="fd-method-collapse">
+        Expand
+      </button>
+    </div>
+    <div id="fd-method-collapse" class="collapse">
+      <div class="card-body">
+        <p class="mb-2"><strong>Blended ¢/lb (Method A):</strong></p>
+        <p class="mb-3">\[ \text{¢/lb} = \frac{\sum (\text{Unit\_Freight} \times \text{Pick\_Weight})}{\sum \text{Pick\_Weight}} \]</p>
+        <p class="mb-2"><strong>Year-over-year split (symmetric midpoint shift-share):</strong></p>
+        <p class="mb-2">\[ \text{Mix Effect} = \sum_c (\text{share}_c^{cur} - \text{share}_c^{prior}) \cdot \frac{\text{rate}_c^{cur} + \text{rate}_c^{prior}}{2} \]</p>
+        <p class="mb-3">\[ \text{Rate Effect} = \sum_c (\text{rate}_c^{cur} - \text{rate}_c^{prior}) \cdot \frac{\text{share}_c^{cur} + \text{share}_c^{prior}}{2} \]</p>
+        <p class="mb-2">Mix Effect + Rate Effect + Residual = total ¢/lb change. The <strong>Residual</strong> is the small
+          interaction term. A carrier/destination present in only one period is counted as <strong>mix</strong> (its
+          missing-period rate is set equal to its present-period rate, so it does not create a phantom rate spike).</p>
+        <p class="mb-2 text-muted">The same shift-share is applied over two parallel lenses — <strong>carrier</strong> and
+          <strong>destination (ship-to state, from <code>ipg_ez</code>)</strong>. Each fully explains the same total change,
+          so the two are alternative attributions, not additive. Smaller average shipment size is shown as added context,
+          since lighter loads raise the per-pound rate.</p>
+        <p class="mb-0 text-muted"><strong>Market context (LMI):</strong> the verdict cross-references the latest
+          Logistics Managers' Index <em>Transportation Prices</em> sub-index (parsed from the monthly LMI reports). When the
+          rise is rate-driven and LMI Transportation Prices is high/rising, it is market-wide (lock in contracts); when it
+          is mix-driven, it is internal and addressable regardless of the market.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<script>
+  window.MathJax = { tex: { inlineMath: [['\\(','\\)']], displayMath: [['\\[','\\]']] } };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var root = document.getElementById('freight-driver-root');
+  var apiPath = root.getAttribute('data-api-path');
+  var risersPath = root.getAttribute('data-risers-path');
+  var productsPath = root.getAttribute('data-products-path');
+
+  var MONTH_NAMES = ['', 'Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  function fmt(n, d) {
+    var digits = (typeof d === 'number') ? d : 0;
+    return Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: digits, maximumFractionDigits: digits });
+  }
+  function fmtCplb(n) { return (n == null) ? '—' : Number(n).toFixed(2) + '¢'; }
+  function fmtPct(n) { return (n == null) ? '—' : (n >= 0 ? '+' : '') + Number(n).toFixed(1) + '%'; }
+  function signClass(n, higherIsBad) {
+    if (n == null || Math.abs(n) < 1e-9) return 'text-secondary';
+    var up = n > 0;
+    return (up === !!higherIsBad) ? 'text-danger' : 'text-success';
+  }
+
+  function readFilters() {
+    return {
+      site: document.getElementById('fd-site').value,
+      product_group: document.getElementById('fd-product-group').value,
+      product_code: document.getElementById('fd-product-code').value.trim(),
+      date_from: document.getElementById('fd-date-from').value,
+      date_to: document.getElementById('fd-date-to').value,
+    };
+  }
+
+  function buildQuery(params) {
+    var sp = new URLSearchParams();
+    Object.keys(params).forEach(function (k) {
+      if (params[k] !== null && params[k] !== undefined && params[k] !== '') sp.set(k, String(params[k]));
+    });
+    return sp.toString();
+  }
+
+  function showError(msg) {
+    var box = document.getElementById('fd-error');
+    box.textContent = msg;
+    box.classList.remove('d-none');
+  }
+  function clearError() {
+    document.getElementById('fd-error').classList.add('d-none');
+  }
+
+  // ── Product datalist (from shipped-products for the range) ──────────────
+  function loadProductList(f) {
+    var url = productsPath + '?' + buildQuery({
+      site: f.site, product_group: f.product_group, start_date: f.date_from, end_date: f.date_to,
+    });
+    fetch(url).then(function (r) { return r.ok ? r.json() : []; }).then(function (rows) {
+      var seen = {};
+      (rows || []).forEach(function (row) { if (row.product_code) seen[row.product_code] = true; });
+      var dl = document.getElementById('fd-product-list');
+      dl.innerHTML = Object.keys(seen).sort().map(function (p) {
+        return '<option value="' + p + '"></option>';
+      }).join('');
+    }).catch(function () { /* datalist is a convenience; ignore failures */ });
+  }
+
+  // ── Risers ranking ──────────────────────────────────────────────────────
+  // autoSelectTop: when true (e.g. after a site/product-group switch), the
+  // drill-down auto-points to the top riser of the new slice so the verdict,
+  // bridge, and costliest-loads sections always reflect the current filters.
+  function currentDirection() {
+    var el = document.querySelector('input[name="fd-direction"]:checked');
+    return el ? el.value : 'increase';
+  }
+
+  function loadRisers(f, autoSelectTop) {
+    var spinner = document.getElementById('fd-risers-spinner');
+    spinner.classList.remove('d-none');
+    var direction = currentDirection();
+    document.getElementById('fd-movers-title').textContent =
+      direction === 'decrease' ? 'Biggest ¢/lb Decreases' : 'Biggest ¢/lb Increases';
+    var url = risersPath + '?' + buildQuery({
+      site: f.site, product_group: f.product_group, date_from: f.date_from, date_to: f.date_to,
+      top_n: 15, direction: direction,
+    });
+    fetch(url).then(function (r) {
+      if (!r.ok) return r.json().then(function (e) { throw new Error(e.error || ('HTTP ' + r.status)); });
+      return r.json();
+    }).then(function (data) {
+      var m = data.metadata || {};
+      document.getElementById('fd-risers-period').textContent =
+        (m.prior_period || '') + ' → ' + (m.current_period || '');
+      var body = document.getElementById('fd-risers-body');
+      var risers = data.risers || [];
+      if (!risers.length) {
+        body.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-3">No products with a comparable prior year.</td></tr>';
+        // Nothing to drill into for this slice — clear any stale drill-down.
+        document.getElementById('fd-product-code').value = '';
+        document.getElementById('fd-drilldown').classList.add('d-none');
+        return;
+      }
+      body.innerHTML = risers.map(function (r) {
+        var deltaCls = signClass(r.delta_cplb, true);
+        return '<tr style="cursor:pointer;" data-product="' + r.product_code + '">' +
+          '<td class="fw-semibold">' + r.product_code + '</td>' +
+          '<td class="text-end">' + fmtCplb(r.prior_cplb) + '</td>' +
+          '<td class="text-end">' + fmtCplb(r.cur_cplb) + '</td>' +
+          '<td class="text-end ' + deltaCls + '">' + (r.delta_cplb == null ? '—' : (r.delta_cplb >= 0 ? '▲ ' : '▼ ') + fmtCplb(Math.abs(r.delta_cplb))) + '</td>' +
+          '<td class="text-end ' + deltaCls + '">' + fmtPct(r.pct_change) + '</td>' +
+          '<td class="text-end">' + fmt(r.cur_weight_lbs) + '</td>' +
+          '<td class="text-end"><span class="btn btn-sm btn-outline-primary py-0">Why?</span></td>' +
+          '</tr>';
+      }).join('');
+      Array.prototype.forEach.call(body.querySelectorAll('tr[data-product]'), function (tr) {
+        tr.addEventListener('click', function () {
+          var code = tr.getAttribute('data-product');
+          document.getElementById('fd-product-code').value = code;
+          runDrillDown(Object.assign(readFilters(), { product_code: code }));
+        });
+      });
+      // After a slice switch, auto-open the biggest riser so the drill-down
+      // sections refresh to the new site/product group.
+      if (autoSelectTop && !document.getElementById('fd-product-code').value) {
+        var topCode = risers[0].product_code;
+        document.getElementById('fd-product-code').value = topCode;
+        runDrillDown(Object.assign(readFilters(), { product_code: topCode }));
+      }
+    }).catch(function (err) {
+      showError('Risers unavailable: ' + err.message);
+    }).finally(function () {
+      spinner.classList.add('d-none');
+    });
+  }
+
+  // ── Single-product drill-down ────────────────────────────────────────────
+  function runDrillDown(f) {
+    if (!f.product_code) { document.getElementById('fd-drilldown').classList.add('d-none'); return; }
+    clearError();
+    var url = apiPath + '?' + buildQuery({
+      site: f.site, product_group: f.product_group, product_code: f.product_code,
+      date_from: f.date_from, date_to: f.date_to,
+    });
+    fetch(url).then(function (r) {
+      if (!r.ok) return r.json().then(function (e) { throw new Error(e.error || ('HTTP ' + r.status)); });
+      return r.json();
+    }).then(function (data) {
+      renderDrillDown(data);
+      document.getElementById('fd-drilldown').classList.remove('d-none');
+      document.getElementById('fd-drilldown').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }).catch(function (err) {
+      // Hide stale charts so the page never shows a previous product's data.
+      document.getElementById('fd-drilldown').classList.add('d-none');
+      showError('No driver data for ' + f.product_code + ' in ' + f.site + ' / ' + f.product_group + '. ' +
+                'Pick a product from the risers list above.');
+    });
+  }
+
+  function renderDrillDown(data) {
+    var dec = data.decomposition, v = data.verdict, sz = data.shipment_size_context, meta = data.metadata;
+
+    // Header adapts to the actual direction of this product's change.
+    var titleEl = document.getElementById('fd-verdict-title');
+    if (Math.abs(dec.total_delta) < 0.005) titleEl.textContent = "Why It's Flat";
+    else titleEl.textContent = dec.total_delta > 0 ? "Why It's Rising" : "Why It's Falling";
+
+    document.getElementById('fd-verdict-product').textContent = meta.product_code;
+    document.getElementById('fd-verdict-headline').textContent = v.headline;
+    document.getElementById('fd-verdict-detail').textContent = v.detail;
+
+    // Market context (LMI) — colored by whether the freight market is hot/soft.
+    var mc = data.market_context || {};
+    var mcEl = document.getElementById('fd-market-context');
+    if (mc.available && mc.lmi_transportation_prices != null) {
+      var hot = mc.lmi_transportation_prices >= 50;
+      mcEl.innerHTML = '<i class="bi bi-globe2 me-1"></i><strong>Market (LMI):</strong> ' +
+        'Transportation Prices <strong>' + mc.lmi_transportation_prices.toFixed(1) + '</strong> (' +
+        (mc.direction || '') + ', ' + (mc.month || '') + ') — ' +
+        (hot ? 'freight market is expanding' : 'freight market is contracting') + '.';
+      mcEl.className = 'mb-0 ' + (hot ? 'text-danger' : 'text-success');
+    } else {
+      mcEl.textContent = '';
+    }
+
+    document.getElementById('fd-kpi-prior').textContent = fmtCplb(dec.prior_blended_cplb);
+    document.getElementById('fd-kpi-prior-period').textContent = meta.prior_period;
+    document.getElementById('fd-kpi-current').textContent = fmtCplb(dec.current_blended_cplb);
+    document.getElementById('fd-kpi-current-period').textContent = meta.current_period;
+
+    var deltaEl = document.getElementById('fd-kpi-delta');
+    deltaEl.textContent = (dec.total_delta >= 0 ? '▲ ' : '▼ ') + fmtCplb(Math.abs(dec.total_delta));
+    deltaEl.className = 'fw-bold fs-4 ' + signClass(dec.total_delta, true);
+    var driverLabels = { carrier_mix: 'Carrier mix', carrier_rate: 'Carrier rate', destination_mix: 'Destination mix', mixed: 'Mixed', insufficient_data: 'N/A' };
+    document.getElementById('fd-kpi-driver').textContent = driverLabels[v.driver] || v.driver;
+
+    document.getElementById('fd-kpi-size').textContent = fmt(sz.cur_avg_lbs_per_bl) + ' lbs';
+    var sizeDeltaEl = document.getElementById('fd-kpi-size-delta');
+    sizeDeltaEl.textContent = fmtPct(sz.pct_change) + ' vs prior';
+    sizeDeltaEl.className = 'small ' + signClass(sz.pct_change, false); // smaller = bad
+
+    renderWaterfall(dec);
+    renderTrend(data.series || []);
+    renderCarrierTable(data.carrier_table || [], v.dominant_carrier_id);
+    renderDestinationTable(data.destination_table || [], data.destination_decomposition || {});
+    renderOutliers(data.outliers || []);
+  }
+
+  function renderDestinationTable(rows, dd) {
+    var card = document.getElementById('fd-destination-card');
+    var body = document.getElementById('fd-destination-body');
+    if (!dd.available || !rows.length) {
+      // No ship-to data for this slice — hide the destination lens entirely.
+      card.classList.add('d-none');
+      return;
+    }
+    card.classList.remove('d-none');
+    body.innerHTML = rows.map(function (c) {
+      return '<tr>' +
+        '<td class="fw-semibold">' + c.destination + '</td>' +
+        '<td class="text-end">' + (c.prior_share * 100).toFixed(1) + '%</td>' +
+        '<td class="text-end">' + (c.cur_share * 100).toFixed(1) + '%</td>' +
+        '<td class="text-end ' + signClass(c.share_delta, false) + '">' + (c.share_delta >= 0 ? '+' : '') + (c.share_delta * 100).toFixed(1) + '%</td>' +
+        '<td class="text-end">' + fmtCplb(c.prior_cplb) + '</td>' +
+        '<td class="text-end">' + fmtCplb(c.cur_cplb) + '</td>' +
+        '<td class="text-end ' + signClass(c.rate_delta, true) + '">' + (c.rate_delta == null ? '—' : (c.rate_delta >= 0 ? '+' : '') + c.rate_delta.toFixed(2)) + '</td>' +
+        '<td class="text-end ' + signClass(c.mix_effect, true) + '">' + (c.mix_effect >= 0 ? '+' : '') + c.mix_effect.toFixed(2) + '</td>' +
+        '<td class="text-end ' + signClass(c.rate_effect, true) + '">' + (c.rate_effect >= 0 ? '+' : '') + c.rate_effect.toFixed(2) + '</td>' +
+        '</tr>';
+    }).join('');
+    document.getElementById('fd-destination-footer').innerHTML =
+      'Destination lens (same total change): <strong>mix ' + (dd.mix_effect >= 0 ? '+' : '') + dd.mix_effect.toFixed(2) +
+      '¢/lb</strong> (shipping to costlier states) · <strong>rate ' + (dd.rate_effect >= 0 ? '+' : '') + dd.rate_effect.toFixed(2) +
+      '¢/lb</strong> (¢/lb change within a state).';
+  }
+
+  function renderWaterfall(dec) {
+    Plotly.newPlot('fd-waterfall', [{
+      type: 'waterfall', orientation: 'v',
+      x: ['Prior ¢/lb', 'Carrier Mix', 'Carrier Rate', 'Residual', 'Current ¢/lb'],
+      measure: ['absolute', 'relative', 'relative', 'relative', 'total'],
+      y: [dec.prior_blended_cplb, dec.mix_effect, dec.rate_effect, dec.residual, dec.current_blended_cplb],
+      text: [dec.prior_blended_cplb, dec.mix_effect, dec.rate_effect, dec.residual, dec.current_blended_cplb]
+        .map(function (n, i) { return (i === 0 || i === 4 ? '' : (n >= 0 ? '+' : '')) + Number(n).toFixed(2); }),
+      textposition: 'outside',
+      connector: { line: { color: '#bbb' } },
+      increasing: { marker: { color: '#d9534f' } },
+      decreasing: { marker: { color: '#198754' } },
+      totals: { marker: { color: '#154e9a' } },
+    }], {
+      yaxis: { title: '¢ / lb', automargin: true, gridcolor: '#e9ecef' },
+      xaxis: { automargin: true },
+      margin: { t: 20, r: 20, b: 60, l: 60 },
+      paper_bgcolor: '#fff', plot_bgcolor: '#fff',
+      font: { family: 'Open Sans, sans-serif', size: 11 },
+    }, { responsive: true, displayModeBar: false });
+  }
+
+  function renderTrend(series) {
+    var palette = ['#cbd5e1', '#93c5fd', '#42a5f5', '#154e9a'];
+    var sorted = series.slice().sort(function (a, b) { return a.year - b.year; });
+    var traces = sorted.map(function (s, idx) {
+      var isLatest = idx === sorted.length - 1;
+      return {
+        x: s.data.map(function (m) { return m.month; }),
+        y: s.data.map(function (m) { return m.blended_cplb; }),
+        mode: 'lines+markers',
+        name: String(s.year),
+        line: { width: isLatest ? 3 : 2, color: palette[Math.max(0, palette.length - sorted.length + idx)], dash: isLatest ? 'solid' : 'dot' },
+        marker: { size: isLatest ? 6 : 4 },
+        hovertemplate: '<b>%{fullData.name}</b><br>Month %{x}<br>%{y:.2f}¢/lb<extra></extra>',
+      };
+    });
+    Plotly.newPlot('fd-trend', traces, {
+      xaxis: { title: 'Month', tickmode: 'array', tickvals: [1,2,3,4,5,6,7,8,9,10,11,12],
+               ticktext: MONTH_NAMES.slice(1), automargin: true },
+      yaxis: { title: '¢ / lb', automargin: true, gridcolor: '#e9ecef' },
+      margin: { t: 20, r: 20, b: 50, l: 60 },
+      paper_bgcolor: '#fff', plot_bgcolor: '#fff',
+      font: { family: 'Open Sans, sans-serif', size: 11 },
+      legend: { orientation: 'h', y: -0.2 },
+      hovermode: 'x unified',
+    }, { responsive: true, displayModeBar: false });
+  }
+
+  function renderCarrierTable(rows, dominantId) {
+    var body = document.getElementById('fd-carrier-body');
+    body.innerHTML = rows.map(function (c) {
+      var bold = (c.carrier_id === dominantId) ? ' class="fw-bold table-active"' : '';
+      return '<tr' + bold + '>' +
+        '<td>' + c.carrier_id + '</td>' +
+        '<td class="text-end">' + (c.prior_share * 100).toFixed(1) + '%</td>' +
+        '<td class="text-end">' + (c.cur_share * 100).toFixed(1) + '%</td>' +
+        '<td class="text-end ' + signClass(c.share_delta, false) + '">' + (c.share_delta >= 0 ? '+' : '') + (c.share_delta * 100).toFixed(1) + '%</td>' +
+        '<td class="text-end">' + fmtCplb(c.prior_cplb) + '</td>' +
+        '<td class="text-end">' + fmtCplb(c.cur_cplb) + '</td>' +
+        '<td class="text-end ' + signClass(c.rate_delta, true) + '">' + (c.rate_delta == null ? '—' : (c.rate_delta >= 0 ? '+' : '') + c.rate_delta.toFixed(2)) + '</td>' +
+        '<td class="text-end ' + signClass(c.mix_effect, true) + '">' + (c.mix_effect >= 0 ? '+' : '') + c.mix_effect.toFixed(2) + '</td>' +
+        '<td class="text-end ' + signClass(c.rate_effect, true) + '">' + (c.rate_effect >= 0 ? '+' : '') + c.rate_effect.toFixed(2) + '</td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  function renderOutliers(rows) {
+    var body = document.getElementById('fd-outlier-body');
+    body.innerHTML = rows.map(function (o) {
+      return '<tr>' +
+        '<td class="fw-semibold">' + o.bl_number + '</td>' +
+        '<td>' + (o.truck_appointment_date || '—') + '</td>' +
+        '<td>' + (o.carrier_id || '—') + '</td>' +
+        '<td class="text-end">' + fmtCplb(o.unit_freight) + '</td>' +
+        '<td class="text-end">' + fmt(o.pick_weight) + '</td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  // ── Init ─────────────────────────────────────────────────────────────────
+  function applyPresets() {
+    var s = root.getAttribute('data-site');
+    var pg = root.getAttribute('data-product-group');
+    var pc = root.getAttribute('data-product-code');
+    if (s) document.getElementById('fd-site').value = s;
+    if (pg) document.getElementById('fd-product-group').value = pg;
+    if (pc) document.getElementById('fd-product-code').value = pc;
+  }
+
+  function runAll() {
+    var f = readFilters();
+    document.getElementById('fd-filter-label').textContent =
+      f.site + ' · ' + f.product_group + ' · ' + f.date_from + ' to ' + f.date_to;
+    loadProductList(f);
+    if (f.product_code) {
+      // Keep the chosen product; risers refresh in the background, drill-down updates.
+      loadRisers(f, false);
+      runDrillDown(f);
+    } else {
+      // No product chosen → load risers and auto-open the biggest one.
+      loadRisers(f, true);
+    }
+    if (window.MathJax && window.MathJax.typesetPromise) window.MathJax.typesetPromise();
+  }
+
+  document.getElementById('fd-filter-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    runAll();
+  });
+  document.getElementById('fd-product-code').addEventListener('change', function () {
+    runDrillDown(readFilters());
+  });
+  // Switching site or product group changes which products exist, so clear the
+  // (now slice-specific) product and refresh everything — the drill-down then
+  // auto-points to the new slice's biggest mover.
+  ['fd-site', 'fd-product-group'].forEach(function (id) {
+    document.getElementById(id).addEventListener('change', function () {
+      document.getElementById('fd-product-code').value = '';
+      runAll();
+    });
+  });
+  // Toggling Increases/Decreases reloads the movers list and auto-opens the
+  // biggest mover in that direction, so the drill-down flips rising↔falling.
+  ['fd-dir-increase', 'fd-dir-decrease'].forEach(function (id) {
+    document.getElementById(id).addEventListener('change', function () {
+      document.getElementById('fd-product-code').value = '';
+      loadRisers(readFilters(), true);
+    });
+  });
+
+  applyPresets();
+  runAll();
+})();
+</script>
+{% endblock %}

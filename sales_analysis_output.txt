@@ -1,0 +1,218 @@
+SALES SUMMARY ANALYSIS (PANDAS)
+Data source: warship.sales_summary
+Raw rows: 902
+Line-item rows after filtering: 766
+Latest business_date used for point-in-time sections: 2026-05-20
+
+==========================================================================================
+A) SALES PERFORMANCE (LATEST BUSINESS_DATE)
+==========================================================================================
+Daily vs MTD Volumes
+- Daily Order Qty:      1,140,043
+- Daily Shipment Qty:   838,673
+- MTD Order Qty:        17,022,409
+- MTD Shipment Qty:     13,961,546
+
+Daily vs MTD Revenue
+- Daily Order Revenue:    $1,535,849.55
+- Daily Shipment Revenue: $1,073,642.52
+- MTD Order Revenue:      $23,806,548.22
+- MTD Shipment Revenue:   $17,578,581.40
+
+==========================================================================================
+B) PRICING ANALYSIS (LATEST BUSINESS_DATE)
+==========================================================================================
+product_class wavg_mtd_order_unit_price wavg_mtd_shipment_unit_price price_spread_ship_minus_order freight_pct_of_ship_price
+      ANTIFOG                     $0.00                        $0.00                         $0.00                     0.00%
+            B                     $0.10                        $0.17                         $0.07                     8.04%
+         BOPE                     $0.00                        $3.50                         $0.00                     0.00%
+            C                     $0.00                        $0.06                         $0.00                     0.00%
+        CO-EX                     $1.36                        $1.32                        $-0.03                     4.68%
+     Convert,                     $1.26                        $1.13                        $-0.13                    10.90%
+        Hand,                     $1.41                        $1.10                        $-0.31                     9.69%
+       INDUS.                     $1.80                        $1.88                         $0.08                     5.50%
+         ISCC                     $0.00                        $1.05                         $0.00                     0.00%
+        MATTE                     $1.47                        $1.45                        $-0.02                     3.79%
+         Mach                     $1.46                        $1.30                        $-0.16                     8.70%
+        Mach.                     $1.42                        $1.14                        $-0.28                     8.64%
+          OFF                     $1.22                        $1.22                         $0.00                    19.46%
+           PE                     $1.53                        $1.37                        $-0.16                     2.98%
+    PEARLIZED                     $0.00                        $0.00                         $0.00                     0.00%
+           PP                     $1.22                        $1.10                        $-0.12                     3.40%
+    Pre-stch,                     $0.00                        $0.00                         $0.00                     0.00%
+    Pre-stch.                     $1.61                        $1.50                        $-0.12                    12.17%
+      Service                     $0.00                       $50.00                         $0.00                     0.00%
+          TAN                     $1.74                        $0.00                         $0.00                     0.00%
+            W                     $0.11                        $0.10                        $-0.01                     0.65%
+        WHITE                     $1.84                        $1.85                         $0.02                     2.98%
+
+==========================================================================================
+C) BACKLOG & DEMAND (LATEST BUSINESS_DATE)
+==========================================================================================
+Backlog by Product Class
+product_class total_backlog_qty total_backlog_value
+        CO-EX        24,816,316      $33,184,719.34
+        Mach.         7,911,264       $9,958,824.88
+        Hand,         4,125,283       $5,361,647.40
+           PP         3,202,439       $4,087,567.01
+        MATTE         2,688,732       $3,906,727.60
+           PE         1,753,387       $2,400,523.96
+       INDUS.         1,687,205       $2,954,589.89
+    Pre-stch.         1,164,096       $1,862,553.60
+         Mach           689,912         $906,505.16
+        WHITE           475,659         $947,927.01
+            B           436,690          $87,562.02
+            W           315,707          $13,662.36
+     Convert,           273,518         $254,918.78
+          TAN           146,447         $233,290.07
+      ANTIFOG            45,488          $81,423.52
+            C            34,807           $1,665.84
+         BOPE            34,515         $118,366.96
+    Pre-stch,             2,088               $0.00
+    PEARLIZED             1,186               $0.00
+         ISCC                 0               $0.00
+          OFF                 0               $0.00
+      Service                 0               $0.00
+
+Top 10 Products by Total Backlog Qty
+       product total_backlog_qty  backlog_value
+     CO-EX -VA         8,669,792 $10,082,968.10
+CO-EX -BB(DOM)         5,685,851  $7,829,416.83
+CO-EX PET FOOD         3,739,478  $5,104,387.47
+    CO-EX SLIP         3,167,200  $4,665,285.60
+ Mach. X-treme         3,135,572  $3,831,668.98
+Mach. LoadStar         2,922,495  $3,632,661.29
+   MATTE CO-EX         2,688,732  $3,906,727.60
+  CO-EX (H.S.)         2,519,324  $3,950,300.03
+Hand, Conventi         1,856,963  $2,219,070.79
+   PP Additive         1,840,401  $2,287,618.44
+
+Backlog Rolling Forward
+- Monthend Backlog Qty (sum): 25,403,320
+- Total Backlog Qty (sum):    49,804,739
+- Difference (Total - Monthend): 24,401,419
+
+==========================================================================================
+D) TARGET ACHIEVEMENT (LATEST BUSINESS_DATE)
+==========================================================================================
+Assumption: target_qty_klb is klb; mtd_shipment_qty converted from lb to klb by dividing by 1000.
+
+Target Achievement by Product Class
+product_class mtd_shipment_klb target_qty_klb target_achievement_ratio
+      ANTIFOG             0.00           0.00                    0.00%
+            B           149.66           0.00                    0.00%
+         BOPE             8.54           0.00                    0.00%
+            C            80.19           0.00                    0.00%
+        CO-EX         4,460.59           0.00                    0.00%
+     Convert,            10.15         780.00                    1.30%
+        Hand,         1,891.79       2,367.00                   79.92%
+       INDUS.           423.37           0.00                    0.00%
+         ISCC            48.28           0.00                    0.00%
+        MATTE           632.70           0.00                    0.00%
+         Mach           203.98         442.00                   46.15%
+        Mach.         3,072.23       7,742.00                   39.68%
+          OFF             5.41           0.00                    0.00%
+           PE           592.19         983.00                   60.24%
+    PEARLIZED             0.00           0.00                    0.00%
+           PP           943.85       1,990.00                   47.43%
+    Pre-stch,             0.00          25.00                    0.00%
+    Pre-stch.         1,231.46       1,074.00                  114.66%
+      Service             0.02           0.00                    0.00%
+          TAN             0.00           0.00                    0.00%
+            W            44.19           0.00                    0.00%
+        WHITE           162.95           0.00                    0.00%
+
+Under-performers (< 80%)
+product_class target_achievement_ratio
+     Convert,                    1.30%
+        Hand,                   79.92%
+         Mach                   46.15%
+        Mach.                   39.68%
+           PE                   60.24%
+           PP                   47.43%
+    Pre-stch,                    0.00%
+
+Over-performers (> 110%)
+product_class target_achievement_ratio
+    Pre-stch.                  114.66%
+
+==========================================================================================
+E) PRODUCT MIX (LATEST BUSINESS_DATE)
+==========================================================================================
+Product Class Mix
+product_class mtd_shipment_qty mtd_shipment_revenue qty_share revenue_share
+      ANTIFOG                0                $0.00     0.00%         0.00%
+            B          149,665           $25,720.20     1.07%         0.15%
+         BOPE            8,541           $29,893.50     0.06%         0.17%
+            C           80,186            $4,811.16     0.57%         0.03%
+        CO-EX        4,460,594        $5,903,320.81    31.95%        33.58%
+     Convert,           10,150           $11,466.45     0.07%         0.07%
+        Hand,        1,891,788        $2,081,875.84    13.55%        11.84%
+       INDUS.          423,365          $795,739.07     3.03%         4.53%
+         ISCC           48,285           $50,699.25     0.35%         0.29%
+        MATTE          632,701          $916,214.32     4.53%         5.21%
+         Mach          203,984          $265,002.43     1.46%         1.51%
+        Mach.        3,072,232        $3,489,761.23    22.00%        19.85%
+          OFF            5,405            $6,594.10     0.04%         0.04%
+           PE          592,193          $809,032.06     4.24%         4.60%
+    PEARLIZED                0                $0.00     0.00%         0.00%
+           PP          943,846        $1,037,865.65     6.76%         5.90%
+    Pre-stch,                0                $0.00     0.00%         0.00%
+    Pre-stch.        1,231,461        $1,843,127.68     8.82%        10.49%
+      Service               16              $800.00     0.00%         0.00%
+          TAN                0                $0.00     0.00%         0.00%
+            W           44,188            $4,400.00     0.32%         0.03%
+        WHITE          162,946          $302,257.65     1.17%         1.72%
+
+Top 10 Products by MTD Shipment Qty
+       product mtd_shipment_qty
+     CO-EX -VA        1,665,920
+ Mach. X-treme        1,318,894
+Pre-stch. Hand        1,231,461
+Hand, Conventi        1,040,028
+CO-EX PET FOOD          728,127
+  CO-EX (H.S.)          712,115
+   MATTE CO-EX          632,701
+Mach. LoadStar          627,633
+    CO-EX SLIP          614,637
+CO-EX -BB(DOM)          611,672
+
+Top 10 Products by MTD Shipment Revenue
+       product mtd_shipment_revenue
+     CO-EX -VA        $1,907,478.40
+Pre-stch. Hand        $1,843,127.68
+ Mach. X-treme        $1,402,248.10
+  CO-EX (H.S.)        $1,070,878.54
+Hand, Conventi          $995,306.80
+CO-EX PET FOOD          $985,956.77
+    CO-EX SLIP          $930,683.35
+   MATTE CO-EX          $916,214.32
+CO-EX -BB(DOM)          $818,294.80
+Mach. LoadStar          $698,681.06
+
+==========================================================================================
+F) TIME SERIES (ALL BUSINESS_DATES)
+==========================================================================================
+Daily Shipment Qty Trend
+business_date daily_shipment_qty
+   2021-09-20          1,485,371
+   2021-09-21          1,286,399
+   2021-09-23            735,861
+   2021-09-24          1,319,738
+   2021-09-25             36,144
+   2021-09-26            148,678
+   2021-09-27          1,402,385
+   2026-05-19            940,676
+   2026-05-20            838,673
+
+Total Backlog Trend
+business_date total_backlog_qty
+   2021-09-20        49,102,466
+   2021-09-21        49,038,912
+   2021-09-23        49,440,958
+   2021-09-24        48,977,307
+   2021-09-25        49,104,990
+   2021-09-26        49,161,758
+   2021-09-27        48,728,366
+   2026-05-19        49,487,521
+   2026-05-20        49,804,739

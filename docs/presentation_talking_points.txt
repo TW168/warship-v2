@@ -1,0 +1,206 @@
+CFP WAREHOUSE & SHIPPING — AMJK / SW  |  June 2, 2026
+======================================================
+
+
+SLIDE 1 — WHO WE ARE
+---------------------
+"11 people. Two shifts. Monday through Friday, plus the last two Saturdays of
+every month. Since 2021 — zero recordable accidents. Five years, zero injuries.
+That is the foundation everything else on this deck is built on."
+
+
+SLIDE 2 — VOLUME: WHAT WE MOVE
+--------------------------------
+"Year to date, January through May, we shipped 59.8 million pounds. Same five
+months last year we shipped 54.6 million pounds. That is a 9.5 percent increase
+year over year. We are moving more product in 2026 than we did in 2025. The
+challenge on the next slide is what that growth is actually costing us."
+
+
+SLIDE 3 — SHIPMENT SIZE & WORKLOAD PRESSURE
+--------------------------------------------
+"Even though volume is up 9.5%, our workload did NOT go up by 9.5%. It is
+actually more manageable this year because the average shipment got bigger.
+In 2025 we were averaging 20,905 pounds per load. This year we are at 22,449
+pounds per load — that is 7.4% larger loads. Bigger loads mean fewer truck
+appointments for the same tonnage. This is the right direction."
+
+
+SLIDE 4 — FREIGHT COST: WHAT IT COSTS
+---------------------------------------
+"This is where we have a problem. Freight cost in 2026 is running at 8.58 cents
+per pound. In 2025 it was 7.68 cents per pound. That is an 11.7% increase in
+cost year over year, on top of a 9.5% volume increase. We are shipping more
+AND paying more per pound to do it. The next slide shows us exactly which
+products are driving that number up."
+
+
+SLIDE 5 — FREIGHT CENTS/LB DRIVERS: WHY IT MOVED
+--------------------------------------------------
+"Three products are responsible for the biggest freight cost spikes this year:
+
+  - PSB0381501476AM-144P jumped from 4.79 to 9.98 cents per pound — that is
+    plus 108.5%. More than doubled.
+  - HCB0701801500AM-64 went from 5.64 to 8.76 cents — up 55.4%.
+  - HSB0631601500AM-64 went from 9.61 to 12.58 cents — up 30.9%.
+
+On the other side, three products got cheaper:
+  - EHB0632955000AM-25 dropped 26.7%, from 8.68 to 6.36 cents.
+  - PSB0331501476ENV-36 dropped 19.4%.
+  - EPB0802006000AM-40 dropped 15.2%.
+
+The question we need to answer for the top risers: is it the carrier charging
+more, or did we shift that product to an expensive carrier? Those are two very
+different fixes."
+
+
+SLIDE 6 — CARRIER CONCENTRATION & COST
+----------------------------------------
+"We used 1,772 loads YTD across our carrier panel. GILTNER handles 555 of those
+— that is 31.3% of all loads. AAL is second at 25.4%. Together those two carriers
+handle more than half our freight. That is manageable but worth watching — if
+either one has a capacity problem in peak season, we feel it immediately.
+
+On cost: DRAKE is our most expensive real carrier at 14.15 cents per pound on
+157 loads. For context, GILTNER runs more than three times the volume. That is
+where a renegotiation conversation belongs."
+
+
+SLIDE 7 — CUSTOMER MIX: WHERE IT GOES
+---------------------------------------
+"Year to date, our number one customer is WESTERN PLASTICS at 6.04 million
+pounds. Number two is SYNTRANET at 2.38 million. Numbers three, four, and five —
+BAUMRUCKER, LEGACY PAPER, and WESTERN PLASTICS CA — are all between 1.38 and
+1.44 million pounds each.
+
+The concern: WESTERN PLASTICS alone represents nearly 48% of our top-five
+customer weight. If that account slows down, we feel it. We need to keep that
+relationship tight and keep growing the middle of the book."
+
+
+SLIDE 8 — PRODUCT PORTFOLIO: WHAT'S GROWING OR SHRINKING
+----------------------------------------------------------
+"The portfolio chart tells you how concentrated or diversified we are month by
+month. When the unique-product line drops, we are becoming more dependent on
+fewer SKUs. We want to know which products are protecting that line and which
+ones are at risk — because the top five by weight are the ones we cannot afford
+to lose a lane on."
+
+
+SLIDE 9 — WAREHOUSE OPERATIONS: HOW THE FLOOR PERFORMED
+---------------------------------------------------------
+"May 1 through June 2: 11,104 pallets came in from production. 11,219 went out
+to trucks. Net movement: minus 115 pallets. The floor is essentially balanced.
+We are not building inventory, we are not drawing it down. For a high-throughput
+month that is exactly where we want to be — intake and output tracking together."
+
+
+SLIDE 10 — EXECUTIVE SUMMARY (AI-GENERATED)
+--------------------------------------------
+"This last slide takes all the numbers we just covered — the 9.5% volume
+increase, the 11.7% freight cost spike, GILTNER at 31% concentration, PSB
+doubling in cost, WESTERN PLASTICS at 48% of top-five weight — and asks the AI
+to write a plain-English summary: what happened, why, and what we should do
+about it. The AI does not make up numbers. Every figure in that narrative came
+from our own database. Use it as your action list going into Q3."
+
+
+---------------------------------------------------------------
+CLOSING LINE
+---------------------------------------------------------------
+"Every number on these slides is live data, pulled this morning from our
+warehouse management system. We can regenerate this deck any Monday in under
+30 seconds. No spreadsheets, no manual pulls, no estimates."
+---------------------------------------------------------------
+
+
+
+SLIDE 2 — VOLUME: WHAT WE MOVE
+--------------------------------
+"This chart shows how many millions of pounds we ship each month, year over year.
+The bold blue line is this year. If it's tracking above last year, demand is growing.
+If it's below, we adjust staffing and carrier capacity accordingly. The key number
+is the YoY change tile — that tells us if we're busier or lighter than last year."
+
+
+SLIDE 3 — SHIPMENT SIZE & WORKLOAD PRESSURE
+--------------------------------------------
+"This one surprises people. Even when total tonnage stays flat, we can be doing
+MORE work. Why? Because customers are ordering smaller, more frequent shipments.
+Fewer pounds per truck means more dock appointments, more paperwork, more forklift
+moves — for the same tonnage. The 'Extra Loads YTD' number tells you exactly how
+many additional trucks that translated to."
+
+
+SLIDE 4 — FREIGHT COST: WHAT IT COSTS
+---------------------------------------
+"This is our cost per pound to ship, by month and by year. The goal is to keep
+the current year's line at or below prior years. When it rises, we need to
+understand why — is it the market, is it a specific carrier, or is it our own
+shipment patterns? This slide tells us the trend; Slide 5 tells us who's responsible."
+
+
+SLIDE 5 — FREIGHT CENTS/LB DRIVERS: WHY IT MOVED
+--------------------------------------------------
+"These are the products with the biggest freight cost increases and decreases
+year over year. This is where we focus negotiations. A product with a big increase
+usually has one of two causes: a carrier raised rates on that lane, or we shifted
+volume to a more expensive carrier. The Freight Driver tool separates those two
+causes for us."
+
+
+SLIDE 6 — CARRIER CONCENTRATION & COST
+----------------------------------------
+"The pie chart shows how dependent we are on a single carrier. If one carrier is
+handling more than 35% of our loads, that's a concentration risk — if they have
+capacity problems, we feel it immediately. The bar chart shows which carriers cost
+the most per pound. Those two charts together tell us where to negotiate and where
+to build backup options."
+
+
+SLIDE 7 — CUSTOMER MIX: WHERE IT GOES
+---------------------------------------
+"The size of each box represents how much weight that customer received this year.
+A healthy book has no single customer dominating. If the top three customers
+represent more than 60% of our weight, that's a retention risk. We want to know
+our biggest customers, keep them happy, and keep growing the others."
+
+
+SLIDE 8 — PRODUCT PORTFOLIO: WHAT'S GROWING OR SHRINKING
+----------------------------------------------------------
+"The line chart tracks how many unique products we ship each month. When that
+number drops, our business is concentrating — we're more dependent on fewer SKUs.
+When it rises, we're diversifying, but we also have more pick complexity. The
+table on the right shows our top five products by weight this year — those are
+the ones we protect."
+
+
+SLIDE 9 — WAREHOUSE OPERATIONS: HOW THE FLOOR PERFORMED
+---------------------------------------------------------
+"Blue bars are pallets coming in from production; gold bars are pallets leaving
+to trucks. When IN consistently exceeds OUT, inventory is building — we may be
+running out of rack space. When OUT exceeds IN, we're drawing down inventory.
+Over the last 30 days, the net number tells us if we're balanced. We want those
+bars as close together as possible."
+
+
+SLIDE 10 — EXECUTIVE SUMMARY (AI-GENERATED)
+--------------------------------------------
+"This is an AI-generated interpretation of everything we just reviewed — volume
+direction, freight cost direction, carrier concentration, and shipment size pressure.
+It is organized into three sections:
+  - TREND:   What happened
+  - WHY:     Root causes
+  - IMPROVE: What we should do next
+
+The numbers are all real data from our system; the AI only interprets them. Use
+this as your closing statement or action list going into the next quarter."
+
+
+---------------------------------------------------------------
+CLOSING LINE
+---------------------------------------------------------------
+"Every number on these slides comes directly from our warehouse management system
+— no estimates. This deck is live data. We can regenerate it any Monday morning
+in under 30 seconds."
+---------------------------------------------------------------

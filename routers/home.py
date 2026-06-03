@@ -25,8 +25,9 @@ import re
 import openpyxl
 import pandas as pd
 from fastapi import APIRouter, Query, Request
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
+from pydantic import BaseModel
 from sqlalchemy import text
 
 from database import connect_to_database
@@ -789,6 +790,20 @@ async def briefing(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(
         "home/briefing.html",
         {"request": request, "active_page": "briefing"},
+    )
+
+
+@router.get(
+    "/summary",
+    response_class=HTMLResponse,
+    summary="Summary presentation page",
+    description="Printable presentation page featuring Staff & Hours and Safety cards.",
+)
+async def summary(request: Request) -> HTMLResponse:
+    """Render the Summary presentation page."""
+    return templates.TemplateResponse(
+        "home/summary.html",
+        {"request": request, "active_page": "summary"},
     )
 
 
@@ -1600,4 +1615,137 @@ async def carrier_usage_ytd(
                 "total_carriers": len(by_carrier),
             },
         }
+    )
+
+
+# ---------------------------------------------------------------------------
+# Briefing — AI executive summary (Ollama narrative over pre-computed metrics)
+# ---------------------------------------------------------------------------
+
+class BriefingExecSummaryRequest(BaseModel):
+    """Pre-computed briefing metrics sent from the client for AI narration.
+
+    All numbers are calculated client-side from the briefing charts so the
+    model only has to *interpret* them, never recompute. Every field is
+    optional so a partial dashboard (e.g. one chart failed to load) still
+    produces a usable narrative.
+    """
+
+    site: str = "AMJK"
+    product_group: str = "SW"
+
+    freight_ytd_cplb: float | None = None      # YTD avg ¢/lb (current year)
+    freight_prev_cplb: float | None = None     # prior-year same-months avg ¢/lb
+    freight_yoy_pct: float | None = None       # YoY % change in ¢/lb
+
+    weight_ytd_m: float | None = None          # YTD shipped weight (million lbs)
+    weight_prev_m: float | None = None         # prior-year same-months weight (M lbs)
+    weight_yoy_pct: float | None = None        # YoY % change in shipped weight
+    weight_recent_direction: str | None = None # "rising" | "falling" | "flat"
+
+    top_carrier: str | None = None             # carrier with largest load share
+    top_carrier_share: float | None = None     # its share of YTD loads (%)
+    carrier_count: int | None = None           # number of active carriers YTD
+
+    highest_cost_carrier: str | None = None    # carrier with worst ¢/lb
+    highest_cost_cplb: float | None = None      # that carrier's ¢/lb
+
+    top_product: str | None = None             # #1 product by weight
+    top_product_share: float | None = None     # its share of top-5 weight (%)
+    diversity_avg: int | None = None           # avg unique products / month
+    diversity_direction: str | None = None     # "rising" | "falling" | "flat"
+
+    avg_lbs_per_load: float | None = None      # latest comparable month avg shipment size
+    avg_lbs_yoy_pct: float | None = None       # YoY % change in avg shipment size (neg = smaller)
+    workload_intensity: float | None = None    # latest loads per 1M lbs
+    intensity_yoy_pct: float | None = None     # YoY % change in workload intensity (pos = harder)
+    extra_loads_ytd: float | None = None       # YTD extra loads driven purely by smaller shipments
+
+
+def _build_exec_summary_prompt(m: BriefingExecSummaryRequest) -> str:
+    """Build the Ollama prompt for the briefing executive summary.
+
+    The metrics are pre-computed; the prompt instructs the model to interpret
+    (not recompute) them and emit three short labeled sections that the client
+    renders directly.
+    """
+
+    def fmt(value, suffix: str = "", signed: bool = False) -> str:
+        """Format a metric value or fall back to 'n/a' when missing."""
+        if value is None:
+            return "n/a"
+        if isinstance(value, float):
+            text_val = f"{value:+.1f}" if signed else f"{value:.1f}"
+        else:
+            text_val = str(value)
+        return f"{text_val}{suffix}"
+
+    metrics_lines = [
+        f"- Freight cost YTD: {fmt(m.freight_ytd_cplb, '¢/lb')} "
+        f"(prior year same months: {fmt(m.freight_prev_cplb, '¢/lb')}, "
+        f"year-over-year {fmt(m.freight_yoy_pct, '%', signed=True)})",
+        f"- Shipped volume YTD: {fmt(m.weight_ytd_m, 'M lbs')} "
+        f"(prior year same months: {fmt(m.weight_prev_m, 'M lbs')}, "
+        f"year-over-year {fmt(m.weight_yoy_pct, '%', signed=True)}, "
+        f"recent 3-month direction: {m.weight_recent_direction or 'n/a'})",
+        f"- Carrier concentration: top carrier {m.top_carrier or 'n/a'} handles "
+        f"{fmt(m.top_carrier_share, '%')} of loads across {fmt(m.carrier_count)} carriers",
+        f"- Most expensive carrier: {m.highest_cost_carrier or 'n/a'} at "
+        f"{fmt(m.highest_cost_cplb, '¢/lb')}",
+        f"- Product mix: #1 product {m.top_product or 'n/a'} is "
+        f"{fmt(m.top_product_share, '%')} of top-5 weight; "
+        f"~{fmt(m.diversity_avg)} unique products/month "
+        f"(diversity {m.diversity_direction or 'n/a'})",
+        f"- Shipment size & workload: avg shipment is {fmt(m.avg_lbs_per_load, ' lbs/load')} "
+        f"({fmt(m.avg_lbs_yoy_pct, '%', signed=True)} year-over-year); workload intensity "
+        f"{fmt(m.workload_intensity, ' loads/1M lbs')} ({fmt(m.intensity_yoy_pct, '%', signed=True)} YoY); "
+        f"an estimated {fmt(m.extra_loads_ytd, ' extra loads')} year-to-date were caused purely by "
+        f"smaller shipment size (more handling for the same tonnage)",
+    ]
+
+    return (
+        "You are a blunt, senior warehouse & shipping operations analyst writing the "
+        "opening summary of an executive briefing.\n"
+        f"Site: {m.site}. Product group: {m.product_group}.\n\n"
+        "These year-to-date metrics are ALREADY CALCULATED. Do not recompute them — "
+        "interpret them and explain what they mean for the operation.\n\n"
+        "--- METRICS ---\n"
+        + "\n".join(metrics_lines)
+        + "\n--- END METRICS ---\n\n"
+        "Write exactly three sections in plain text. Use these exact labels on their own "
+        "line, no markdown headers, no preamble, no closing remarks:\n\n"
+        "TREND:\n"
+        "(2-3 sentences on the overall direction of cost and volume, citing the actual numbers.)\n\n"
+        "WHY:\n"
+        "(1-2 sentences on the most likely drivers — carrier concentration, volume shift, or product mix.)\n\n"
+        "IMPROVE:\n"
+        "(Three numbered actions, each on its own line, one sentence each, specific and actionable.)\n\n"
+        "If average shipment size is shrinking (negative YoY), make the workload pressure from smaller "
+        "orders — extra loads, more handling and dock activity for the same tonnage — a central point in "
+        "WHY and address it in IMPROVE.\n"
+        "Use the real numbers above. Be direct. Keep the whole thing under 180 words."
+    )
+
+
+@router.post(
+    "/api/briefing/executive-summary",
+    summary="AI executive summary for the Operations Briefing",
+    description=(
+        "Accepts pre-computed briefing metrics (freight YoY, volume YoY, carrier "
+        "concentration, product mix) and streams a 3-section narrative "
+        "(TREND / WHY / IMPROVE) from local Ollama deepseek-r1:8b. The client "
+        "computes all numbers; the model only interprets them."
+    ),
+)
+async def briefing_executive_summary(
+    body: BriefingExecSummaryRequest,
+) -> StreamingResponse:
+    """Stream an AI-written executive summary narrative for the briefing page."""
+    # Imported lazily to avoid any import-time coupling with the maintenance package.
+    from routers.maintenance.lmi import _stream_ollama
+
+    prompt = _build_exec_summary_prompt(body)
+    return StreamingResponse(
+        _stream_ollama(prompt),
+        media_type="text/plain; charset=utf-8",
     )

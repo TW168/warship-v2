@@ -9,6 +9,30 @@
   /* ── Screen: slightly darker label color for readability ── */
   .metric-label { color: #555; font-size: 0.8rem; margin-bottom: 0.2rem; }
 
+  /* ── Dynamic insight bar (rendered under each chart) ─────── */
+  .briefing-insight {
+    font-size: 0.82rem;
+    line-height: 1.45;
+    color: #2c3e50;
+    background: #f1f5fb;
+    border-left: 3px solid #154e9a;
+    border-radius: 0.35rem;
+    padding: 0.5rem 0.75rem;
+    margin-top: 0.5rem;
+  }
+  .briefing-insight .ins-label {
+    font-weight: 600;
+    color: #154e9a;
+    margin-right: 0.25rem;
+  }
+  /* Direction colors for deltas / KPI notes */
+  .delta-up   { color: #b02a37; font-weight: 600; }   /* cost/volume up */
+  .delta-down { color: #157347; font-weight: 600; }   /* cost/volume down */
+  .delta-flat { color: #6c757d; font-weight: 600; }
+  .risk-high   { color: #b02a37; font-weight: 600; }
+  .risk-medium { color: #997404; font-weight: 600; }
+  .risk-low    { color: #157347; font-weight: 600; }
+
   /* ── Print styles ─────────────────────────────────────── */
   @media print {
     @page { size: auto; margin: 0.35in; }
@@ -105,6 +129,18 @@
       font-size: 0.7rem !important;
     }
 
+    /* Dynamic insight bars print with their accent preserved */
+    .briefing-insight {
+      font-size: 0.7rem !important;
+      line-height: 1.3 !important;
+      background: #f1f5fb !important;
+      border-left: 3px solid #154e9a !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
     /* Hide non-chart details that can push explanation to the next page */
     #ccTableWrap,
     #topProductsSummary {
@@ -188,6 +224,168 @@
   <!-- ── /Page header ──────────────────────────────────────── -->
 
 
+  <!-- ── Executive Summary ─────────────────────────────────── -->
+  <div class="card shadow-sm border-start border-4 border-primary mb-4" id="execSummaryCard">
+    <div class="card-header card-header-primary d-flex align-items-center justify-content-between">
+      <span>
+        <i class="bi bi-clipboard-data me-2" aria-hidden="true"></i>
+        Executive Summary
+        <span class="badge text-bg-light text-secondary fw-normal ms-1" style="font-size:0.7rem;">
+          <span id="execSiteLabel">AMJK</span> · <span id="execProductLabel">SW</span> · YTD
+        </span>
+      </span>
+      <div class="d-flex align-items-center gap-2 no-print">
+        <!-- Site selector -->
+        <select id="execSite" class="form-select form-select-sm" style="width:auto; font-size:0.75rem;" aria-label="Executive summary site">
+          <option value="AMJK">AMJK</option>
+          <option value="TXAS">TXAS</option>
+          <option value="AMIN">AMIN</option>
+          <option value="AMAZ">AMAZ</option>
+        </select>
+        <!-- Product group selector -->
+        <select id="execProduct" class="form-select form-select-sm" style="width:auto; font-size:0.75rem;" aria-label="Executive summary product group">
+          <option value="SW">SW</option>
+          <option value="BP">BP</option>
+          <option value="CT">CT</option>
+          <option value="YA">YA</option>
+        </select>
+        <span id="execMetricsSpinner"
+              class="spinner-border spinner-border-sm text-white opacity-75 d-none"
+              role="status" aria-label="Loading metrics" style="width:1rem;height:1rem;"></span>
+        <span id="execAiSpinner"
+              class="spinner-border spinner-border-sm text-white opacity-75 d-none"
+              role="status" aria-label="Generating" style="width:1rem;height:1rem;"></span>
+        <button class="btn btn-sm btn-light" id="execAiBtn" onclick="runExecSummary()">
+          <i class="bi bi-robot me-1"></i>AI Narrative
+        </button>
+      </div>
+    </div>
+    <div class="card-body py-3 px-3">
+
+      <!-- Headline KPI tiles (rule-based, instant) -->
+      <div class="row g-3 mb-1" id="execKpiRow">
+        <div class="col-6 col-md-3">
+          <div class="card border-0 bg-light h-100 py-2 px-2 text-center">
+            <div class="small text-muted mb-1"><i class="bi bi-cash-coin me-1"></i>Freight ¢/lb (YTD)</div>
+            <div class="fw-bold fs-5" id="kpiFreightVal">—</div>
+            <div style="font-size:0.78rem;" id="kpiFreightYoy">—</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card border-0 bg-light h-100 py-2 px-2 text-center">
+            <div class="small text-muted mb-1"><i class="bi bi-box-seam me-1"></i>Shipped Volume (YTD)</div>
+            <div class="fw-bold fs-5" id="kpiWeightVal">—</div>
+            <div style="font-size:0.78rem;" id="kpiWeightYoy">—</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card border-0 bg-light h-100 py-2 px-2 text-center">
+            <div class="small text-muted mb-1"><i class="bi bi-truck me-1"></i>Carrier Concentration</div>
+            <div class="fw-bold fs-5" id="kpiCarrierVal">—</div>
+            <div style="font-size:0.78rem;" id="kpiCarrierNote">—</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card border-0 bg-light h-100 py-2 px-2 text-center">
+            <div class="small text-muted mb-1"><i class="bi bi-star me-1"></i>Top Product Share</div>
+            <div class="fw-bold fs-5" id="kpiProductVal">—</div>
+            <div style="font-size:0.78rem;" id="kpiProductNote">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rule-based written summary (always present) -->
+      <div class="briefing-insight mt-3" id="execRuleSummary">
+        <i class="bi bi-hourglass-split me-1"></i>Computing summary from live data…
+      </div>
+
+      <!-- AI narrative (on demand) -->
+      <div id="execAiResult" class="mt-3" style="display:none;">
+        <div class="fw-semibold mb-1" style="font-size:0.8rem; text-transform:uppercase; letter-spacing:0.06em; color:#6c757d;">
+          <i class="bi bi-robot me-1"></i>AI Narrative
+        </div>
+        <div id="execAiText" style="font-size:0.9rem; line-height:1.6; white-space:pre-wrap;"></div>
+        <div class="text-muted mt-1" style="font-size:0.7rem;">
+          Generated by local Ollama deepseek-r1:8b from the computed metrics above — not financial advice.
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- ── /Executive Summary ────────────────────────────────── -->
+
+
+  <!-- ── Shipment Size & Workload Pressure ─────────────────── -->
+  <div class="card shadow-sm border-start border-4 border-warning mb-4 print-page" id="shipSizeCard">
+    <div class="card-header card-header-primary d-flex align-items-center justify-content-between">
+      <span>
+        <i class="bi bi-arrow-down-up me-2" aria-hidden="true"></i>
+        Shipment Size &amp; Workload Pressure
+        <span class="badge text-bg-light text-secondary fw-normal ms-1" style="font-size:0.7rem;">
+          <span id="shipSizeSiteLabel">AMJK</span> · <span id="shipSizeProductLabel">SW</span> · 2023–<span id="shipSizeYearLabel"></span>
+        </span>
+      </span>
+      <div class="d-flex align-items-center gap-2 no-print">
+        <select id="shipSizeSite" class="form-select form-select-sm" style="width:auto; font-size:0.75rem;" aria-label="Shipment size site">
+          <option value="AMJK">AMJK</option>
+          <option value="TXAS">TXAS</option>
+          <option value="AMIN">AMIN</option>
+          <option value="AMAZ">AMAZ</option>
+        </select>
+        <select id="shipSizeProduct" class="form-select form-select-sm" style="width:auto; font-size:0.75rem;" aria-label="Shipment size product group">
+          <option value="SW">SW</option>
+          <option value="BP">BP</option>
+          <option value="CT">CT</option>
+          <option value="YA">YA</option>
+        </select>
+        <span id="shipSizeSpinner"
+              class="spinner-border spinner-border-sm text-white opacity-75 d-none"
+              role="status" aria-label="Loading" style="width:1rem;height:1rem;"></span>
+      </div>
+    </div>
+    <div class="card-body py-3 px-3">
+
+      <!-- Headline KPI tiles -->
+      <div class="row g-3 mb-1">
+        <div class="col-12 col-md-4">
+          <div class="card border-0 bg-light h-100 py-2 px-2 text-center">
+            <div class="small text-muted mb-1"><i class="bi bi-box me-1"></i>Avg Shipment Size (YTD)</div>
+            <div class="fw-bold fs-5" id="ssAvgVal">—</div>
+            <div style="font-size:0.78rem;" id="ssAvgYoy">—</div>
+          </div>
+        </div>
+        <div class="col-12 col-md-4">
+          <div class="card border-0 bg-light h-100 py-2 px-2 text-center">
+            <div class="small text-muted mb-1"><i class="bi bi-stack me-1"></i>Workload Intensity (YTD)</div>
+            <div class="fw-bold fs-5" id="ssIntensityVal">—</div>
+            <div style="font-size:0.78rem;" id="ssIntensityYoy">—</div>
+          </div>
+        </div>
+        <div class="col-12 col-md-4">
+          <div class="card border-0 h-100 py-2 px-2 text-center" style="background:#fff8e1; border-left:4px solid #f0ad4e !important;">
+            <div class="small text-muted mb-1"><i class="bi bi-exclamation-triangle me-1 text-warning"></i>Extra Loads YTD</div>
+            <div class="fw-bold fs-5" id="ssExtraVal">—</div>
+            <div style="font-size:0.78rem;" class="text-muted">from smaller orders vs last year</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scissors chart: shipment size down vs workload intensity up -->
+      <div id="shipSizeChart" style="height:340px;" class="mt-2"></div>
+
+      <div class="briefing-insight" id="shipSizeInsight">
+        <i class="bi bi-hourglass-split me-1"></i>Analyzing shipment size vs workload…
+      </div>
+    </div>
+    <div class="card-footer text-muted" style="font-size:0.75rem;">
+      Source: Warship database · <code>sp_bl_lbs_cnt_carrier</code> · avg lbs/load and loads per 1M lbs, vs same month last year.
+      <a href="/maintenance/shipment-size-impact" class="text-decoration-none ms-1">
+        <i class="bi bi-search me-1"></i>Full analysis
+      </a>
+    </div>
+  </div>
+  <!-- ── /Shipment Size & Workload Pressure ─────────────────── -->
+
+
   <!-- ── Four-section grid ─────────────────────────────────── -->
   <div class="row g-4 briefing-grid">
 
@@ -234,7 +432,7 @@
               <ul class="list-unstyled mb-0" style="line-height:1.9;">
                 <li>📅 Monday – Friday</li>
                 <li>🌤️ Day: 7:30AM – 4:30PM</li>
-                <l1>🌤️ Day: 8:30AM – 5:30PM</l1>
+                <li>🌙 Night: 8:30AM – 5:30PM</li>
               </ul>
             </div>
 
@@ -323,9 +521,8 @@
         </div>
         <div class="card-body p-2">
           <div id="frtYtdChart" style="height:320px;"></div>
-          <div class="print-explanation d-none d-print-block mt-2 text-muted" style="font-size:0.78rem;">
-            Explanation: Monthly freight cost intensity in ¢/lb by year. Lower lines indicate better freight efficiency.
-            Compare year-over-year trajectory and recent-month inflections to spot cost drift early.
+          <div class="briefing-insight" id="frtYtdInsight">
+            <i class="bi bi-hourglass-split me-1"></i>Analyzing freight cost trend…
           </div>
         </div>
         <div class="card-footer text-muted" style="font-size:0.75rem;">
@@ -375,9 +572,8 @@
         </div>
         <div class="card-body p-2">
           <div id="weightTrendChart" style="height:320px;"></div>
-          <div class="print-explanation d-none d-print-block mt-2 text-muted" style="font-size:0.78rem;">
-            Explanation: Monthly shipped pick weight by year. Rising volume with flat unit freight suggests healthier operations.
-            Use this chart with cost metrics to distinguish demand growth from transport inefficiency.
+          <div class="briefing-insight" id="weightTrendInsight">
+            <i class="bi bi-hourglass-split me-1"></i>Analyzing shipped volume trend…
           </div>
         </div>
         <div class="card-footer text-muted" style="font-size:0.75rem;">
@@ -422,9 +618,8 @@
         </div>
         <div class="card-body p-2">
           <div id="carrierChart" style="height:320px;"></div>
-          <div class="print-explanation d-none d-print-block mt-2 text-muted" style="font-size:0.78rem;">
-            Explanation: YTD carrier share by unique BL load count. Higher concentration raises operational and pricing risk.
-            Use this to rebalance carrier mix where a single carrier dominates critical lanes.
+          <div class="briefing-insight" id="carrierInsight">
+            <i class="bi bi-hourglass-split me-1"></i>Analyzing carrier concentration…
           </div>
         </div>
         <div class="card-footer text-muted" style="font-size:0.75rem;">
@@ -482,12 +677,19 @@
         </div>
         <div class="card-body p-2">
           <div id="frtCplbChart" style="height:500px;"></div>
+          <div class="briefing-insight" id="frtCplbInsight">
+            <i class="bi bi-hourglass-split me-1"></i>Analyzing per-product freight rates…
+          </div>
         </div>
         <div class="card-footer text-muted" style="font-size:0.75rem;">
           Source: Warship database · <span id="briefingSharedSiteFooterCplb">AMJK</span> · <span id="briefingSharedProductFooterCplb">SW</span> · YTD <span id="briefingSharedYearCplb">2026</span>. Top 50 products by shipped weight. Each box = product code.
-          Sorted by median ¢/lb (low → high).<br>
+          Sorted by median ¢/lb (low → high). <strong>Click any box</strong> to see why that product is rising.<br>
           <a href="/maintenance/frt-validation" class="text-decoration-none">
             <i class="bi bi-search me-1"></i>Validate these results
+          </a>
+          <span class="mx-1">·</span>
+          <a id="frtCplbDriverLink" href="/maintenance/freight-driver?site=AMJK&product_group=SW" class="text-decoration-none">
+            <i class="bi bi-graph-up-arrow me-1"></i>Why is a product rising? → drill-down
           </a>
         </div>
       </div>
@@ -606,9 +808,8 @@
           </div>
           <!-- Bubble chart -->
           <div id="ccBubbleChart" style="height:420px;"></div>
-          <div class="print-explanation d-none d-print-block mt-2 text-muted" style="font-size:0.78rem;">
-            Explanation: Carrier comparison where X = total weight, Y = ¢/lb, and bubble size = total freight spend.
-            Prioritize carriers high on ¢/lb and large in spend for the biggest improvement impact.
+          <div class="briefing-insight" id="ccInsight">
+            <i class="bi bi-hourglass-split me-1"></i>Analyzing carrier cost efficiency…
           </div>
           <!-- Compact table -->
           <div class="table-responsive mt-3" id="ccTableWrap" style="display:none;">
@@ -666,9 +867,8 @@
         </div>
         <div class="card-body p-3">
           <div id="customerTreeMap" style="height:420px;"></div>
-          <div class="print-explanation d-none d-print-block mt-2 text-muted" style="font-size:0.78rem;">
-            Explanation: Current-month customer concentration by shipped weight. Larger tiles represent larger volume exposure.
-            Use this to identify concentration risk and prioritize account-level service planning.
+          <div class="briefing-insight" id="customerTreeInsight">
+            <i class="bi bi-hourglass-split me-1"></i>Analyzing customer concentration…
           </div>
         </div>
         <div class="card-footer text-muted" style="font-size:0.75rem;">
@@ -773,9 +973,8 @@
             <!-- Monthly trend chart -->
             <h6 class="fw-semibold mb-2">Monthly Weight Trend (Top 5 Products)</h6>
             <div id="productTrendChart" style="height:340px; margin-bottom:1rem;"></div>
-            <div class="print-explanation d-none d-print-block mt-2 text-muted" style="font-size:0.78rem;">
-              Explanation: Trend lines track monthly volume movement for the top five products.
-              Persistent upward or downward movement signals where to adjust carrier capacity and inventory planning.
+            <div class="briefing-insight" id="productTrendInsight">
+              <i class="bi bi-hourglass-split me-1"></i>Analyzing top-product movement…
             </div>
           </div>
 
@@ -783,9 +982,8 @@
             <!-- Portfolio diversity chart -->
             <h6 class="fw-semibold mb-2">Product Diversity Over Time</h6>
             <div id="productDiversityChart" style="height:280px;"></div>
-            <div class="print-explanation d-none d-print-block mt-2 text-muted" style="font-size:0.78rem;">
-              Explanation: Monthly unique product count indicates portfolio breadth and concentration risk.
-              Falling diversity with stable volume implies heavier reliance on fewer SKUs.
+            <div class="briefing-insight" id="productDiversityInsight">
+              <i class="bi bi-hourglass-split me-1"></i>Analyzing portfolio diversity…
             </div>
           </div>
         </div>
@@ -806,127 +1004,12 @@
           </span>
         </div>
         <div class="card-body px-3 py-3">
-          <div class="row g-3" id="recommendationsContent" style="display:none;">
-            
-            <!-- Rec 1: Top product focus -->
-            <div class="col-12">
-              <div class="d-flex gap-3 pb-2 border-bottom">
-                <div style="font-size:2rem; flex-shrink:0;">🎯</div>
-                <div style="flex-grow:1;">
-                  <p class="fw-semibold mb-2">Prioritize <code id="rec1Product">Top Product</code> for Carrier Performance</p>
-                  <p class="text-muted mb-2" style="font-size:0.875rem;">
-                    <strong>Why:</strong> Your #1 product represents <span id="rec1Pct">35%</span> of total shipped weight. 
-                    This concentrated volume gives you leverage in rate negotiations with carriers. 
-                    Single-point failures (carrier delays, capacity issues) directly impact revenue.
-                  </p>
-                  <p class="text-muted mb-0" style="font-size:0.875rem;">
-                    <strong>Action:</strong> Establish a dedicated carrier performance SLA for this SKU. 
-                    Monitor on-time delivery, load factor, and cost-per-pound weekly. 
-                    Consider a secondary carrier as backup.
-                  </p>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Rec 2: Monitor Growth Trajectory -->
-            <div class="col-12">
-              <div class="d-flex gap-3 pb-2 border-bottom">
-                <div style="font-size:2rem; flex-shrink:0;">📈</div>
-                <div style="flex-grow:1;">
-                  <p class="fw-semibold mb-2">Monitor Monthly Trends & Forecast Demand</p>
-                  <p class="text-muted mb-2" style="font-size:0.875rem;">
-                    <strong>Why:</strong> Top products show month-to-month variability. Understanding seasonal patterns 
-                    (peaks in Q1/Q4 vs. troughs in summer) prevents stockouts and over-capacity charges. 
-                    Growth products signal market opportunity; declining ones may indicate customer churn or product lifecycle issues.
-                  </p>
-                  <p class="text-muted mb-0" style="font-size:0.875rem;">
-                    <strong>Action:</strong> Review the monthly trend chart each month. Identify products growing >5% MoM 
-                    (invest in carrier capacity) vs. declining >5% (investigate root cause, adjust forecasting). 
-                    Share 3-month rolling forecast with carriers.
-                  </p>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Rec 3: Portfolio Diversity -->
-            <div class="col-12">
-              <div class="d-flex gap-3 pb-2 border-bottom">
-                <div style="font-size:2rem; flex-shrink:0;">🔄</div>
-                <div style="flex-grow:1;">
-                  <p class="fw-semibold mb-2">Manage Product Portfolio Concentration Risk</p>
-                  <p class="text-muted mb-2" style="font-size:0.875rem;">
-                    <strong>Why:</strong> You ship <span id="rec3UniqueCount">300+</span> unique products per month, but 
-                    the top 5–10 drive 50%+ of volume. Over-reliance on a few SKUs creates vulnerability: 
-                    customer loss, supply disruption, or production issues on a single product cascades into underutilized freight capacity.
-                  </p>
-                  <p class="text-muted mb-0" style="font-size:0.875rem;">
-                    <strong>Action:</strong> Calculate the Herfindahl index of product concentration annually. 
-                    If top-5 > 60% of volume, develop a product diversification strategy. Identify high-margin, lower-volume SKUs 
-                    that could grow with marketing/sales focus.
-                  </p>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Rec 4: Seasonal Planning -->
-            <div class="col-12">
-              <div class="d-flex gap-3">
-                <div style="font-size:2rem; flex-shrink:0;">📅</div>
-                <div style="flex-grow:1;">
-                  <p class="fw-semibold mb-2">Plan Staffing & Carrier Agreements for Seasonality</p>
-                  <p class="text-muted mb-2" style="font-size:0.875rem;">
-                    <strong>Why:</strong> Your shipping volume fluctuates 30–50% month-to-month. 
-                    Without planning, peak months create overtime labor costs and potential service failures, 
-                    while troughs leave equipment and staff underutilized.
-                  </p>
-                  <p class="text-muted mb-0" style="font-size:0.875rem;">
-                    <strong>Action:</strong> Use historical monthly data to build a 12-month staffing budget. 
-                    Negotiate flex-capacity agreements with top carriers (e.g., 10% overage rates). 
-                    Schedule planned maintenance on equipment during trough months. Train cross-functional temp staff 3 weeks before peak season.
-                  </p>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Rec 2: Growth analysis -->
-            <div class="col-12 col-md-6">
-              <div class="d-flex gap-2">
-                <div style="font-size:1.5rem; flex-shrink:0;">📈</div>
-                <div>
-                  <p class="fw-semibold mb-1">Monitor Growth Trajectory</p>
-                  <p class="text-muted mb-0" style="font-size:0.875rem;">
-                    Track month-over-month trends in the top products. Watch for seasonal patterns or anomalies.
-                  </p>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Rec 3: Portfolio health -->
-            <div class="col-12 col-md-6">
-              <div class="d-flex gap-2">
-                <div style="font-size:1.5rem; flex-shrink:0;">🔄</div>
-                <div>
-                  <p class="fw-semibold mb-1">Assess Product Portfolio Diversity</p>
-                  <p class="text-muted mb-0" style="font-size:0.875rem;">
-                    Current portfolio spans <span id="rec3UniqueCount">300+</span> unique products per month. Balance concentration risk vs. operational complexity.
-                  </p>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Rec 4: Seasonal planning -->
-            <div class="col-12 col-md-6">
-              <div class="d-flex gap-2">
-                <div style="font-size:1.5rem; flex-shrink:0;">📅</div>
-                <div>
-                  <p class="fw-semibold mb-1">Plan for Seasonal Variations</p>
-                  <p class="text-muted mb-0" style="font-size:0.875rem;">
-                    Historical data shows fluctuations in monthly volume. Adjust staffing and carrier agreements accordingly.
-                  </p>
-                </div>
-              </div>
-            </div>
-
+          <!-- Data-driven recommendations rendered by JS from the computed metrics.
+               Each card is emitted only when its threshold rule fires, so the Why/Action
+               text always reflects the live numbers for the selected site/product group. -->
+          <div class="row g-3" id="recommendationsContent" style="display:none;"></div>
+          <div id="recommendationsEmpty" class="briefing-insight">
+            <i class="bi bi-hourglass-split me-1"></i>Building recommendations from the data above…
           </div>
         </div>
       </div>
@@ -1121,8 +1204,6 @@
 
     setTextById('recommendationSiteLabel', site);
     setTextById('recommendationProductLabel', productGroup);
-
-    var yr = String(getBriefingDateRange().year);
   }
 
   function syncFreightCplbLabels(site, productGroup) {
@@ -1148,6 +1229,632 @@
     setTextById('briefingSharedProductLabelCust', productGroup);
     setTextById('briefingSharedSiteFooterCust', site);
     setTextById('briefingSharedProductFooterCust', productGroup);
+  }
+
+  /* ══════════════════════════════════════════════════════════════════════
+     Briefing Insight Engine
+     ----------------------------------------------------------------------
+     Rule-based analysis layer. Each chart loader computes its own headline
+     numbers, writes a plain-language insight under the chart, and pushes the
+     key metrics into BR.metrics. recompute() then rebuilds the Executive
+     Summary KPI tiles, the written rule-based summary, and the data-driven
+     Recommended Actions whenever any chart finishes.
+     ══════════════════════════════════════════════════════════════════════ */
+  var BR = (function () {
+    var metrics = {};            // mirrors the executive-summary request fields
+
+    /* ── Formatting helpers ─────────────────────────────────────────── */
+    function fmt1(n)  { return (n == null || isNaN(n)) ? '—' : Number(n).toFixed(1); }
+    function fmtInt(n){ return (n == null || isNaN(n)) ? '—' : Math.round(n).toLocaleString(); }
+    function fmtMlbs(n){ return (n == null || isNaN(n)) ? '—' : Number(n).toFixed(1) + 'M lbs'; }
+
+    /* Signed % delta span. higherIsBad=true → up is red (cost); false → up is green (volume). */
+    function deltaSpan(pct, higherIsBad) {
+      if (pct == null || isNaN(pct)) return '<span class="delta-flat">n/a</span>';
+      var arrow = pct > 0.5 ? '▲' : (pct < -0.5 ? '▼' : '▬');
+      var cls;
+      if (Math.abs(pct) <= 0.5) cls = 'delta-flat';
+      else if (pct > 0) cls = higherIsBad ? 'delta-up' : 'delta-down';
+      else cls = higherIsBad ? 'delta-down' : 'delta-up';
+      var sign = pct > 0 ? '+' : '';
+      return '<span class="' + cls + '">' + arrow + ' ' + sign + pct.toFixed(1) + '%</span>';
+    }
+
+    /* Direction of a numeric series: compares the mean of the last 3 points
+       to the mean of the 3 before. Returns 'rising' | 'falling' | 'flat'. */
+    function direction(values) {
+      var v = (values || []).filter(function (x) { return x != null && !isNaN(x); });
+      if (v.length < 4) return 'flat';
+      var recent = v.slice(-3);
+      var prior  = v.slice(-6, -3);
+      if (!prior.length) prior = v.slice(0, recent.length);
+      var avg = function (a) { return a.reduce(function (s, x) { return s + x; }, 0) / a.length; };
+      var r = avg(recent), p = avg(prior);
+      if (p === 0) return 'flat';
+      var pct = (r - p) / Math.abs(p) * 100;
+      if (pct > 3) return 'rising';
+      if (pct < -3) return 'falling';
+      return 'flat';
+    }
+
+    /* Color a direction word for inline display. */
+    function dirSpan(dir, higherIsBad) {
+      var cls = 'delta-flat';
+      if (dir === 'rising')  cls = higherIsBad ? 'delta-up' : 'delta-down';
+      if (dir === 'falling') cls = higherIsBad ? 'delta-down' : 'delta-up';
+      return '<span class="' + cls + '">' + dir + '</span>';
+    }
+
+    /* Write an insight bar's content. */
+    function setInsight(id, html) {
+      var el = document.getElementById(id);
+      if (el) el.innerHTML = html;
+    }
+
+    /* Mark an insight bar as unavailable (chart had no data / errored). */
+    function clearInsight(id, msg) {
+      setInsight(id, '<i class="bi bi-dash-circle me-1 text-muted"></i>' + (msg || 'No data to analyze.'));
+    }
+
+    /* Replace the full metrics set (owned by the executive-summary loader) and
+       rebuild the KPI tiles, written summary, and recommendations. Mutates the
+       same object so BR.metrics stays a stable reference for runExecSummary(). */
+    function setMetrics(obj) {
+      Object.keys(metrics).forEach(function (k) { delete metrics[k]; });
+      Object.keys(obj).forEach(function (k) { metrics[k] = obj[k]; });
+      recompute();
+    }
+
+    /* Concentration risk level from a top-share percentage. */
+    function riskLevel(share) {
+      if (share == null || isNaN(share)) return { level: 'unknown', cls: 'delta-flat' };
+      if (share >= 35) return { level: 'HIGH', cls: 'risk-high' };
+      if (share >= 25) return { level: 'MEDIUM', cls: 'risk-medium' };
+      return { level: 'LOW', cls: 'risk-low' };
+    }
+
+    /* ── Executive Summary: KPI tiles + written rule summary ────────── */
+    function recompute() {
+      var m = metrics;
+
+      /* KPI: Freight */
+      setTextById('kpiFreightVal', m.freight_ytd_cplb != null ? fmt1(m.freight_ytd_cplb) + '¢/lb' : '—');
+      document.getElementById('kpiFreightYoy').innerHTML =
+        m.freight_yoy_pct != null ? deltaSpan(m.freight_yoy_pct, true) + ' vs last yr' : '—';
+
+      /* KPI: Volume */
+      setTextById('kpiWeightVal', m.weight_ytd_m != null ? fmtMlbs(m.weight_ytd_m) : '—');
+      document.getElementById('kpiWeightYoy').innerHTML =
+        m.weight_yoy_pct != null ? deltaSpan(m.weight_yoy_pct, false) + ' vs last yr' : '—';
+
+      /* KPI: Carrier concentration */
+      var rk = riskLevel(m.top_carrier_share);
+      setTextById('kpiCarrierVal', m.top_carrier_share != null ? fmt1(m.top_carrier_share) + '%' : '—');
+      document.getElementById('kpiCarrierNote').innerHTML =
+        m.top_carrier ? (m.top_carrier + ' · <span class="' + rk.cls + '">' + rk.level + ' risk</span>') : '—';
+
+      /* KPI: Top product share */
+      setTextById('kpiProductVal', m.top_product_share != null ? Math.round(m.top_product_share) + '%' : '—');
+      setTextById('kpiProductNote', m.top_product ? ('of top-5 · ' + m.top_product) : '—');
+
+      /* Written rule-based summary */
+      var parts = [];
+      if (m.freight_ytd_cplb != null) {
+        var f = 'Freight runs <strong>' + fmt1(m.freight_ytd_cplb) + '¢/lb</strong> YTD';
+        if (m.freight_yoy_pct != null) f += ' (' + deltaSpan(m.freight_yoy_pct, true) + ' vs last year)';
+        parts.push(f);
+      }
+      if (m.weight_ytd_m != null) {
+        var w = 'volume is <strong>' + fmtMlbs(m.weight_ytd_m) + '</strong>';
+        if (m.weight_yoy_pct != null) w += ' (' + deltaSpan(m.weight_yoy_pct, false) + ')';
+        if (m.weight_recent_direction) w += ', recently ' + dirSpan(m.weight_recent_direction, false);
+        parts.push(w);
+      }
+      var sentence1 = parts.length ? 'Year-to-date, ' + parts.join(' and ') + '.' : '';
+
+      var sentence2 = '';
+      if (m.top_carrier) {
+        var rk2 = riskLevel(m.top_carrier_share);
+        sentence2 = 'Carrier mix is <span class="' + rk2.cls + '">' + rk2.level +
+          ' concentration</span> — <strong>' + m.top_carrier + '</strong> carries ' +
+          fmt1(m.top_carrier_share) + '% of loads';
+        if (m.carrier_count) sentence2 += ' across ' + m.carrier_count + ' carriers';
+        sentence2 += '.';
+      }
+
+      var sentence3 = '';
+      if (m.top_product) {
+        sentence3 = 'Product <strong>' + m.top_product + '</strong> drives ' +
+          Math.round(m.top_product_share || 0) + '% of core volume';
+        if (m.diversity_avg) sentence3 += '; ~' + m.diversity_avg + ' unique products/month (diversity ' +
+          (m.diversity_direction || 'flat') + ')';
+        sentence3 += '.';
+      }
+
+      var sentence4 = '';
+      if (m.avg_lbs_yoy_pct != null) {
+        if (m.avg_lbs_yoy_pct < 0) {
+          sentence4 = 'Orders are getting <span class="delta-up">smaller</span> — avg shipment size is down ' +
+            fmt1(Math.abs(m.avg_lbs_yoy_pct)) + '% YoY';
+          if (m.extra_loads_ytd != null && m.extra_loads_ytd > 0) {
+            sentence4 += ', forcing an estimated <strong>' + fmtInt(m.extra_loads_ytd) +
+              ' extra loads</strong> YTD for the same tonnage';
+          }
+          sentence4 += '.';
+        } else {
+          sentence4 = 'Avg shipment size is holding (' + deltaSpan(m.avg_lbs_yoy_pct, false) + ' YoY).';
+        }
+      }
+
+      var summaryHtml = [sentence1, sentence2, sentence3, sentence4].filter(Boolean).join(' ');
+      setInsight('execRuleSummary', summaryHtml ||
+        '<i class="bi bi-dash-circle me-1 text-muted"></i>Not enough data loaded yet to summarize.');
+
+      renderRecommendations(m);
+    }
+
+    /* ── Data-driven Recommended Actions ────────────────────────────── */
+    function recCard(icon, title, why, action) {
+      return '' +
+        '<div class="col-12">' +
+          '<div class="d-flex gap-3 pb-2 border-bottom">' +
+            '<div style="font-size:2rem; flex-shrink:0;">' + icon + '</div>' +
+            '<div style="flex-grow:1;">' +
+              '<p class="fw-semibold mb-2">' + title + '</p>' +
+              '<p class="text-muted mb-2" style="font-size:0.875rem;"><strong>Why:</strong> ' + why + '</p>' +
+              '<p class="text-muted mb-0" style="font-size:0.875rem;"><strong>Action:</strong> ' + action + '</p>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+    }
+
+    function renderRecommendations(m) {
+      var cards = [];
+
+      /* Carrier concentration */
+      if (m.top_carrier && m.top_carrier_share != null) {
+        if (m.top_carrier_share >= 35) {
+          cards.push(recCard('🚚',
+            'Reduce dependence on ' + m.top_carrier,
+            m.top_carrier + ' handles <strong>' + fmt1(m.top_carrier_share) + '%</strong> of YTD loads' +
+              (m.carrier_count ? ' out of ' + m.carrier_count + ' carriers' : '') +
+              '. That is HIGH concentration — a capacity crunch, rate hike, or service failure at this one carrier hits most of your shipments at once.',
+            'Qualify a secondary carrier on this carrier\'s busiest lanes and shift 10–15% of volume to it over the next quarter to create competitive tension on rates.'));
+        } else if (m.top_carrier_share >= 25) {
+          cards.push(recCard('🚚',
+            'Keep ' + m.top_carrier + ' concentration in check',
+            m.top_carrier + ' carries <strong>' + fmt1(m.top_carrier_share) + '%</strong> of loads — moderate concentration that is fine today but worth watching.',
+            'Track this share monthly; if it climbs past 35%, begin onboarding a backup carrier before you lose negotiating leverage.'));
+        }
+      }
+
+      /* Freight cost trajectory */
+      if (m.freight_yoy_pct != null) {
+        if (m.freight_yoy_pct >= 5) {
+          var costWhy = 'Freight cost is <strong>up ' + fmt1(m.freight_yoy_pct) + '%</strong> vs last year, now ' +
+            fmt1(m.freight_ytd_cplb) + '¢/lb.';
+          if (m.highest_cost_carrier) costWhy += ' ' + m.highest_cost_carrier + ' is your most expensive carrier at ' +
+            fmt1(m.highest_cost_cplb) + '¢/lb.';
+          cards.push(recCard('💸',
+            'Attack rising freight cost per pound',
+            costWhy + ' Left unchecked this erodes margin on every load.',
+            'Audit the highest-¢/lb carriers and product codes in the charts below, renegotiate or re-route the worst offenders, and consolidate light loads to lift weight-per-load.'));
+        } else if (m.freight_yoy_pct <= -5) {
+          cards.push(recCard('✅',
+            'Lock in your freight cost gains',
+            'Freight cost is <strong>down ' + fmt1(Math.abs(m.freight_yoy_pct)) + '%</strong> vs last year at ' +
+              fmt1(m.freight_ytd_cplb) + '¢/lb — a real win.',
+            'Convert the favorable rates into 12-month contracts with your best-performing carriers before the market turns.'));
+        }
+      }
+
+      /* Volume trajectory */
+      var volFalling = (m.weight_yoy_pct != null && m.weight_yoy_pct <= -5) || m.weight_recent_direction === 'falling';
+      var volGrowing = (m.weight_yoy_pct != null && m.weight_yoy_pct >= 5) || m.weight_recent_direction === 'rising';
+      if (volFalling) {
+        cards.push(recCard('📉',
+          'Investigate softening shipped volume',
+          'Shipped volume is ' + (m.weight_yoy_pct != null ? '<strong>' + fmt1(m.weight_yoy_pct) + '%</strong> vs last year and ' : '') +
+            'trending down recently. Falling volume spreads fixed warehouse and labor cost over fewer pounds, raising unit cost.',
+          'Cross-check the customer tree map and product trend below for the accounts/SKUs driving the drop, then align staffing and carrier minimums to the lower run rate.'));
+      } else if (volGrowing) {
+        cards.push(recCard('📈',
+          'Plan capacity for growing volume',
+          'Shipped volume is ' + (m.weight_yoy_pct != null ? '<strong>up ' + fmt1(m.weight_yoy_pct) + '%</strong> vs last year' : 'trending up') +
+            '. Growth is good but risks overtime, dock congestion, and missed appointments if capacity lags.',
+          'Secure flex-capacity commitments with your top carriers for peak weeks and review forklift/staff coverage against the rising trend.'));
+      }
+
+      /* Product concentration */
+      if (m.top_product && m.top_product_share != null) {
+        cards.push(recCard('🎯',
+          'Protect your #1 product, ' + m.top_product,
+          m.top_product + ' is <strong>' + Math.round(m.top_product_share) + '%</strong> of your top-5 shipped weight. That volume gives you rate leverage but also concentrates risk — a disruption here is felt immediately.',
+          'Put a dedicated carrier SLA on this SKU (on-time %, load factor, ¢/lb) and keep a qualified backup carrier ready.'));
+      }
+
+      /* Smaller orders inflating workload */
+      if (m.avg_lbs_yoy_pct != null && m.avg_lbs_yoy_pct <= -3) {
+        var ssWhy = 'Average shipment size is <strong>down ' + fmt1(Math.abs(m.avg_lbs_yoy_pct)) + '%</strong> vs last year';
+        if (m.workload_intensity != null && m.intensity_yoy_pct != null) {
+          ssWhy += ', and it now takes ' + fmt1(m.intensity_yoy_pct) + '% more loads to move each million lbs';
+        }
+        ssWhy += '. ';
+        if (m.extra_loads_ytd != null && m.extra_loads_ytd > 0) {
+          ssWhy += 'That is roughly <strong>' + fmtInt(m.extra_loads_ytd) + ' extra loads YTD</strong> — more picking, staging, dock appointments, and paperwork for the same tonnage.';
+        } else {
+          ssWhy += 'Smaller orders mean more handling and dock activity for the same tonnage.';
+        }
+        cards.push(recCard('📦',
+          'Smaller orders are increasing workload',
+          ssWhy,
+          'Quantify the labor/dock cost of the extra loads, then push back on the trend: introduce order-size minimums or minimum freight charges, encourage customers to consolidate orders, and right-size dock staffing and appointment slots to the higher load count.'));
+      }
+
+      /* Portfolio diversity erosion */
+      if (m.diversity_direction === 'falling') {
+        cards.push(recCard('🔄',
+          'Watch shrinking product diversity',
+          'Your monthly unique-product count is falling (~' + (m.diversity_avg || '?') + '/month). Thinning the portfolio raises reliance on fewer SKUs and customers.',
+          'Confirm the drop is intentional rationalization, not silent customer churn — review lost SKUs against the product trend chart.'));
+      }
+
+      var container = document.getElementById('recommendationsContent');
+      var empty = document.getElementById('recommendationsEmpty');
+      if (!container) return;
+
+      if (!cards.length) {
+        container.style.display = 'none';
+        if (empty) {
+          empty.style.display = '';
+          empty.innerHTML = '<i class="bi bi-check-circle me-1 text-success"></i>' +
+            'No threshold alerts — cost, volume, and concentration are all within normal ranges.';
+        }
+        return;
+      }
+
+      container.innerHTML = cards.join('');
+      container.style.display = '';
+      if (empty) empty.style.display = 'none';
+    }
+
+    return {
+      metrics: metrics,
+      fmt1: fmt1, fmtInt: fmtInt, fmtMlbs: fmtMlbs,
+      deltaSpan: deltaSpan, direction: direction, dirSpan: dirSpan,
+      riskLevel: riskLevel,
+      setInsight: setInsight, clearInsight: clearInsight,
+      setMetrics: setMetrics, recompute: recompute,
+    };
+  })();
+
+  /* ── AI Executive Narrative (streamed from Ollama) ──────────────────── */
+  async function runExecSummary() {
+    var btn      = document.getElementById('execAiBtn');
+    var spinner  = document.getElementById('execAiSpinner');
+    var resultEl = document.getElementById('execAiResult');
+    var textEl   = document.getElementById('execAiText');
+
+    btn.disabled = true;
+    spinner.classList.remove('d-none');
+    resultEl.style.display = '';
+    textEl.innerHTML = '';
+
+    /* Render plain text with **bold** support, preserving newlines. */
+    function render(raw) {
+      textEl.innerHTML = raw
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/^(TREND:|WHY:|IMPROVE:)/gm, '<strong style="color:#154e9a;">$1</strong>');
+    }
+
+    try {
+      var res = await fetch('/api/briefing/executive-summary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(BR.metrics),
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+
+      var reader = res.body.getReader();
+      var decoder = new TextDecoder();
+      var acc = '';
+      while (true) {
+        var chunk = await reader.read();
+        if (chunk.done) break;
+        acc += decoder.decode(chunk.value, { stream: true });
+        render(acc);
+      }
+      if (!acc.trim()) textEl.innerHTML = '<span class="text-muted">No narrative returned.</span>';
+    } catch (err) {
+      textEl.innerHTML = '<span class="text-danger"><i class="bi bi-exclamation-triangle me-1"></i>' +
+        'AI narrative unavailable (' + err.message + '). The computed summary above still applies — ' +
+        'Ollama may not be running.</span>';
+    } finally {
+      spinner.classList.add('d-none');
+      btn.disabled = false;
+    }
+  }
+
+  /* ── Executive Summary data loader (independent site/product) ─────────
+     Fetches everything the summary needs for the selected site/product group,
+     computes the headline metrics, and hands them to BR.setMetrics(). This is
+     self-contained so the summary is never affected by the per-chart selectors. */
+  function loadExecutiveSummary(site, pg) {
+    setTextById('execSiteLabel', site);
+    setTextById('execProductLabel', pg);
+
+    var spinner = document.getElementById('execMetricsSpinner');
+    if (spinner) spinner.classList.remove('d-none');
+
+    var range = getBriefingDateRange();
+    var trendStart = '2023-01-01';
+
+    function getJson(url) {
+      return fetch(url)
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .catch(function () { return null; });
+    }
+    var mean = function (a) { return a.length ? a.reduce(function (s, x) { return s + x; }, 0) / a.length : null; };
+    var sum  = function (a) { return a.reduce(function (s, x) { return s + x; }, 0); };
+
+    Promise.all([
+      getJson('/api/analytics/amjk-frt-ytd-vs-avg?site=' + site + '&product_group=' + pg + '&exclude_carriers=false'),
+      getJson('/api/analytics/pick-weight-trend?site=' + site + '&product_group=' + pg + '&exclude_carriers=false'),
+      getJson('/api/analytics/carrier-usage-ytd?site=' + site + '&product_group=' + pg),
+      getJson('/api/carrier-cost-analysis?site=' + site + '&product_group=' + pg + '&date_from=' + range.startDate + '&date_to=' + range.endDate),
+      getJson('/api/analytics/product-trend-top?top_n=5&site=' + site + '&product_group=' + pg + '&start_date=' + trendStart + '&end_date=' + range.endDate),
+      getJson('/api/analytics/product-diversity?site=' + site + '&product_group=' + pg + '&start_date=' + trendStart + '&end_date=' + range.endDate),
+      getJson('/maintenance/api/shipment-size-impact?site=' + site + '&product_group=' + pg + '&date_from=2023-01-01&date_to=' + range.endDate + '&exclude_carriers=false'),
+    ]).then(function (res) {
+      var m = { site: site, product_group: pg };
+
+      /* Freight ¢/lb — YTD avg vs prior-year same months */
+      var fr = res[0];
+      if (fr && fr.series && fr.series.length) {
+        var fs = fr.series.slice().sort(function (a, b) { return a.year - b.year; });
+        var cur = fs[fs.length - 1], prev = fs[fs.length - 2];
+        var curPts = (cur.data || []).filter(function (d) { return d.cost_per_lb != null; });
+        var curAvg = mean(curPts.map(function (d) { return d.cost_per_lb; }));
+        var prevAvg = null, yoy = null;
+        if (prev) {
+          var cm = {}; curPts.forEach(function (d) { cm[d.month] = true; });
+          var pp = (prev.data || []).filter(function (d) { return d.cost_per_lb != null && cm[d.month]; });
+          prevAvg = mean(pp.map(function (d) { return d.cost_per_lb; }));
+          if (prevAvg && curAvg) yoy = (curAvg - prevAvg) / prevAvg * 100;
+        }
+        m.freight_ytd_cplb = curAvg != null ? Math.round(curAvg * 100) / 100 : null;
+        m.freight_prev_cplb = prevAvg != null ? Math.round(prevAvg * 100) / 100 : null;
+        m.freight_yoy_pct = yoy != null ? Math.round(yoy * 10) / 10 : null;
+      }
+
+      /* Shipped volume — YTD sum vs prior-year same months */
+      var wt = res[1];
+      if (wt && wt.series && wt.series.length) {
+        var ws = wt.series.slice().sort(function (a, b) { return a.year - b.year; });
+        var curW = ws[ws.length - 1], prevW = ws[ws.length - 2];
+        var curWPts = (curW.data || []).filter(function (d) { return d.weight_millions != null; });
+        var curSum = sum(curWPts.map(function (d) { return d.weight_millions; }));
+        var prevSum = null, yoyW = null;
+        if (prevW) {
+          var cmw = {}; curWPts.forEach(function (d) { cmw[d.month] = true; });
+          var ppw = (prevW.data || []).filter(function (d) { return d.weight_millions != null && cmw[d.month]; });
+          prevSum = sum(ppw.map(function (d) { return d.weight_millions; }));
+          if (prevSum > 0) yoyW = (curSum - prevSum) / prevSum * 100;
+        }
+        m.weight_ytd_m = Math.round(curSum * 10) / 10;
+        m.weight_prev_m = prevSum != null ? Math.round(prevSum * 10) / 10 : null;
+        m.weight_yoy_pct = yoyW != null ? Math.round(yoyW * 10) / 10 : null;
+        m.weight_recent_direction = BR.direction(curWPts.map(function (d) { return d.weight_millions; }));
+      }
+
+      /* Carrier concentration */
+      var cu = res[2];
+      if (cu && cu.by_carrier && cu.by_carrier.length) {
+        var rows = cu.by_carrier;
+        var total = cu.total_loads || rows.reduce(function (s, r) { return s + r.load_count; }, 0);
+        var top = rows[0];
+        var share = top.share_pct != null ? top.share_pct : (total > 0 ? top.load_count / total * 100 : 0);
+        m.top_carrier = top.carrier_id;
+        m.top_carrier_share = Math.round(share * 10) / 10;
+        m.carrier_count = rows.length;
+      }
+
+      /* Most expensive carrier (≥2% of weight) */
+      var cc = res[3];
+      if (Array.isArray(cc) && cc.length) {
+        var totW = cc.reduce(function (s, r) { return s + r.total_weight; }, 0);
+        var mat = cc.filter(function (d) { return d.total_weight >= totW * 0.02; });
+        if (!mat.length) mat = cc.slice();
+        var dearest = mat.slice().sort(function (a, b) { return b.cost_per_pound - a.cost_per_pound; })[0];
+        m.highest_cost_carrier = dearest.carrier_id;
+        m.highest_cost_cplb = Math.round(dearest.cost_per_pound * 10) / 10;
+      }
+
+      /* Top product share of top-5 weight */
+      var tp = res[4];
+      if (Array.isArray(tp) && tp.length) {
+        var totalW = tp.reduce(function (s, p) { return s + Number(p.total_weight || 0); }, 0);
+        var t1 = tp[0];
+        var pct = totalW > 0 ? Number(t1.total_weight || 0) / totalW * 100 : 0;
+        m.top_product = t1.product_code;
+        m.top_product_share = Math.round(pct * 10) / 10;
+      }
+
+      /* Portfolio diversity */
+      var dv = res[5];
+      if (Array.isArray(dv) && dv.length) {
+        var recent = dv.slice(-12);
+        m.diversity_avg = Math.round(recent.reduce(function (s, d) { return s + Number(d.unique_products || 0); }, 0) / recent.length);
+        m.diversity_direction = BR.direction(dv.map(function (d) { return Number(d.unique_products || 0); }));
+      }
+
+      /* Shipment size & workload pressure */
+      var ss = res[6];
+      if (ss && ss.monthly_table) {
+        var ssm = computeShipSizeMetrics(ss);
+        m.avg_lbs_per_load = ssm.avg != null ? Math.round(ssm.avg) : null;
+        m.avg_lbs_yoy_pct = ssm.avgYoy != null ? Math.round(ssm.avgYoy * 10) / 10 : null;
+        m.workload_intensity = ssm.intensity != null ? Math.round(ssm.intensity * 10) / 10 : null;
+        m.intensity_yoy_pct = ssm.intensityYoy != null ? Math.round(ssm.intensityYoy * 10) / 10 : null;
+        m.extra_loads_ytd = ssm.extraYtd;
+      }
+
+      BR.setMetrics(m);
+    }).finally(function () {
+      if (spinner) spinner.classList.add('d-none');
+    });
+  }
+
+  /* ── Shipment-size metric computation (shared) ───────────────────────
+     Turns the /shipment-size-impact payload into the headline numbers that
+     tell the "smaller orders → more work" story. Used by both the dedicated
+     briefing card and the Executive Summary loader. */
+  function computeShipSizeMetrics(payload) {
+    var table = (payload && payload.monthly_table) || [];
+    if (!table.length) {
+      return { avg: null, avgYoy: null, intensity: null, intensityYoy: null, extraYtd: null, curYear: null };
+    }
+
+    /* Use a YTD basis (Jan..latest month of the current year vs the same span
+       last year) so the card is robust to single-month noise and stays
+       internally consistent with the YTD extra-loads figure. */
+    var curYear = table.reduce(function (mx, r) { return Math.max(mx, r.year); }, 0);
+    var lm = table.filter(function (r) { return r.year === curYear; })
+                  .reduce(function (mx, r) { return Math.max(mx, r.month); }, 0);
+
+    function ytd(year) {
+      var rows = table.filter(function (r) { return r.year === year && r.month <= lm; });
+      return {
+        has: rows.length > 0,
+        w: rows.reduce(function (s, r) { return s + r.total_weight_lbs; }, 0),
+        l: rows.reduce(function (s, r) { return s + r.load_count; }, 0),
+      };
+    }
+    var c = ytd(curYear), p = ytd(curYear - 1);
+
+    var avg = c.l ? c.w / c.l : null;
+    var priorAvg = (p.has && p.l) ? p.w / p.l : null;
+    var avgYoy = (avg != null && priorAvg) ? (avg - priorAvg) / priorAvg * 100 : null;
+
+    var intensity = c.w ? c.l / (c.w / 1e6) : null;
+    var priorIntensity = (p.has && p.w) ? p.l / (p.w / 1e6) : null;
+    var intensityYoy = (intensity != null && priorIntensity) ? (intensity - priorIntensity) / priorIntensity * 100 : null;
+
+    var extraYtd = table
+      .filter(function (r) { return r.year === curYear && r.extra_loads_due_to_smaller_shipments != null; })
+      .reduce(function (s, r) { return s + r.extra_loads_due_to_smaller_shipments; }, 0);
+
+    return {
+      avg: avg, avgYoy: avgYoy,
+      intensity: intensity, intensityYoy: intensityYoy,
+      extraYtd: Math.round(extraYtd),
+      curYear: curYear,
+    };
+  }
+
+  /* ── Shipment Size & Workload Pressure card (independent site/product) ── */
+  function loadShipmentSizePressure(site, pg) {
+    setTextById('shipSizeSiteLabel', site);
+    setTextById('shipSizeProductLabel', pg);
+    setTextById('shipSizeYearLabel', String(getBriefingDateRange().year));
+
+    var spinner = document.getElementById('shipSizeSpinner');
+    if (spinner) spinner.classList.remove('d-none');
+
+    var range = getBriefingDateRange();
+    var url = '/maintenance/api/shipment-size-impact?site=' + site + '&product_group=' + pg +
+              '&date_from=2023-01-01&date_to=' + range.endDate + '&exclude_carriers=false';
+
+    fetch(url)
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function (payload) {
+        var table = payload.monthly_table || [];
+        var s = computeShipSizeMetrics(payload);
+
+        /* KPI tiles — for shipment size, DOWN is the problem (red); for
+           workload intensity, UP is the problem (red). */
+        setTextById('ssAvgVal', s.avg != null ? BR.fmtInt(s.avg) + ' lbs/load' : '—');
+        document.getElementById('ssAvgYoy').innerHTML =
+          s.avgYoy != null ? BR.deltaSpan(s.avgYoy, false) + ' vs last yr' : '—';
+
+        setTextById('ssIntensityVal', s.intensity != null ? BR.fmt1(s.intensity) + ' / 1M lbs' : '—');
+        document.getElementById('ssIntensityYoy').innerHTML =
+          s.intensityYoy != null ? BR.deltaSpan(s.intensityYoy, true) + ' vs last yr' : '—';
+
+        setTextById('ssExtraVal', s.extraYtd != null ? BR.fmtInt(s.extraYtd) + ' loads' : '—');
+
+        /* Scissors chart: size down (left axis) vs intensity up (right axis). */
+        var labels = table.map(function (r) { return r.year + '-' + String(r.month).padStart(2, '0'); });
+        Plotly.newPlot('shipSizeChart', [
+          {
+            x: labels,
+            y: table.map(function (r) { return r.avg_lbs_per_load; }),
+            name: 'Avg lbs/load',
+            mode: 'lines+markers',
+            line: { color: '#154e9a', width: 2.5 },
+            marker: { size: 4 },
+            hovertemplate: '%{x}<br>Avg: %{y:,.0f} lbs/load<extra></extra>',
+          },
+          {
+            x: labels,
+            y: table.map(function (r) { return r.loads_per_million_lbs; }),
+            name: 'Loads per 1M lbs',
+            yaxis: 'y2',
+            mode: 'lines+markers',
+            line: { color: '#d9534f', width: 2.5, dash: 'dot' },
+            marker: { size: 4 },
+            hovertemplate: '%{x}<br>%{y:,.1f} loads / 1M lbs<extra></extra>',
+          },
+        ], {
+          xaxis: { title: 'Month', showgrid: true, gridcolor: '#e9ecef', tickangle: -35, automargin: true },
+          yaxis: {
+            title: 'Avg lbs / load (shipment size)',
+            showgrid: true, gridcolor: '#e9ecef', side: 'left',
+            titlefont: { color: '#154e9a' }, tickfont: { color: '#154e9a' },
+          },
+          yaxis2: {
+            title: 'Loads per 1M lbs (workload)',
+            overlaying: 'y', side: 'right',
+            titlefont: { color: '#d9534f' }, tickfont: { color: '#d9534f' },
+          },
+          plot_bgcolor: '#ffffff', paper_bgcolor: '#ffffff',
+          font: { family: 'Open Sans, sans-serif', size: 11 },
+          margin: { t: 20, r: 70, b: 80, l: 70 },
+          showlegend: true,
+          legend: { orientation: 'h', x: 0, y: 1.08, bgcolor: 'rgba(255,255,255,0.8)' },
+          hovermode: 'x unified',
+        }, { responsive: true, displayModeBar: false });
+
+        /* Insight bar. */
+        var html = '<span class="ins-label">Insight:</span> ';
+        if (s.avgYoy != null) {
+          var shrinking = s.avgYoy < 0;
+          html += 'Year-to-date, average shipment size is ' +
+            (shrinking ? '<span class="delta-up">down ' : '<span class="delta-down">up ') +
+            BR.fmt1(Math.abs(s.avgYoy)) + '%</span> vs last year' +
+            (s.avg != null ? ' (' + BR.fmtInt(s.avg) + ' lbs/load)' : '') + '. ';
+        }
+        if (s.intensityYoy != null) {
+          html += 'It now takes <strong>' + (s.intensityYoy >= 0 ? '+' : '') + BR.fmt1(s.intensityYoy) +
+            '%</strong> ' + (s.intensityYoy >= 0 ? 'more' : 'fewer') + ' loads to move each million lbs. ';
+        }
+        if (s.extraYtd != null && s.extraYtd > 0) {
+          html += '<strong>~' + BR.fmtInt(s.extraYtd) + ' extra loads</strong> year-to-date were driven purely by smaller orders — ' +
+            'more handling, staging and dock activity for the same tonnage.';
+        } else if (s.extraYtd != null && s.extraYtd < 0) {
+          html += 'Larger orders saved an estimated <strong>' + BR.fmtInt(Math.abs(s.extraYtd)) + ' loads</strong> YTD.';
+        }
+        BR.setInsight('shipSizeInsight', html);
+      })
+      .catch(function (err) {
+        document.getElementById('shipSizeChart').innerHTML =
+          '<div class="alert alert-warning m-3"><i class="bi bi-exclamation-triangle me-2"></i>Shipment-size data unavailable: ' + err.message + '</div>';
+        BR.clearInsight('shipSizeInsight', 'Shipment-size data unavailable.');
+      })
+      .finally(function () {
+        if (spinner) spinner.classList.add('d-none');
+      });
   }
 
   /* ── Freight ¢/lb by Product Code — YTD boxplot ──────────────────────
@@ -1214,6 +1921,44 @@
           showlegend: false,
         }, { responsive: true, displayModeBar: false });
 
+        /* Click a product box → open the freight-driver drill-down for that
+           product in a new tab (keeps the printable briefing untouched). */
+        var frtCplbEl = document.getElementById('frtCplbChart');
+        frtCplbEl.on('plotly_click', function (ev) {
+          if (!ev || !ev.points || !ev.points.length) return;
+          var prod = ev.points[0].data.name;
+          if (!prod) return;
+          window.open('/maintenance/freight-driver?site=' + encodeURIComponent(site) +
+            '&product_group=' + encodeURIComponent(productGroup) +
+            '&product_code=' + encodeURIComponent(prod), '_blank');
+        });
+        /* Keep the footer "drill-down" link in sync with the boxplot's filters. */
+        var driverLink = document.getElementById('frtCplbDriverLink');
+        if (driverLink) {
+          driverLink.href = '/maintenance/freight-driver?site=' + encodeURIComponent(site) +
+            '&product_group=' + encodeURIComponent(productGroup);
+        }
+
+        /* Insight: cheapest vs most-expensive product, widest rate spread. */
+        if (products.length) {
+          var cheapest = products[0];
+          var dearest  = products[products.length - 1];
+          var medCheap = median(groups[cheapest]);
+          var medDear  = median(groups[dearest]);
+          var html = '<span class="ins-label">Insight:</span> ' +
+            'Across <strong>' + products.length + '</strong> top products, ' +
+            '<strong>' + dearest + '</strong> is the most expensive to ship (~' +
+            BR.fmt1(medDear) + '¢/lb median) vs <strong>' + cheapest + '</strong> at ~' +
+            BR.fmt1(medCheap) + '¢/lb';
+          if (medCheap > 0) {
+            html += ' — a <strong>' + (medDear / medCheap).toFixed(1) + '×</strong> gap. ' +
+              'Tall boxes flag products with inconsistent rates worth a lane/carrier review.';
+          } else { html += '.'; }
+          BR.setInsight('frtCplbInsight', html);
+        } else {
+          BR.clearInsight('frtCplbInsight');
+        }
+
         document.getElementById('frtCplbSpinner').style.display = 'none';
       })
       .catch(function (err) {
@@ -1221,6 +1966,7 @@
           '<div class="alert alert-warning m-3">' +
           '<i class="bi bi-exclamation-triangle me-2"></i>' +
           'Chart unavailable: ' + err.message + '</div>';
+        BR.clearInsight('frtCplbInsight', 'Per-product freight data unavailable.');
         document.getElementById('frtCplbSpinner').style.display = 'none';
       });
   }
@@ -1248,6 +1994,7 @@
           if (rows.length === 0) {
             document.getElementById('carrierChart').innerHTML =
               '<div class="alert alert-info m-3">No YTD carrier usage data available.</div>';
+            BR.clearInsight('carrierInsight', 'No YTD carrier usage data.');
             document.getElementById('carrierSpinner').style.display = 'none';
             return;
           }
@@ -1276,6 +2023,24 @@
 
           document.getElementById('carrierTrendSiteLabel').textContent = currentSite;
           document.getElementById('carrierTrendProductLabel').textContent = currentProduct;
+
+          /* Insight + metrics: top-carrier concentration. */
+          var totalLoads = data.total_loads ||
+            rows.reduce(function (s, r) { return s + r.load_count; }, 0);
+          var top = rows[0];
+          var topShare = top.share_pct != null
+            ? top.share_pct
+            : (totalLoads > 0 ? top.load_count / totalLoads * 100 : 0);
+          var rk = BR.riskLevel(topShare);
+          BR.setInsight('carrierInsight',
+            '<span class="ins-label">Insight:</span> ' +
+            '<strong>' + top.carrier_id + '</strong> handles <strong>' + BR.fmt1(topShare) + '%</strong> of ' +
+            totalLoads.toLocaleString() + ' YTD loads across ' + rows.length + ' carriers — ' +
+            '<span class="' + rk.cls + '">' + rk.level + ' concentration risk</span>. ' +
+            (topShare >= 35
+              ? 'A disruption at this one carrier would hit most shipments; line up a backup on its busiest lanes.'
+              : 'Mix is reasonably balanced; keep watching the leader\'s share.'));
+
           document.getElementById('carrierSpinner').style.display = 'none';
         })
         .catch(function (err) {
@@ -1283,6 +2048,7 @@
             '<div class="alert alert-warning m-3">' +
             '<i class="bi bi-exclamation-triangle me-2"></i>' +
             'Chart unavailable: ' + err.message + '</div>';
+          BR.clearInsight('carrierInsight', 'Carrier usage data unavailable.');
           document.getElementById('carrierSpinner').style.display = 'none';
         });
     }
@@ -1375,11 +2141,35 @@
           };
           
           Plotly.newPlot('frtYtdChart', traces, layout, config);
-          
+
           // Update labels
           document.getElementById('frtTrendSiteLabel').textContent = currentSite;
           document.getElementById('frtTrendProductLabel').textContent = currentProduct;
-          
+
+          /* Insight + metrics: YTD ¢/lb vs prior year (same months). */
+          var sorted = data.series.slice().sort(function (a, b) { return a.year - b.year; });
+          var cur = sorted[sorted.length - 1];
+          var prev = sorted[sorted.length - 2];
+          var curPts = (cur.data || []).filter(function (d) { return d.cost_per_lb != null; });
+          var mean = function (a) { return a.length ? a.reduce(function (s, x) { return s + x; }, 0) / a.length : null; };
+          var curAvg = mean(curPts.map(function (d) { return d.cost_per_lb; }));
+          var prevAvg = null, yoy = null;
+          if (prev) {
+            var curMonths = {};
+            curPts.forEach(function (d) { curMonths[d.month] = true; });
+            var prevPts = (prev.data || []).filter(function (d) { return d.cost_per_lb != null && curMonths[d.month]; });
+            prevAvg = mean(prevPts.map(function (d) { return d.cost_per_lb; }));
+            if (prevAvg != null && curAvg != null && prevAvg !== 0) yoy = (curAvg - prevAvg) / prevAvg * 100;
+          }
+          var worst = curPts.slice().sort(function (a, b) { return b.cost_per_lb - a.cost_per_lb; })[0];
+          var dir = BR.direction(curPts.map(function (d) { return d.cost_per_lb; }));
+          var html = '<span class="ins-label">Insight:</span> ' +
+            cur.year + ' freight averages <strong>' + BR.fmt1(curAvg) + '¢/lb</strong>';
+          if (yoy != null) html += ', ' + BR.deltaSpan(yoy, true) + ' vs ' + prev.year + ' (' + BR.fmt1(prevAvg) + '¢/lb)';
+          html += '. Recent months are ' + BR.dirSpan(dir, true) + '.';
+          if (worst) html += ' Peak month so far: month ' + worst.month + ' at ' + BR.fmt1(worst.cost_per_lb) + '¢/lb.';
+          BR.setInsight('frtYtdInsight', html);
+
           document.getElementById('frtYtdSpinner').style.display = 'none';
         })
         .catch(function (err) {
@@ -1387,6 +2177,7 @@
             '<div class="alert alert-warning m-3">' +
             '<i class="bi bi-exclamation-triangle me-2"></i>' +
             'Chart unavailable: ' + err.message + '</div>';
+          BR.clearInsight('frtYtdInsight', 'Freight trend data unavailable.');
           document.getElementById('frtYtdSpinner').style.display = 'none';
         });
     }
@@ -1487,11 +2278,33 @@
           };
           
           Plotly.newPlot('weightTrendChart', traces, layout, config);
-          
+
           // Update labels
           document.getElementById('weightTrendSiteLabel').textContent = currentSite;
           document.getElementById('weightTrendProductLabel').textContent = currentProduct;
-          
+
+          /* Insight + metrics: YTD volume vs prior year (same months). */
+          var sortedW = data.series.slice().sort(function (a, b) { return a.year - b.year; });
+          var curW = sortedW[sortedW.length - 1];
+          var prevW = sortedW[sortedW.length - 2];
+          var curWPts = (curW.data || []).filter(function (d) { return d.weight_millions != null; });
+          var sum = function (a) { return a.reduce(function (s, x) { return s + x; }, 0); };
+          var curSum = sum(curWPts.map(function (d) { return d.weight_millions; }));
+          var prevSum = null, yoyW = null;
+          if (prevW) {
+            var curWMonths = {};
+            curWPts.forEach(function (d) { curWMonths[d.month] = true; });
+            var prevWPts = (prevW.data || []).filter(function (d) { return d.weight_millions != null && curWMonths[d.month]; });
+            prevSum = sum(prevWPts.map(function (d) { return d.weight_millions; }));
+            if (prevSum > 0) yoyW = (curSum - prevSum) / prevSum * 100;
+          }
+          var dirW = BR.direction(curWPts.map(function (d) { return d.weight_millions; }));
+          var htmlW = '<span class="ins-label">Insight:</span> ' +
+            curW.year + ' shipped volume is <strong>' + BR.fmtMlbs(curSum) + '</strong> YTD';
+          if (yoyW != null) htmlW += ', ' + BR.deltaSpan(yoyW, false) + ' vs ' + prevW.year + ' (' + BR.fmtMlbs(prevSum) + ')';
+          htmlW += '. Recent months are ' + BR.dirSpan(dirW, false) + '.';
+          BR.setInsight('weightTrendInsight', htmlW);
+
           document.getElementById('weightTrendSpinner').style.display = 'none';
         })
         .catch(function (err) {
@@ -1499,6 +2312,7 @@
             '<div class="alert alert-warning m-3">' +
             '<i class="bi bi-exclamation-triangle me-2"></i>' +
             'Chart unavailable: ' + err.message + '</div>';
+          BR.clearInsight('weightTrendInsight', 'Volume trend data unavailable.');
           document.getElementById('weightTrendSpinner').style.display = 'none';
         });
     }
@@ -1552,6 +2366,7 @@
         if (!Array.isArray(data) || data.length === 0) {
           document.getElementById('ccBubbleChart').innerHTML =
             '<div class="alert alert-warning m-3"><i class="bi bi-exclamation-triangle me-2"></i>No carrier data for YTD.</div>';
+          BR.clearInsight('ccInsight', 'No carrier cost data for YTD.');
           return;
         }
 
@@ -1606,6 +2421,21 @@
           showlegend:    false,
         }, { responsive: true, displayModeBar: false });
 
+        /* Insight + metrics: weighted-avg ¢/lb and the most expensive carrier
+           (restricted to carriers carrying ≥2% of weight so a one-off tiny load
+           doesn't get flagged as "most expensive"). */
+        var matWeight = totalWeight * 0.02;
+        var material = data.filter(function (d) { return d.total_weight >= matWeight; });
+        if (!material.length) material = data.slice();
+        var dearestCarrier = material.slice().sort(function (a, b) { return b.cost_per_pound - a.cost_per_pound; })[0];
+        var cheapestCarrier = material.slice().sort(function (a, b) { return a.cost_per_pound - b.cost_per_pound; })[0];
+        BR.setInsight('ccInsight',
+          '<span class="ins-label">Insight:</span> ' +
+          'Blended freight is <strong>' + BR.fmt1(avgCpp) + '¢/lb</strong> across ' + data.length + ' carriers. ' +
+          'Most expensive: <strong>' + dearestCarrier.carrier_id + '</strong> at ' + BR.fmt1(dearestCarrier.cost_per_pound) + '¢/lb; ' +
+          'best: <strong>' + cheapestCarrier.carrier_id + '</strong> at ' + BR.fmt1(cheapestCarrier.cost_per_pound) + '¢/lb. ' +
+          'Large bubbles high on the chart are the biggest savings targets.');
+
         /* Table — sorted by cost_per_pound desc */
         var sorted = data.slice().sort(function (a, b) { return b.cost_per_pound - a.cost_per_pound; });
         var tbody = document.getElementById('ccTbody');
@@ -1641,6 +2471,7 @@
         document.getElementById('ccSpinner').style.display = 'none';
         document.getElementById('ccBubbleChart').innerHTML =
           '<div class="alert alert-warning m-3"><i class="bi bi-exclamation-triangle me-2"></i>Carrier data unavailable: ' + err.message + '</div>';
+        BR.clearInsight('ccInsight', 'Carrier cost data unavailable.');
       });
   }
 
@@ -1788,6 +2619,7 @@ function loadTopCustomerTreeMapByFilters(site, productGroup) {
       document.getElementById('customerTreeSpinner').style.display = 'none';
       if (!data.items || !data.items.length) {
         document.getElementById('customerTreeMap').innerHTML = '<div class="alert alert-warning m-3"><i class="bi bi-exclamation-triangle me-2"></i>No customer data for this month.</div>';
+        BR.clearInsight('customerTreeInsight', 'No customer data for this month.');
         return;
       }
       var labels = data.items.map(function (d) { return d.customer_name; });
@@ -1810,10 +2642,26 @@ function loadTopCustomerTreeMapByFilters(site, productGroup) {
         plot_bgcolor: '#fff',
         font: { family: 'Open Sans, sans-serif', size: 13 },
       }, { responsive: true, displayModeBar: false });
+
+      /* Insight: this-month customer concentration. */
+      var custTotal = values.reduce(function (s, v) { return s + v; }, 0);
+      var topItem = data.items[0];
+      var topPct = custTotal > 0 ? topItem.total_weight / custTotal * 100 : 0;
+      var top3Pct = custTotal > 0
+        ? data.items.slice(0, 3).reduce(function (s, d) { return s + d.total_weight; }, 0) / custTotal * 100
+        : 0;
+      BR.setInsight('customerTreeInsight',
+        '<span class="ins-label">Insight:</span> This month the top customer (<strong>' + topItem.customer_name + '</strong>) ' +
+        'takes <strong>' + BR.fmt1(topPct) + '%</strong> of shipped weight; the top 3 account for <strong>' +
+        BR.fmt1(top3Pct) + '%</strong>. ' +
+        (top3Pct >= 60
+          ? 'Heavy concentration — service issues with these accounts swing the whole month.'
+          : 'Customer base is reasonably spread for the month.'));
     })
     .catch(function (err) {
       document.getElementById('customerTreeSpinner').style.display = 'none';
       document.getElementById('customerTreeMap').innerHTML = '<div class="alert alert-warning m-3"><i class="bi bi-exclamation-triangle me-2"></i>Customer data unavailable: ' + err.message + '</div>';
+      BR.clearInsight('customerTreeInsight', 'Customer data unavailable.');
     });
 }
 
@@ -1850,24 +2698,19 @@ function loadProductTrendAnalysisByFilters(site, productGroup) {
     if (spinner) spinner.style.display = 'none';
     var topSummary = document.getElementById('topProductsSummary');
     if (topSummary) topSummary.style.display = '';
-    var recContent = document.getElementById('recommendationsContent');
-    if (recContent) recContent.style.display = '';
 
+    var top1Pct = null;
     if (topProducts.length > 0) {
       var top1 = topProducts[0];
       var topCode = document.getElementById('topProduct1Code');
       var topWeight = document.getElementById('topProduct1Weight');
-      var rec1Product = document.getElementById('rec1Product');
       if (topCode) topCode.textContent = top1.product_code;
       if (topWeight) topWeight.textContent = Number(top1.total_weight || 0).toLocaleString() + ' lbs (' + Number(top1.shipment_count || 0) + ' shipments)';
-      if (rec1Product) rec1Product.textContent = top1.product_code;
 
       var totalWeight = topProducts.reduce(function (sum, p) {
         return sum + Number(p.total_weight || 0);
       }, 0);
-      var top1Pct = totalWeight > 0 ? Math.round((Number(top1.total_weight || 0) / totalWeight) * 100) : 0;
-      var rec1Pct = document.getElementById('rec1Pct');
-      if (rec1Pct) rec1Pct.textContent = top1Pct + '%';
+      top1Pct = totalWeight > 0 ? (Number(top1.total_weight || 0) / totalWeight) * 100 : 0;
     }
 
     if (topProducts.length > 1) {
@@ -1878,15 +2721,15 @@ function loadProductTrendAnalysisByFilters(site, productGroup) {
       if (growthTrend) growthTrend.textContent = '↑ ' + Number(growth.total_weight || 0).toLocaleString() + ' lbs';
     }
 
+    var avgUnique = null, diversityDir = 'flat';
     if (diversity.length > 0) {
       var recentDiversity = diversity.slice(-12);
-      var avgUnique = Math.round(recentDiversity.reduce(function (sum, d) {
+      avgUnique = Math.round(recentDiversity.reduce(function (sum, d) {
         return sum + Number(d.unique_products || 0);
       }, 0) / recentDiversity.length);
+      diversityDir = BR.direction(diversity.map(function (d) { return Number(d.unique_products || 0); }));
       var portfolioHealth = document.getElementById('portfolioHealth');
-      var rec3Unique = document.getElementById('rec3UniqueCount');
       if (portfolioHealth) portfolioHealth.textContent = String(avgUnique);
-      if (rec3Unique) rec3Unique.textContent = String(avgUnique);
     }
 
     var traces = [];
@@ -1961,6 +2804,46 @@ function loadProductTrendAnalysisByFilters(site, productGroup) {
       legend: { x: 0.01, y: 0.99, bgcolor: 'rgba(255,255,255,0.8)' },
       hovermode: 'x unified',
     }, { responsive: true, displayModeBar: false });
+
+    /* Insight: top-product movement among the top 5. */
+    var rising = 0, falling = 0, fastest = null, fastestPct = -Infinity;
+    monthlyTrends.forEach(function (pd) {
+      var vals = (pd.monthly || []).map(function (mo) { return Number(mo.total_weight || 0); });
+      var dir = BR.direction(vals);
+      if (dir === 'rising') rising++;
+      if (dir === 'falling') falling++;
+      if (vals.length >= 4) {
+        var recent = vals.slice(-3), prior = vals.slice(-6, -3);
+        var avg = function (a) { return a.reduce(function (s, x) { return s + x; }, 0) / (a.length || 1); };
+        var p = avg(prior);
+        if (p > 0) {
+          var pct = (avg(recent) - p) / p * 100;
+          if (pct > fastestPct) { fastestPct = pct; fastest = pd.product_code; }
+        }
+      }
+    });
+    var ptHtml = '<span class="ins-label">Insight:</span> ';
+    if (top1Pct != null && topProducts.length) {
+      ptHtml += 'Top product <strong>' + topProducts[0].product_code + '</strong> is <strong>' +
+        Math.round(top1Pct) + '%</strong> of top-5 weight. ';
+    }
+    ptHtml += 'Of the top 5, <span class="delta-down">' + rising + ' rising</span> and ' +
+      '<span class="delta-up">' + falling + ' falling</span>';
+    if (fastest && fastestPct > 0) ptHtml += '; fastest grower is <strong>' + fastest + '</strong> (+' + fastestPct.toFixed(0) + '% recent)';
+    ptHtml += '.';
+    BR.setInsight('productTrendInsight', ptHtml);
+
+    /* Insight: portfolio diversity direction. */
+    if (avgUnique != null) {
+      BR.setInsight('productDiversityInsight',
+        '<span class="ins-label">Insight:</span> ~<strong>' + avgUnique + '</strong> unique products shipped per month, ' +
+        'and breadth is ' + BR.dirSpan(diversityDir, true) + '. ' +
+        (diversityDir === 'falling'
+          ? 'Shrinking variety means more reliance on fewer SKUs — confirm it is intentional, not customer churn.'
+          : 'A stable/widening mix spreads demand risk across more products.'));
+    } else {
+      BR.clearInsight('productDiversityInsight');
+    }
   })
   .catch(function (err) {
     var spinner = document.getElementById('productTrendSpinner');
@@ -1970,6 +2853,8 @@ function loadProductTrendAnalysisByFilters(site, productGroup) {
     if (trendChart) trendChart.innerHTML = errMsg;
     var diversityChart = document.getElementById('productDiversityChart');
     if (diversityChart) diversityChart.innerHTML = errMsg;
+    BR.clearInsight('productTrendInsight', 'Product trend data unavailable.');
+    BR.clearInsight('productDiversityInsight', 'Product diversity data unavailable.');
   });
 }
 
@@ -2024,6 +2909,28 @@ document.getElementById('productTrendProduct').addEventListener('change', functi
   refreshSharedBriefingSections();
 });
 
+/* Executive Summary — independent site/product selectors */
+var execSummaryFilters = { site: 'AMJK', product_group: 'SW' };
+document.getElementById('execSite').addEventListener('change', function (e) {
+  execSummaryFilters.site = e.target.value;
+  loadExecutiveSummary(execSummaryFilters.site, execSummaryFilters.product_group);
+});
+document.getElementById('execProduct').addEventListener('change', function (e) {
+  execSummaryFilters.product_group = e.target.value;
+  loadExecutiveSummary(execSummaryFilters.site, execSummaryFilters.product_group);
+});
+
+/* Shipment Size & Workload Pressure — independent site/product selectors */
+var shipSizeFilters = { site: 'AMJK', product_group: 'SW' };
+document.getElementById('shipSizeSite').addEventListener('change', function (e) {
+  shipSizeFilters.site = e.target.value;
+  loadShipmentSizePressure(shipSizeFilters.site, shipSizeFilters.product_group);
+});
+document.getElementById('shipSizeProduct').addEventListener('change', function (e) {
+  shipSizeFilters.product_group = e.target.value;
+  loadShipmentSizePressure(shipSizeFilters.site, shipSizeFilters.product_group);
+});
+
 refreshSharedBriefingSections();
 syncFreightCplbLabels(freightCplbFilters.site, freightCplbFilters.product_group);
 loadFreightCplbByProduct(freightCplbFilters.site, freightCplbFilters.product_group);
@@ -2031,6 +2938,8 @@ syncCarrierCostLabels(carrierCostFilters.site, carrierCostFilters.product_group)
 loadCarrierCostAnalysisByFilters(carrierCostFilters.site, carrierCostFilters.product_group);
 syncCustomerTreeLabels(customerTreeFilters.site, customerTreeFilters.product_group);
 loadTopCustomerTreeMapByFilters(customerTreeFilters.site, customerTreeFilters.product_group);
+loadExecutiveSummary(execSummaryFilters.site, execSummaryFilters.product_group);
+loadShipmentSizePressure(shipSizeFilters.site, shipSizeFilters.product_group);
 </script>
 {% endblock %}
 {% endblock %}

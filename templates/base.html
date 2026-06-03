@@ -47,7 +47,7 @@
 
           <!-- Overview (with sub-page dropdown) -->
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle {% if active_page in ['meeting_report', 'briefing'] %}active{% endif %}"
+            <a class="nav-link dropdown-toggle {% if active_page in ['meeting_report', 'briefing', 'summary'] %}active{% endif %}"
                href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
               <i class="bi bi-house me-1" aria-hidden="true"></i>Overview
             </a>
@@ -60,6 +60,11 @@
               <li>
                 <a class="dropdown-item {% if active_page == 'briefing' %}active{% endif %}" href="/briefing">
                   <i class="bi bi-file-earmark-text me-2" aria-hidden="true"></i>Briefing
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item {% if active_page == 'summary' %}active{% endif %}" href="/summary">
+                  <i class="bi bi-easel2 me-2" aria-hidden="true"></i>Summary
                 </a>
               </li>
             </ul>
@@ -101,7 +106,7 @@
 
           <!-- Maintenance (dropdown) -->
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle {% if active_page in ['maintenance', 'frt_validation', 'freight_audit', 'lmi', 'truck_load_map', 'shipping_status', 'not_in_xfcma', 'shipment_scan', 'sales_summary'] %}active{% endif %}"
+            <a class="nav-link dropdown-toggle {% if active_page in ['maintenance', 'frt_validation', 'freight_audit', 'freight_driver', 'shipment_size_impact', 'lmi', 'truck_load_map', 'shipping_status', 'not_in_xfcma', 'shipment_scan', 'sales_summary', 'transp_type'] %}active{% endif %}"
                href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
               <i class="bi bi-tools me-1" aria-hidden="true"></i>Maintenance
             </a>
@@ -119,6 +124,16 @@
               <li>
                 <a class="dropdown-item {% if active_page == 'freight_audit' %}active{% endif %}" href="/maintenance/freight-audit">
                   <i class="bi bi-clipboard-check me-2" aria-hidden="true"></i>Freight ¢/lb Audit
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item {% if active_page == 'freight_driver' %}active{% endif %}" href="/maintenance/freight-driver">
+                  <i class="bi bi-arrow-down-up me-2" aria-hidden="true"></i>Freight ¢/lb Driver
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item {% if active_page == 'shipment_size_impact' %}active{% endif %}" href="/maintenance/shipment-size-impact">
+                  <i class="bi bi-layers-half me-2" aria-hidden="true"></i>Shipment Size Impact
                 </a>
               </li>
               <li>
@@ -144,6 +159,11 @@
               <li>
                 <a class="dropdown-item {% if active_page == 'sales_summary' %}active{% endif %}" href="/maintenance/sales-summary">
                   <i class="bi bi-file-earmark-bar-graph me-2" aria-hidden="true"></i>Sales Summary Upload
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item {% if active_page == 'transp_type' %}active{% endif %}" href="/maintenance/transp-type">
+                  <i class="bi bi-truck me-2" aria-hidden="true"></i>Transport Type Analysis
                 </a>
               </li>
             </ul>

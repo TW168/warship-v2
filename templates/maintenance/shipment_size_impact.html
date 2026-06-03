@@ -21,11 +21,11 @@
       <form id="impact-filter-form" class="row g-2 align-items-end">
         <div class="col-sm-6 col-md-2">
           <label for="impact-date-from" class="form-label form-label-sm fw-semibold mb-1">Date From</label>
-          <input type="date" id="impact-date-from" class="form-control form-control-sm" aria-label="Date from" />
+          <input type="date" id="impact-date-from" class="form-control form-control-sm" aria-label="Date from" value="{{ default_date_from }}" />
         </div>
         <div class="col-sm-6 col-md-2">
           <label for="impact-date-to" class="form-label form-label-sm fw-semibold mb-1">Date To</label>
-          <input type="date" id="impact-date-to" class="form-control form-control-sm" aria-label="Date to" />
+          <input type="date" id="impact-date-to" class="form-control form-control-sm" aria-label="Date to" value="{{ default_date_to }}" />
         </div>
         <div class="col-sm-6 col-md-2">
           <label for="impact-site" class="form-label form-label-sm fw-semibold mb-1">Site</label>
@@ -120,38 +120,36 @@
       </div>
     </div>
 
-    <div class="row g-3 mb-4">
-      <div class="col-12 col-xl-6">
-        <div class="card shadow-sm h-100">
+    <div class="row g-3 mb-4 align-items-stretch">
+      <div class="col-12 col-xl-4">
+        <div class="card shadow-sm h-100 d-flex flex-column">
           <div class="card-header fw-semibold">
             <i class="bi bi-arrow-down-up me-2"></i>Average Lbs per Load Trend
           </div>
-          <div class="card-body">
-            <div id="avg-load-chart" style="height:340px;"></div>
+          <div class="card-body d-flex flex-column">
+            <div id="avg-load-chart" class="shipment-size-chart shipment-size-chart--avg"></div>
           </div>
         </div>
       </div>
 
-      <div class="col-12 col-xl-6">
-        <div class="card shadow-sm h-100">
+      <div class="col-12 col-xl-4">
+        <div class="card shadow-sm h-100 d-flex flex-column">
           <div class="card-header fw-semibold">
             <i class="bi bi-stack me-2"></i>Loads per Million Lbs (Workload Intensity)
           </div>
-          <div class="card-body">
-            <div id="intensity-chart" style="height:340px;"></div>
+          <div class="card-body d-flex flex-column">
+            <div id="intensity-chart" class="shipment-size-chart shipment-size-chart--avg"></div>
           </div>
         </div>
       </div>
-    </div>
 
-    <div class="row g-3 mb-4">
-      <div class="col-12">
-        <div class="card shadow-sm h-100">
+      <div class="col-12 col-xl-4">
+        <div class="card shadow-sm h-100 d-flex flex-column">
           <div class="card-header fw-semibold">
             <i class="bi bi-bar-chart me-2"></i>Monthly YoY Decomposition (Lbs)
           </div>
-          <div class="card-body">
-            <div id="decomposition-chart" style="height:460px; width:100%;"></div>
+          <div class="card-body d-flex flex-column">
+            <div id="decomposition-chart" class="shipment-size-chart shipment-size-chart--decomposition"></div>
           </div>
         </div>
       </div>
@@ -332,10 +330,24 @@
     return Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: digits, maximumFractionDigits: digits });
   }
 
+  var MONTH_TICK_VALUES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+  var MONTH_TICK_TEXT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  function formatDateInput(date) {
+    var year = date.getFullYear();
+    var month = String(date.getMonth() + 1).padStart(2, '0');
+    var day = String(date.getDate()).padStart(2, '0');
+    return year + '-' + month + '-' + day;
+  }
+
+  function getRollingStartDate() {
+    var now = new Date();
+    return new Date(now.getFullYear(), now.getMonth() - 11, 1);
+  }
+
   function setDefaults() {
     var now = new Date();
-    var today = now.toISOString().slice(0, 10);
-    document.getElementById('impact-date-to').value = today;
+    document.getElementById('impact-date-to').value = formatDateInput(now);
     document.getElementById('impact-date-from').value = '2023-01-01';
   }
 
@@ -402,19 +414,31 @@
 
   function renderAvgLoadChart(series) {
     var traces = series.map(function (yearSeries) {
+      var sortedMonths = (yearSeries.data || []).slice().sort(function (left, right) {
+        return left.month - right.month;
+      });
+
       return {
-        x: yearSeries.data.map(function (m) { return m.month; }),
-        y: yearSeries.data.map(function (m) { return m.avg_lbs_per_load; }),
+        x: sortedMonths.map(function (row) { return row.month; }),
+        y: sortedMonths.map(function (row) { return row.avg_lbs_per_load; }),
         type: 'scatter',
         mode: 'lines+markers',
         name: String(yearSeries.year),
+        hovertemplate: 'Year %{fullData.name}<br>Month %{x}<br>Avg lbs/load: %{y:,.2f}<extra></extra>',
       };
     });
 
     Plotly.newPlot('avg-load-chart', traces, {
-      xaxis: { title: 'Month', dtick: 1 },
-      yaxis: { title: 'Avg lbs per load' },
-      margin: { t: 20, r: 20, b: 50, l: 70 },
+      height: 360,
+      xaxis: {
+        title: 'Month',
+        tickmode: 'array',
+        tickvals: MONTH_TICK_VALUES,
+        ticktext: MONTH_TICK_TEXT,
+        automargin: true,
+      },
+      yaxis: { title: 'Avg lbs per load', automargin: true },
+      margin: { t: 20, r: 20, b: 60, l: 75 },
       paper_bgcolor: '#ffffff',
       plot_bgcolor: '#ffffff',
       legend: { orientation: 'h', y: -0.25 },
@@ -423,19 +447,31 @@
 
   function renderIntensityChart(series) {
     var traces = series.map(function (yearSeries) {
+      var sortedMonths = (yearSeries.data || []).slice().sort(function (left, right) {
+        return left.month - right.month;
+      });
+
       return {
-        x: yearSeries.data.map(function (m) { return m.month; }),
-        y: yearSeries.data.map(function (m) { return m.loads_per_million_lbs; }),
+        x: sortedMonths.map(function (row) { return row.month; }),
+        y: sortedMonths.map(function (row) { return row.loads_per_million_lbs; }),
         type: 'scatter',
         mode: 'lines+markers',
         name: String(yearSeries.year),
+        hovertemplate: 'Year %{fullData.name}<br>Month %{x}<br>Loads per 1M lbs: %{y:,.2f}<extra></extra>',
       };
     });
 
     Plotly.newPlot('intensity-chart', traces, {
-      xaxis: { title: 'Month', dtick: 1 },
-      yaxis: { title: 'Loads per 1M lbs' },
-      margin: { t: 20, r: 20, b: 50, l: 70 },
+      height: 360,
+      xaxis: {
+        title: 'Month',
+        tickmode: 'array',
+        tickvals: MONTH_TICK_VALUES,
+        ticktext: MONTH_TICK_TEXT,
+        automargin: true,
+      },
+      yaxis: { title: 'Loads per 1M lbs', automargin: true },
+      margin: { t: 20, r: 20, b: 60, l: 75 },
       paper_bgcolor: '#ffffff',
       plot_bgcolor: '#ffffff',
       legend: { orientation: 'h', y: -0.25 },
@@ -466,10 +502,11 @@
       }
     ], {
       autosize: true,
+      height: 420,
       barmode: 'relative',
-      xaxis: { title: 'Month', automargin: true, tickangle: -35 },
-      yaxis: { title: 'YoY delta (lbs)' },
-      margin: { t: 20, r: 20, b: 100, l: 70 },
+      xaxis: { title: 'Month', automargin: true, tickangle: -35, type: 'category' },
+      yaxis: { title: 'YoY delta (lbs)', automargin: true },
+      margin: { t: 20, r: 20, b: 120, l: 75 },
       paper_bgcolor: '#ffffff',
       plot_bgcolor: '#ffffff',
       legend: { orientation: 'h', y: -0.25, x: 0 },

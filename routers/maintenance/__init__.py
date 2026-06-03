@@ -9,6 +9,7 @@ Domain → module mapping
 -----------------------
 Shipping Status CRUD    →  shipping_status.py
 Freight Audit           →  freight_audit.py
+Shipment Size Impact    →  shipment_size_impact.py
 LMI Document Analysis   →  lmi.py
 Truck Load Map          →  truck_load_map.py
 Not-in-XFCMA           →  not_in_xfcma.py
@@ -23,7 +24,18 @@ Usage in main.py (unchanged from pre-refactor):
 
 from fastapi import APIRouter
 
-from . import freight_audit, lmi, not_in_xfcma, sales_summary, shipment_scan, shipping_status, truck_load_map
+from . import (
+    freight_audit,
+    freight_driver,
+    lmi,
+    not_in_xfcma,
+    sales_summary,
+    shipment_scan,
+    shipment_size_impact,
+    shipping_status,
+    transp_type,
+    truck_load_map,
+)
 from .silos import router as _silos_router
 
 # Parent router — every route in every sub-module is served under /maintenance
@@ -31,11 +43,14 @@ router = APIRouter(prefix="/maintenance", tags=["Maintenance"])
 
 router.include_router(shipping_status.router)
 router.include_router(freight_audit.router)
+router.include_router(shipment_size_impact.router)
+router.include_router(freight_driver.router)
 router.include_router(lmi.router)
 router.include_router(truck_load_map.router)
 router.include_router(not_in_xfcma.router)
 router.include_router(shipment_scan.router)
 router.include_router(sales_summary.router)
+router.include_router(transp_type.router)
 router.include_router(_silos_router)
 
 __all__ = ["router"]

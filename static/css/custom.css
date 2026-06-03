@@ -200,6 +200,26 @@ main {
   padding-bottom: 0.9rem;
 }
 
+.shipment-size-chart {
+  width: 100%;
+  min-height: 360px;
+  flex: 1 1 auto;
+}
+
+.shipment-size-chart--decomposition {
+  min-height: 420px;
+}
+
+@media (max-width: 991.98px) {
+  .shipment-size-chart {
+    min-height: 320px;
+  }
+
+  .shipment-size-chart--decomposition {
+    min-height: 380px;
+  }
+}
+
 /* ── Tables ──────────────────────────────────────────────────── */
 .table thead th {
   background-color: var(--ws-primary);
