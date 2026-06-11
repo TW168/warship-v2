@@ -42,31 +42,30 @@
     </div>
   </div>
 
-  <!-- Recent uploads section -->
+  <!-- Daily BOL trend chart -->
   <div class="row">
-    <div class="col">
+    <div class="col-12">
       <div class="card shadow-sm">
-        <div class="card-header d-flex justify-content-between align-items-center py-2">
-          <div class="d-flex align-items-center gap-2">
-            <i class="bi bi-list-ul text-primary"></i>
-            <span class="fw-semibold small">Recent Uploads</span>
-          </div>
-          <button class="btn btn-outline-primary btn-sm" onclick="loadRecords()">
-            <i class="bi bi-arrow-clockwise me-1"></i>Refresh
-          </button>
+        <div class="card-header d-flex align-items-center justify-content-between gap-2 py-2">
+          <span class="fw-semibold small">
+            <i class="bi bi-graph-up-arrow text-primary me-1"></i>Daily Distinct BOL Trend
+          </span>
+          <span id="trendSummary" class="text-muted small"></span>
         </div>
         <div class="card-body">
-          <div id="recordsContainer">
-            <div class="d-flex justify-content-center py-4">
-              <div class="spinner-border spinner-border-sm text-primary me-2"></div>
-              <span class="text-muted">Loading records...</span>
-            </div>
-          </div>
+          <div id="dailyBolChart" style="height: 340px;"></div>
+          <div id="dailyBolChartEmpty" class="text-muted text-center py-4 d-none">No scan trend data available.</div>
         </div>
       </div>
     </div>
   </div>
+
 </div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 
 <script>
 // Upload functionality
@@ -101,7 +100,7 @@ async function uploadFile() {
       } else {
         showStatus(`Success! Processed ${result.rows_inserted} records from ${input.files[0].name}`, 'success');
         input.value = ''; // Clear file input
-        loadRecords(); // Refresh the records list
+        loadDailyBolTrend();
       }
     } else {
       showStatus(`Error: ${result.error}`, 'danger');
@@ -130,110 +129,74 @@ function showStatus(message, type) {
   }
 }
 
-// Load and display recent records
-async function loadRecords() {
-  const container = document.getElementById('recordsContainer');
-  
+// Daily distinct BOL trend line chart
+async function loadDailyBolTrend() {
+  const chartEl = document.getElementById('dailyBolChart');
+  const emptyEl = document.getElementById('dailyBolChartEmpty');
+  const summaryEl = document.getElementById('trendSummary');
+
   try {
-    const response = await fetch('/maintenance/api/shipment-scan?limit=20');
-    const data = await response.json();
+    const response = await fetch('/maintenance/api/shipment-scan/daily-bol', {
+      cache: 'no-store'
+    });
+    const result = await response.json();
 
-    if (response.ok) {
-      renderRecords(data.records, data.total);
-    } else {
-      container.innerHTML = `
-        <div class="alert alert-danger py-2 small">
-          Failed to load records: ${data.error}
-        </div>
-      `;
+    if (!response.ok) {
+      throw new Error(result.error || 'Failed to load trend data');
     }
+
+    const series = Array.isArray(result.series) ? result.series : [];
+    if (!series.length) {
+      chartEl.classList.add('d-none');
+      emptyEl.classList.remove('d-none');
+      summaryEl.textContent = '';
+      return;
+    }
+
+    chartEl.classList.remove('d-none');
+    emptyEl.classList.add('d-none');
+
+    const x = series.map(point => point.scan_date);
+    const y = series.map(point => Number(point.bol_count || 0));
+
+    Plotly.newPlot(
+      chartEl,
+      [
+        {
+          x,
+          y,
+          type: 'scatter',
+          mode: 'lines+markers',
+          name: 'Distinct BOL',
+          line: { color: '#154e9a', width: 2.5 },
+          marker: { color: '#154e9a', size: 6 },
+          hovertemplate: 'Date: %{x}<br>Distinct BOL: %{y}<extra></extra>'
+        }
+      ],
+      {
+        margin: { l: 52, r: 18, t: 14, b: 46 },
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        xaxis: { title: 'Scan Date', tickangle: -25, gridcolor: '#e9ecef' },
+        yaxis: { title: 'Distinct BOL Count', rangemode: 'tozero', gridcolor: '#e9ecef' },
+        hovermode: 'x unified',
+        showlegend: false
+      },
+      {
+        responsive: true,
+        displayModeBar: false
+      }
+    );
+
+    summaryEl.textContent = `${result.total_days || series.length} days, ${result.total_unique_bols || 0} unique BOL`; 
   } catch (error) {
-    container.innerHTML = `
-      <div class="alert alert-danger py-2 small">
-        Failed to load records: ${error.message}
-      </div>
-    `;
+    chartEl.classList.add('d-none');
+    emptyEl.classList.remove('d-none');
+    summaryEl.textContent = '';
+    showStatus(`Trend load failed: ${error.message}`, 'warning');
   }
 }
 
-// Render records table
-function renderRecords(records, total) {
-  const container = document.getElementById('recordsContainer');
-
-  recordsCache = records;
-
-  if (!records || records.length === 0) {
-    container.innerHTML = `
-      <div class="text-center py-4 text-muted">
-        <i class="bi bi-inbox fs-1 d-block mb-2"></i>
-        No uploads found. Upload your first shipment scan file above.
-      </div>
-    `;
-    return;
-  }
-
-  const tableHtml = `
-    <div class="table-responsive">
-      <table class="table table-sm table-hover align-middle">
-        <thead class="table-light sticky-top">
-          <tr>
-            <th>Uploaded (Texas time)</th>
-            <th>Rows</th>
-            <th>Scan Date</th>
-            <th>Pallet</th>
-            <th>BOL</th>
-            <th>Status</th>
-            <th>Name</th>
-            <th>Size</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${records.map(r => `
-            <tr>
-              <td><small class="text-muted">${r.uploaded_at ? new Date(r.uploaded_at).toLocaleString() : '—'}</small></td>
-              <td><span class="badge bg-primary-subtle text-primary-emphasis border">${r.row_count || 1}</span></td>
-              <td><small>${r.scan_datetime ? new Date(r.scan_datetime).toLocaleString() : '—'}</small></td>
-              <td>${r.pallet ? escapeHtml(r.pallet) : '<span class="text-muted">—</span>'}</td>
-              <td>${r.bol ? escapeHtml(r.bol) : '<span class="text-muted">—</span>'}</td>
-              <td>${r.status ? `<span class="badge bg-secondary">${escapeHtml(r.status)}</span>` : '<span class="text-muted">—</span>'}</td>
-              <td>${r.name ? escapeHtml(r.name) : '<span class="text-muted">—</span>'}</td>
-              <td><small class="text-muted">${formatFileSize(r.file_size)}</small></td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    </div>
-    ${total > 20 ? `<p class="text-muted small mt-2">Showing 20 of ${total} uploads</p>` : ''}
-  `;
-
-  container.innerHTML = tableHtml;
-}
-
-
-
-// Cache records for viewing
-let recordsCache = [];
-
-// Utility functions
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
-
-
-
-function formatFileSize(bytes) {
-  if (bytes === 0) return '0 Bytes';
-  const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-}
-
-// Load records when page loads
-document.addEventListener('DOMContentLoaded', function() {
-  loadRecords();
-});
+document.addEventListener('DOMContentLoaded', loadDailyBolTrend);
 </script>
 {% endblock %}

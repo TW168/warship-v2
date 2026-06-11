@@ -40,3 +40,14 @@ class ShipmentScanUploadResponse(BaseModel):
 
 class ShipmentScanErrorResponse(BaseModel):
     error: str
+
+
+class ShipmentScanDailyBolPoint(BaseModel):
+    scan_date: str
+    bol_count: int
+
+
+class ShipmentScanDailyBolResponse(BaseModel):
+    series: list[ShipmentScanDailyBolPoint]
+    total_days: int
+    total_unique_bols: int

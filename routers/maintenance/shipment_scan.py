@@ -25,7 +25,11 @@ from sqlalchemy import text
 
 from database import connect_to_database
 from logging_config import get_router_logger
-from schemas.shipment_scan import ShipmentScanListResponse, ShipmentScanUploadResponse
+from schemas.shipment_scan import (
+    ShipmentScanDailyBolResponse,
+    ShipmentScanListResponse,
+    ShipmentScanUploadResponse,
+)
 
 router = APIRouter(tags=["Maintenance"])
 templates = Jinja2Templates(directory="templates")
@@ -301,3 +305,54 @@ async def list_shipment_scan(
     except Exception as exc:
         logger.error("List failed: %s", exc, exc_info=True)
         return JSONResponse(status_code=500, content={"error": f"Failed to retrieve records: {exc}"})
+
+
+@router.get(
+    "/api/shipment-scan/daily-bol",
+    response_model=ShipmentScanDailyBolResponse,
+    summary="Daily shipment scan BOL trend",
+    description=(
+        "Returns daily distinct BOL counts from shipment_scan grouped by scan date "
+        "for line-chart rendering."
+    ),
+)
+async def shipment_scan_daily_bol() -> JSONResponse:
+    """Return daily distinct BOL counts for the shipment scan trend chart."""
+    try:
+        with _engine.connect() as conn:
+            rows = conn.execute(
+                text(
+                    """
+                    SELECT
+                        DATE(scan_datetime) AS scan_date,
+                        COUNT(DISTINCT bol) AS bol_count
+                    FROM shipment_scan
+                    GROUP BY DATE(scan_datetime)
+                    ORDER BY scan_date
+                    """
+                )
+            ).fetchall()
+
+            total_unique_bols = conn.execute(
+                text("SELECT COUNT(DISTINCT bol) FROM shipment_scan")
+            ).scalar() or 0
+
+        series = [
+            {
+                "scan_date": row.scan_date.isoformat() if row.scan_date else "Unknown",
+                "bol_count": int(row.bol_count or 0),
+            }
+            for row in rows
+            if row.scan_date is not None
+        ]
+
+        return JSONResponse(
+            {
+                "series": series,
+                "total_days": len(series),
+                "total_unique_bols": int(total_unique_bols),
+            }
+        )
+    except Exception as exc:
+        logger.error("Daily BOL trend query failed: %s", exc, exc_info=True)
+        return JSONResponse(status_code=500, content={"error": f"Failed to load trend: {exc}"})
