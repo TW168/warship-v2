@@ -28,6 +28,7 @@ from logging_config import get_router_logger
 from schemas.shipment_scan import (
     ShipmentScanDailyBolResponse,
     ShipmentScanListResponse,
+    ShipmentScanSearchResponse,
     ShipmentScanUploadResponse,
 )
 
@@ -356,3 +357,121 @@ async def shipment_scan_daily_bol() -> JSONResponse:
     except Exception as exc:
         logger.error("Daily BOL trend query failed: %s", exc, exc_info=True)
         return JSONResponse(status_code=500, content={"error": f"Failed to load trend: {exc}"})
+
+
+@router.get(
+    "/api/shipment-scan/search",
+    response_model=ShipmentScanSearchResponse,
+    summary="Search shipment scan rows",
+    description=(
+        "Search shipment scan rows by scan date, pallet number, and name. "
+        "All filters are optional and can be combined."
+    ),
+)
+async def search_shipment_scan(
+    scan_date: Optional[str] = Query(default=None, description="Scan date in YYYY-MM-DD format"),
+    pallet: Optional[str] = Query(default=None, description="Pallet number (partial match)"),
+    bol: Optional[str] = Query(default=None, description="BOL number (partial match)"),
+    name: Optional[str] = Query(default=None, description="Name (partial match)"),
+    limit: int = Query(default=100, ge=1, le=500),
+) -> JSONResponse:
+    """Search shipment scan detail rows using optional date, pallet, and name filters."""
+    try:
+        where_clauses: list[str] = ["(status IS NULL OR UPPER(TRIM(status)) <> 'FINISH')"]
+        params: dict = {"limit": limit}
+
+        if scan_date:
+            where_clauses.append("DATE(scan_datetime) = :scan_date")
+            params["scan_date"] = scan_date
+        if pallet:
+            where_clauses.append("pallet LIKE :pallet")
+            params["pallet"] = f"%{pallet}%"
+        if bol:
+            where_clauses.append("bol LIKE :bol")
+            params["bol"] = f"%{bol}%"
+        if name:
+            where_clauses.append("name LIKE :name")
+            params["name"] = f"%{name}%"
+
+        where_sql = f"WHERE {' AND '.join(where_clauses)}" if where_clauses else ""
+        count_params = {k: v for k, v in params.items() if k != "limit"}
+
+        with _engine.connect() as conn:
+            rows = conn.execute(
+                text(
+                    f"""
+                    SELECT
+                        id,
+                        uploaded_at,
+                        source_file,
+                        file_size,
+                        scan_datetime,
+                        pallet,
+                        bol,
+                        status,
+                        name
+                    FROM shipment_scan
+                    {where_sql}
+                    ORDER BY scan_datetime DESC, id DESC
+                    LIMIT :limit
+                    """
+                ),
+                params,
+            ).fetchall()
+
+            total = conn.execute(
+                text(f"SELECT COUNT(*) FROM shipment_scan {where_sql}"),
+                count_params,
+            ).scalar() or 0
+
+        records = [
+            {
+                "id": row.id,
+                "uploaded_at": row.uploaded_at.isoformat() if row.uploaded_at else None,
+                "source_file": row.source_file,
+                "file_size": row.file_size,
+                "row_count": 1,
+                "scan_datetime": row.scan_datetime.isoformat() if row.scan_datetime else None,
+                "pallet": row.pallet,
+                "bol": row.bol,
+                "status": row.status,
+                "name": row.name,
+            }
+            for row in rows
+        ]
+
+        return JSONResponse({"records": records, "total": int(total), "limit": limit})
+
+    except Exception as exc:
+        logger.error("Search failed: %s", exc, exc_info=True)
+        return JSONResponse(status_code=500, content={"error": f"Failed to search records: {exc}"})
+
+
+@router.get(
+    "/api/shipment-scan/names",
+    summary="List shipment scan names",
+    description="Returns distinct non-empty names for shipment scan search dropdown.",
+)
+async def shipment_scan_names() -> JSONResponse:
+    """Return distinct shipment scan names for the search Name dropdown."""
+    try:
+        with _engine.connect() as conn:
+            rows = conn.execute(
+                text(
+                    """
+                    SELECT DISTINCT name
+                    FROM shipment_scan
+                    WHERE name IS NOT NULL
+                      AND TRIM(name) <> ''
+                      AND (status IS NULL OR UPPER(TRIM(status)) <> 'FINISH')
+                    ORDER BY name ASC
+                    """
+                )
+            ).fetchall()
+
+        names = [str(row.name) for row in rows if row.name is not None]
+        return JSONResponse({"names": names})
+
+    except Exception as exc:
+        logger.error("Name list failed: %s", exc, exc_info=True)
+        return JSONResponse(status_code=500, content={"error": f"Failed to load names: {exc}"})

@@ -51,3 +51,9 @@ class ShipmentScanDailyBolResponse(BaseModel):
     series: list[ShipmentScanDailyBolPoint]
     total_days: int
     total_unique_bols: int
+
+
+class ShipmentScanSearchResponse(BaseModel):
+    records: list[ShipmentScanRecord]
+    total: int
+    limit: int

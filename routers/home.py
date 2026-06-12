@@ -24,6 +24,7 @@ import re
 
 import openpyxl
 import pandas as pd
+import pdfplumber
 from fastapi import APIRouter, Query, Request
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
@@ -138,7 +139,23 @@ _PALLET_ENTRY_EXIT_SQL = text("""
 
 
 _ASSETS_DIR = Path(__file__).parent.parent / "static" / "assets"
+_LMI_DIR = Path(__file__).parent.parent / "raw_data" / "lmi"
 _NO_CACHE = {"Cache-Control": "no-store, no-cache, must-revalidate"}
+
+_MONTH_NAME_MAP = {
+    "jan": 1, "january": 1,
+    "feb": 2, "february": 2,
+    "mar": 3, "march": 3,
+    "apr": 4, "april": 4,
+    "may": 5,
+    "jun": 6, "june": 6,
+    "jul": 7, "july": 7,
+    "aug": 8, "august": 8,
+    "sep": 9, "sept": 9, "september": 9,
+    "oct": 10, "october": 10,
+    "nov": 11, "november": 11,
+    "dec": 12, "december": 12,
+}
 
 _MTD_SITES = ("AMJK", "TXAS", "AMIN", "AMAZ")
 _SITE_CONSIGNMENT_CUSTOMERS = {
@@ -1352,6 +1369,324 @@ async def amjk_frt_ytd_vs_avg(
             "total_records_after_filter": records_after_carrier_filter,
             "total_records_final": len(df)
         }
+    })
+
+
+# ---------------------------------------------------------------------------
+# Analytics — LMI freight association against Warship freight and shipment size
+# ---------------------------------------------------------------------------
+
+def _month_from_lmi_filename(path: Path, year: int) -> str | None:
+    """Parse a ``YYYY-MM`` report month from an LMI PDF/TXT filename."""
+    stem = path.stem.lower()
+    year_match = re.search(r"(20\d{2})", stem)
+    if not year_match or int(year_match.group(1)) != year:
+        return None
+
+    first_word = re.match(r"([a-z]+)", stem)
+    lmi_style = re.match(r"lmi_([a-z]+)_?(20\d{2})", stem)
+    month_token = lmi_style.group(1) if lmi_style else (first_word.group(1) if first_word else "")
+    month = _MONTH_NAME_MAP.get(month_token[:3]) or _MONTH_NAME_MAP.get(month_token)
+    if not month:
+        return None
+    return f"{year}-{month:02d}"
+
+
+def _extract_lmi_text(path: Path) -> str:
+    """Extract plain text from one LMI PDF or TXT report."""
+    if path.suffix.lower() == ".txt":
+        return path.read_text(encoding="utf-8", errors="ignore")
+    if path.suffix.lower() == ".pdf":
+        pages: list[str] = []
+        with pdfplumber.open(path) as pdf:
+            for page in pdf.pages:
+                page_text = page.extract_text()
+                if page_text:
+                    pages.append(page_text)
+        return "\n".join(pages)
+    return ""
+
+
+def _extract_lmi_transport_metric(text_body: str, label: str) -> float | None:
+    """Extract one transportation sub-index from LMI report text."""
+    lines = [re.sub(r"\s+", " ", line).strip() for line in text_body.splitlines()]
+    label_re = re.compile(re.escape(label), re.IGNORECASE)
+    index_re = re.compile(re.escape(label) + r"\s+Index", re.IGNORECASE)
+    value_re = re.compile(
+        r"(?:\bto\b|\bat\b|\brecorded\b|\bindicating\b|\breading(?:\s+of)?\b)\s*(\d{2}\.\d)\b",
+        re.IGNORECASE,
+    )
+
+    for idx, line in enumerate(lines):
+        if not index_re.search(line):
+            continue
+        lower_line = line.lower()
+        if "future" in lower_line or "upstream" in lower_line or "downstream" in lower_line:
+            continue
+        window = " ".join(lines[idx:idx + 3])
+        cleaned = re.sub(r"\([+-]?\d{1,2}\.\d\)", " ", window)
+        for match in value_re.finditer(cleaned):
+            value = float(match.group(1))
+            if 0 <= value <= 100:
+                return value
+
+    for line in lines:
+        if not label_re.search(line):
+            continue
+        lower_line = line.lower()
+        if "future" in lower_line or "upstream" in lower_line or "downstream" in lower_line:
+            continue
+        cleaned = re.sub(r"\([+-]?\d{1,2}\.\d\)", " ", line)
+        for match in value_re.finditer(cleaned):
+            value = float(match.group(1))
+            if 0 <= value <= 100:
+                return value
+    return None
+
+
+def _load_lmi_transport_rows(year: int) -> tuple[list[dict], list[str]]:
+    """Load transportation-only metric rows from local LMI report files."""
+    rows_by_month: dict[str, dict] = {}
+    warnings: list[str] = []
+
+    for path in sorted(list(_LMI_DIR.glob(f"*{year}*.pdf")) + list(_LMI_DIR.glob(f"*{year}*.txt"))):
+        month = _month_from_lmi_filename(path, year)
+        if not month:
+            warnings.append(f"Skipped LMI file with unparseable month: {path.name}")
+            continue
+
+        try:
+            text_body = _extract_lmi_text(path)
+        except Exception as exc:
+            warnings.append(f"Could not extract text from {path.name}: {exc}")
+            continue
+
+        row = {
+            "month": month,
+            "source_file": path.name,
+            "transportation_prices": _extract_lmi_transport_metric(text_body, "Transportation Prices"),
+            "transportation_capacity": _extract_lmi_transport_metric(text_body, "Transportation Capacity"),
+            "transportation_utilization": _extract_lmi_transport_metric(text_body, "Transportation Utilization"),
+        }
+        missing = [key for key in ("transportation_prices", "transportation_capacity", "transportation_utilization") if row[key] is None]
+        if missing:
+            warnings.append(f"{path.name}: missing {', '.join(missing)}")
+        rows_by_month[month] = row
+
+    return [rows_by_month[m] for m in sorted(rows_by_month)], warnings
+
+
+def _pearson(xs: list[float], ys: list[float]) -> float | None:
+    """Return Pearson correlation for paired numeric series, or None if invalid."""
+    pairs = [(float(x), float(y)) for x, y in zip(xs, ys) if x is not None and y is not None]
+    if len(pairs) < 3:
+        return None
+    x_vals = [p[0] for p in pairs]
+    y_vals = [p[1] for p in pairs]
+    x_mean = sum(x_vals) / len(x_vals)
+    y_mean = sum(y_vals) / len(y_vals)
+    numerator = sum((x - x_mean) * (y - y_mean) for x, y in pairs)
+    x_var = sum((x - x_mean) ** 2 for x in x_vals)
+    y_var = sum((y - y_mean) ** 2 for y in y_vals)
+    if x_var == 0 or y_var == 0:
+        return None
+    return round(numerator / ((x_var * y_var) ** 0.5), 3)
+
+
+def _shift_month(month: str, lag: int) -> str:
+    """Shift a ``YYYY-MM`` month forward by ``lag`` months."""
+    year_value, month_value = [int(part) for part in month.split("-")]
+    month_index = (year_value * 12) + (month_value - 1) + lag
+    shifted_year = month_index // 12
+    shifted_month = (month_index % 12) + 1
+    return f"{shifted_year}-{shifted_month:02d}"
+
+
+def _build_lag_correlations(
+    lmi_rows: list[dict],
+    warship_by_month: dict[str, dict],
+    lmi_metric: str,
+    warship_metric: str,
+) -> dict[str, dict]:
+    """Build same-month and 1-3 month lag correlations for one metric pair."""
+    result: dict[str, dict] = {}
+    for lag in range(4):
+        x_vals: list[float] = []
+        y_vals: list[float] = []
+        for lmi_row in lmi_rows:
+            x_val = lmi_row.get(lmi_metric)
+            warship_row = warship_by_month.get(_shift_month(lmi_row["month"], lag))
+            y_val = warship_row.get(warship_metric) if warship_row else None
+            if x_val is not None and y_val is not None:
+                x_vals.append(float(x_val))
+                y_vals.append(float(y_val))
+        result[f"lag_{lag}_months"] = {"correlation": _pearson(x_vals, y_vals), "n": len(x_vals)}
+    return result
+
+
+def _build_change_correlation(rows: list[dict], x_key: str, y_key: str) -> dict:
+    """Return Pearson correlation between month-to-month changes."""
+    deltas_x: list[float] = []
+    deltas_y: list[float] = []
+    ordered = sorted(rows, key=lambda item: item["month"])
+    for prev, cur in zip(ordered, ordered[1:]):
+        if prev.get(x_key) is None or cur.get(x_key) is None or prev.get(y_key) is None or cur.get(y_key) is None:
+            continue
+        deltas_x.append(float(cur[x_key]) - float(prev[x_key]))
+        deltas_y.append(float(cur[y_key]) - float(prev[y_key]))
+    return {"correlation": _pearson(deltas_x, deltas_y), "n": len(deltas_x)}
+
+
+@router.get(
+    "/api/analytics/lmi-freight-association",
+    summary="Associate 2026 LMI freight signals with Warship freight and shipment size",
+    description=(
+        "Extracts transportation-only metrics from local 2026 LMI reports and joins them "
+        "to monthly Warship freight c/lb and shipment-size metrics for a site/product group. "
+        "Returns joined rows plus same-month, lagged, and change-vs-change correlations. "
+        "LMI warehousing metrics are deliberately excluded."
+    ),
+)
+async def lmi_freight_association(
+    site: str = Query(default="AMJK", description="Site code, e.g. AMJK"),
+    product_group: str = Query(default="SW", description="Product group, e.g. SW"),
+    year: int = Query(default=2026, ge=2020, le=2030, description="Analysis year"),
+    include_partial: bool = Query(default=False, description="Include current partial month when true"),
+    exclude_carriers: bool = Query(default=False, description="Exclude SAIA-IP and CWF-IP carriers"),
+) -> JSONResponse:
+    """Return LMI transportation-vs-Warship freight association analytics."""
+    today = datetime.date.today()
+    start_date = datetime.date(year - 1, 1, 1)
+    if year == today.year and not include_partial:
+        month_start = today.replace(day=1)
+        end_date = month_start - datetime.timedelta(days=1)
+    elif year == today.year:
+        end_date = today
+    else:
+        end_date = datetime.date(year, 12, 31)
+
+    try:
+        with _engine.connect() as conn:
+            dbapi_conn = conn.connection
+            cursor = dbapi_conn.cursor(dictionary=True)
+            try:
+                cursor.callproc("sp_bl_lbs_cnt_carrier", [start_date.isoformat(), end_date.isoformat(), site, product_group])
+                sp_rows: list[dict] = []
+                for result_set in cursor.stored_results():
+                    sp_rows.extend(result_set.fetchall())
+            finally:
+                cursor.close()
+    except Exception as exc:
+        return JSONResponse(status_code=500, content={"error": str(exc)})
+
+    if not sp_rows:
+        return JSONResponse(status_code=404, content={"error": "No Warship freight data found for specified parameters"})
+
+    df = pd.DataFrame(sp_rows)
+    if "Truck_Appointment_Date" not in df.columns:
+        return JSONResponse(status_code=500, content={"error": "Missing Truck_Appointment_Date column"})
+
+    records_after_carrier_filter = len(sp_rows)
+    excluded_carrier_list: list[str] = []
+    if exclude_carriers:
+        excluded_carrier_list = ["SAIA-IP", "CWF-IP"]
+        carrier_col = next((col for col in df.columns if "carrier" in col.lower()), None)
+        if carrier_col:
+            df = df[~df[carrier_col].isin(excluded_carrier_list)]
+            records_after_carrier_filter = len(df)
+
+    df["Truck_Appointment_Date"] = pd.to_datetime(df["Truck_Appointment_Date"], errors="coerce")
+    df = df.dropna(subset=["Truck_Appointment_Date"])
+    df["year"] = df["Truck_Appointment_Date"].dt.year
+    df["month_num"] = df["Truck_Appointment_Date"].dt.month
+    df["month"] = df["Truck_Appointment_Date"].dt.strftime("%Y-%m")
+    df["Unit_Freight"] = pd.to_numeric(df.get("Unit_Freight", 0), errors="coerce").fillna(0.0)
+    df["pick_weight"] = pd.to_numeric(df.get("pick_weight", 0), errors="coerce").fillna(0.0)
+    df["freight_amount"] = (df["Unit_Freight"] / 100.0) * df["pick_weight"]
+
+    monthly = (
+        df.groupby(["year", "month_num", "month"])
+        .agg({"freight_amount": "sum", "pick_weight": "sum", "BL_Number": "nunique"})
+        .reset_index()
+        .rename(columns={"pick_weight": "total_weight_lbs", "BL_Number": "load_count"})
+    )
+    monthly["freight_cplb"] = (monthly["freight_amount"] / monthly["total_weight_lbs"] * 100).fillna(0.0)
+    monthly["avg_lbs_per_load"] = (monthly["total_weight_lbs"] / monthly["load_count"]).fillna(0.0)
+    monthly["loads_per_million_lbs"] = (monthly["load_count"] / (monthly["total_weight_lbs"] / 1_000_000)).fillna(0.0)
+
+    warship_by_month: dict[str, dict] = {}
+    for _, row in monthly.iterrows():
+        month = str(row["month"])
+        prior = monthly[(monthly["year"] == int(row["year"]) - 1) & (monthly["month_num"] == int(row["month_num"]))]
+        prior_cplb = float(prior.iloc[0]["freight_cplb"]) if not prior.empty else None
+        freight_yoy = ((float(row["freight_cplb"]) - prior_cplb) / prior_cplb * 100) if prior_cplb else None
+        warship_by_month[month] = {
+            "month": month,
+            "freight_cplb": round(float(row["freight_cplb"]), 4),
+            "freight_cplb_yoy_pct": round(freight_yoy, 2) if freight_yoy is not None else None,
+            "total_weight_lbs": round(float(row["total_weight_lbs"]), 0),
+            "load_count": int(row["load_count"]),
+            "avg_lbs_per_load": round(float(row["avg_lbs_per_load"]), 2),
+            "loads_per_million_lbs": round(float(row["loads_per_million_lbs"]), 2),
+        }
+
+    lmi_rows, warnings = _load_lmi_transport_rows(year)
+    joined_rows: list[dict] = []
+    for lmi_row in lmi_rows:
+        warship_row = warship_by_month.get(lmi_row["month"])
+        if not warship_row:
+            warnings.append(f"No Warship row available for LMI month {lmi_row['month']}")
+            continue
+        joined_rows.append({**lmi_row, **warship_row})
+
+    correlations = {
+        "transportation_prices_vs_freight_cplb": _build_lag_correlations(lmi_rows, warship_by_month, "transportation_prices", "freight_cplb"),
+        "transportation_capacity_vs_freight_cplb": _build_lag_correlations(lmi_rows, warship_by_month, "transportation_capacity", "freight_cplb"),
+        "transportation_utilization_vs_freight_cplb": _build_lag_correlations(lmi_rows, warship_by_month, "transportation_utilization", "freight_cplb"),
+        "transportation_prices_vs_avg_lbs_per_load": _build_lag_correlations(lmi_rows, warship_by_month, "transportation_prices", "avg_lbs_per_load"),
+        "transportation_prices_vs_loads_per_million_lbs": _build_lag_correlations(lmi_rows, warship_by_month, "transportation_prices", "loads_per_million_lbs"),
+    }
+    change_correlations = {
+        "transportation_prices_delta_vs_freight_cplb_delta": _build_change_correlation(joined_rows, "transportation_prices", "freight_cplb"),
+        "transportation_capacity_delta_vs_freight_cplb_delta": _build_change_correlation(joined_rows, "transportation_capacity", "freight_cplb"),
+        "transportation_utilization_delta_vs_load_count_delta": _build_change_correlation(joined_rows, "transportation_utilization", "load_count"),
+        "transportation_prices_delta_vs_avg_lbs_per_load_delta": _build_change_correlation(joined_rows, "transportation_prices", "avg_lbs_per_load"),
+        "transportation_prices_delta_vs_loads_per_million_lbs_delta": _build_change_correlation(joined_rows, "transportation_prices", "loads_per_million_lbs"),
+    }
+
+    interpretation_flags: list[str] = []
+    same_month = correlations["transportation_prices_vs_freight_cplb"]["lag_0_months"]["correlation"]
+    if same_month is not None:
+        if same_month >= 0.6:
+            interpretation_flags.append("LMI Transportation Prices and AMJK freight c/lb move together strongly in the same month.")
+        elif same_month <= -0.6:
+            interpretation_flags.append("LMI Transportation Prices and AMJK freight c/lb move in opposite directions in the same month.")
+        else:
+            interpretation_flags.append("Same-month association between LMI Transportation Prices and AMJK freight c/lb is weak or mixed.")
+
+    if not include_partial and year == today.year:
+        warnings.append(f"Current partial month excluded; analysis ends {end_date.isoformat()}.")
+    warnings.append("LMI warehousing metrics are intentionally excluded; this endpoint uses transportation-only LMI signals.")
+
+    return JSONResponse(content={
+        "metadata": {
+            "site": site,
+            "product_group": product_group,
+            "year": year,
+            "date_range": f"{start_date.isoformat()} to {end_date.isoformat()}",
+            "include_partial": include_partial,
+            "exclude_carriers": exclude_carriers,
+            "excluded_carriers": excluded_carrier_list,
+            "total_records_original": len(sp_rows),
+            "total_records_after_filter": records_after_carrier_filter,
+            "lmi_metrics_used": ["Transportation Prices", "Transportation Capacity", "Transportation Utilization"],
+            "lmi_metrics_excluded": ["Warehousing Prices", "Warehousing Capacity", "Warehousing Utilization"],
+        },
+        "monthly_rows": joined_rows,
+        "correlations": correlations,
+        "change_correlations": change_correlations,
+        "interpretation_flags": interpretation_flags,
+        "warnings": warnings,
     })
 
 

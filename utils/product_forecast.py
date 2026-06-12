@@ -33,10 +33,10 @@ def _as_datetime(value):
 
 
 def _linreg(ys):
-    """Simple linear regression on index vs values. Returns (slope, r_squared)."""
+    """Simple linear regression on index vs values. Returns (slope, intercept, r_squared)."""
     n = len(ys)
     if n < 2:
-        return 0.0, 0.0
+        return 0.0, float(ys[0]) if ys else 0.0, 0.0
     xs = list(range(n))
     mean_x = sum(xs) / n
     mean_y = sum(ys) / n
@@ -44,10 +44,11 @@ def _linreg(ys):
     ss_yy = sum((y - mean_y) ** 2 for y in ys)
     ss_xy = sum((x - mean_x) * (y - mean_y) for x, y in zip(xs, ys))
     if ss_xx == 0:
-        return 0.0, 0.0
+        return 0.0, mean_y, 0.0
     slope = ss_xy / ss_xx
+    intercept = mean_y - (slope * mean_x)
     r2 = (ss_xy ** 2) / (ss_xx * ss_yy) if ss_yy > 0 else 0.0
-    return slope, r2
+    return slope, intercept, r2
 
 
 def compute_forecast(
@@ -67,6 +68,8 @@ def compute_forecast(
         forecast - list of per-product forecast dicts
         summary  - {total, inc, dec, stb}
     """
+    recent_active_required = 4
+
     engine = connect_to_database()
     with engine.connect() as conn:
         dbapi_conn = conn.connection
@@ -103,8 +106,11 @@ def compute_forecast(
     for pc, monthly in product_monthly.items():
         series = [monthly.get(m, 0) for m in months_sorted]
         active_months = sum(1 for v in series if v > 0)
+        last_6_nonzero = sum(1 for v in series[-6:] if v > 0)
 
         if active_months < min_months:
+            continue
+        if last_6_nonzero < recent_active_required:
             continue
 
         overall_avg = sum(series) / len(series) if series else 0
@@ -115,13 +121,14 @@ def compute_forecast(
         prior_6 = series[-12:-6] if len(series) >= 12 else series[: max(len(series) - 6, 1)]
         avg_recent = sum(recent_6) / len(recent_6) if recent_6 else 0
         avg_prior = sum(prior_6) / len(prior_6) if prior_6 else 0
-        denom = max(avg_prior, overall_avg * 0.25) if overall_avg > 0 else 1
+        # Guard against tiny baselines that can explode percentage momentum.
+        denom = max(avg_prior, overall_avg * 0.50) if overall_avg > 0 else 1
         momentum = ((avg_recent - avg_prior) / denom) * 100 if denom > 0 else 0
-        momentum = max(-300, min(300, momentum))
 
         # Linear regression
-        slope, r2 = _linreg(series)
-        forecast_weight = max(0, int(current_weight + slope)) if series else 0
+        slope, intercept, r2 = _linreg(series)
+        next_x = len(series)
+        forecast_weight = max(0, int(intercept + (slope * next_x))) if series else 0
 
         # YoY
         yoy = None
@@ -132,7 +139,6 @@ def compute_forecast(
                 yoy = round(((last_12 - prev_12) / prev_12) * 100, 1)
 
         # Direction
-        last_6_nonzero = sum(1 for v in series[-6:] if v > 0)
         if last_6_nonzero == 0:
             direction = "DECREASE"
         elif slope > 0 and momentum > 15:
@@ -167,4 +173,12 @@ def compute_forecast(
         "trends": trends_dict,
         "forecast": forecast_list,
         "summary": {"total": len(forecast_list), "inc": inc, "dec": dec, "stb": stb},
+        "meta": {
+            "site": site,
+            "product_group": product_group,
+            "start_date": start_date,
+            "end_date": end_date,
+            "min_active_months": min_months,
+            "min_active_recent_6": recent_active_required,
+        },
     }

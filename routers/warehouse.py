@@ -12,6 +12,8 @@ Handles:
   GET /api/warehouse/product-forecast     — Product forecast JSON data
 """
 
+from datetime import date, timedelta
+
 from fastapi import APIRouter, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
@@ -268,12 +270,17 @@ async def product_forecast(
     site: str = Query(default="AMJK", description="Site code"),
     product_group: str = Query(default="SW", description="Product group"),
     start_date: str = Query(default="2010-01-01", description="Start date YYYY-MM-DD"),
-    end_date: str = Query(default="2026-04-01", description="End date YYYY-MM-DD"),
+    end_date: str = Query(default=None, description="End date YYYY-MM-DD (defaults to last day of previous month)"),
     min_months: int = Query(default=6, ge=1, description="Minimum active months to include a product"),
 ) -> JSONResponse:
     """Compute product forecast from shipped product stored procedure."""
     try:
-        result = compute_forecast(site, product_group, start_date, end_date, min_months)
+        if end_date:
+            resolved_end = end_date
+        else:
+            today = date.today()
+            resolved_end = str(today.replace(day=1) - timedelta(days=1))
+        result = compute_forecast(site, product_group, start_date, resolved_end, min_months)
         return JSONResponse(content=result)
     except Exception as exc:
         return JSONResponse(status_code=500, content={"error": str(exc)})

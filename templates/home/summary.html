@@ -265,10 +265,33 @@
       <ul id="warehouseActions"><li>Computing…</li></ul></div>
   </div>
 
+  <!-- ════ SLIDE 10 — LMI FREIGHT ASSOCIATION ════ -->
+  <div class="slide">
+    <div class="slide-head">
+      <div><div class="slide-num">Slide 10 of 11 · MARKET</div>
+        <h2 class="slide-title"><i class="bi bi-diagram-3 me-2"></i>LMI Freight Market vs AMJK Cost</h2></div>
+      <div class="slide-tag">2026 transportation-only LMI · <span class="filter-label">AMJK · SW</span></div>
+    </div>
+    <div class="row g-2 mb-2" id="lmiKpis"></div>
+    <div class="row g-3">
+      <div class="col-md-7"><div id="lmiFreightChart" class="chart-box"></div></div>
+      <div class="col-md-5">
+        <div id="lmiShipmentChart" class="chart-box"></div>
+        <div id="lmiCorrTable" class="small mt-2">Loading…</div>
+      </div>
+    </div>
+    <div class="insight" id="lmiInsight"><span class="ins-label">INSIGHT:</span> Loading…</div>
+    <div class="actions"><span class="act-label"><i class="bi bi-lightbulb-fill me-1"></i>Recommended Actions</span>
+      <ul id="lmiActions"><li>Computing…</li></ul></div>
+    <p class="text-muted small mt-2 mb-0">
+      <i class="bi bi-info-circle me-1"></i>LMI warehousing indexes are excluded; this slide uses Transportation Prices, Capacity, and Utilization only.
+    </p>
+  </div>
+
   <!-- ════ SLIDE 10 — EXECUTIVE SUMMARY (AI) ════ -->
   <div class="slide">
     <div class="slide-head">
-      <div><div class="slide-num">Slide 10 of 10 · CLOSING</div>
+      <div><div class="slide-num">Slide 11 of 11 · CLOSING</div>
         <h2 class="slide-title"><i class="bi bi-stars me-2"></i>Executive Summary</h2></div>
       <div class="slide-tag">AI-generated narrative · DeepSeek (local Ollama)</div>
     </div>
@@ -728,7 +751,108 @@
     });
   }
 
-  /* ── SLIDE 10: EXEC SUMMARY (AI) ────────────────────────────── */
+  /* ── SLIDE 10: LMI FREIGHT ASSOCIATION ─────────────────────── */
+  function loadLmiAssociation() {
+    var year = TODAY.getFullYear();
+    return getJson('/api/analytics/lmi-freight-association?site=' + SITE + '&product_group=' + PG + '&year=' + year).then(function (r) {
+      if (!r || !Array.isArray(r.monthly_rows) || !r.monthly_rows.length) {
+        $('lmiFreightChart').innerHTML = '<div class="text-muted text-center py-5">No LMI association data.</div>';
+        $('lmiShipmentChart').innerHTML = '<div class="text-muted text-center py-5">No shipment-size association data.</div>';
+        $('lmiKpis').innerHTML = tile('Status', '—', 'no joined rows');
+        $('lmiCorrTable').innerHTML = '<div class="text-muted">No correlation table.</div>';
+        setInsight('lmiInsight', 'No joined LMI/Warship monthly rows are available.');
+        setActions('lmiActions', ['Confirm 2026 LMI PDFs and Warship monthly freight data are available.']);
+        return;
+      }
+
+      var rows = r.monthly_rows.slice().sort(function (a, b) { return a.month.localeCompare(b.month); });
+      var months = rows.map(function (d) { return d.month; });
+      var corr = r.correlations || {};
+      var tpFreight = corr.transportation_prices_vs_freight_cplb || {};
+      var same = tpFreight.lag_0_months || {};
+      var lag1 = tpFreight.lag_1_months || {};
+      var latest = rows[rows.length - 1];
+
+      $('lmiKpis').innerHTML =
+        tile('Latest LMI prices', fmt1(latest.transportation_prices), latest.month + ' index') +
+        tile('Latest freight', fmt2(latest.freight_cplb) + '¢/lb', latest.freight_cplb_yoy_pct != null ? pctSpan(latest.freight_cplb_yoy_pct, true) + ' YoY' : 'YoY n/a') +
+        tile('Same-month r', same.correlation != null ? fmt2(same.correlation) : '—', 'prices vs freight') +
+        tile('1-month lag r', lag1.correlation != null ? fmt2(lag1.correlation) : '—', 'LMI leads freight');
+
+      Plotly.newPlot('lmiFreightChart', [
+        { x: months, y: rows.map(function (d) { return d.transportation_prices; }), name: 'LMI Transportation Prices',
+          type: 'scatter', mode: 'lines+markers', line: { color: '#154e9a', width: 2.5 }, yaxis: 'y' },
+        { x: months, y: rows.map(function (d) { return d.freight_cplb; }), name: 'AMJK freight ¢/lb',
+          type: 'scatter', mode: 'lines+markers', line: { color: '#b02a37', width: 2.5 }, yaxis: 'y2' }
+      ], Object.assign({}, BASE_LAYOUT, {
+        title: { text: 'Transportation Prices vs AMJK freight cost', font: { size: 12, color: '#154e9a' } },
+        yaxis: { title: 'LMI index', side: 'left' },
+        yaxis2: { title: '¢/lb', overlaying: 'y', side: 'right', showgrid: false },
+        margin: { l: 50, r: 55, t: 35, b: 45 }
+      }), PCFG);
+
+      Plotly.newPlot('lmiShipmentChart', [{
+        x: rows.map(function (d) { return d.transportation_prices; }),
+        y: rows.map(function (d) { return d.avg_lbs_per_load; }),
+        text: months,
+        type: 'scatter', mode: 'markers+text', textposition: 'top center',
+        marker: { size: rows.map(function (d) { return Math.max(8, Math.min(24, d.loads_per_million_lbs / 3)); }), color: '#c79100', opacity: 0.8 },
+        hovertemplate: '%{text}<br>LMI prices %{x:.1f}<br>Avg %{y:,.0f} lbs/load<extra></extra>'
+      }], Object.assign({}, BASE_LAYOUT, {
+        title: { text: 'Shipment size vs freight market pressure', font: { size: 12, color: '#154e9a' } },
+        xaxis: { title: 'LMI Transportation Prices' },
+        yaxis: { title: 'Avg lbs/load' },
+        margin: { l: 55, r: 20, t: 35, b: 45 }, showlegend: false
+      }), PCFG);
+
+      function corrCell(obj) {
+        return obj && obj.correlation != null ? fmt2(obj.correlation) + ' <span class="text-muted">(n=' + obj.n + ')</span>' : '—';
+      }
+      function corrRow(label, key) {
+        var item = corr[key] || {};
+        return '<tr><td>' + label + '</td>' +
+          '<td class="text-end">' + corrCell(item.lag_0_months) + '</td>' +
+          '<td class="text-end">' + corrCell(item.lag_1_months) + '</td>' +
+          '<td class="text-end">' + corrCell(item.lag_2_months) + '</td></tr>';
+      }
+      $('lmiCorrTable').innerHTML = '<table class="table table-sm table-borderless mb-0"><thead><tr>' +
+        '<th>Relationship</th><th class="text-end">Same</th><th class="text-end">+1 mo</th><th class="text-end">+2 mo</th></tr></thead><tbody>' +
+        corrRow('Prices → freight', 'transportation_prices_vs_freight_cplb') +
+        corrRow('Capacity → freight', 'transportation_capacity_vs_freight_cplb') +
+        corrRow('Prices → avg lbs/load', 'transportation_prices_vs_avg_lbs_per_load') +
+        corrRow('Prices → loads/1M', 'transportation_prices_vs_loads_per_million_lbs') +
+        '</tbody></table>';
+
+      var ins;
+      if (same.correlation != null && same.correlation >= 0.6) {
+        ins = 'LMI Transportation Prices and AMJK freight cost show a <strong>strong same-month association</strong> (r=' + fmt2(same.correlation) + '). This supports a market-pressure explanation, not just an internal warehouse story.';
+      } else if (same.correlation != null && same.correlation <= -0.6) {
+        ins = 'LMI Transportation Prices and AMJK freight cost move in opposite directions (r=' + fmt2(same.correlation) + '), so local carrier/product/destination mix needs review.';
+      } else {
+        ins = 'The same-month LMI/freight association is weak or not yet stable; use the lag table and Freight Driver page before calling it market-driven.';
+      }
+      if (lag1.correlation != null && lag1.correlation > (same.correlation || -2)) {
+        ins += ' The 1-month lag is stronger (r=' + fmt2(lag1.correlation) + '), suggesting LMI may lead invoice cost.';
+      }
+      setInsight('lmiInsight', ins);
+
+      var acts = [];
+      if (same.correlation != null && same.correlation >= 0.6) {
+        acts.push('Use LMI Transportation Prices as a Q2/Q3 freight budget early-warning indicator.');
+        acts.push('Lock capacity/rates with core carriers before Transportation Prices remain near extreme levels.');
+      } else {
+        acts.push('Treat freight movement as potentially local — drill carrier/product/destination mix before blaming the market.');
+      }
+      if (latest.avg_lbs_per_load && rows.length > 1 && latest.avg_lbs_per_load < rows[0].avg_lbs_per_load) {
+        acts.push('Shipment size is lower than January while market prices are high — push consolidation/minimum-order conversations.');
+      } else {
+        acts.push('Protect larger-load behavior if it is offsetting market freight pressure.');
+      }
+      setActions('lmiActions', acts);
+    });
+  }
+
+  /* ── SLIDE 11: EXEC SUMMARY (AI) ────────────────────────────── */
   function runExecSummary(metrics) {
     var el = $('execNarrative');
     el.setAttribute('data-streaming', 'true');
@@ -772,7 +896,7 @@
     updateFilterLabels();
     Promise.all([
       loadVolume(), loadShipSize(), loadFreight(), loadDrivers(),
-      loadCarriers(), loadCustomers(), loadPortfolio(), loadWarehouse()
+      loadCarriers(), loadCustomers(), loadPortfolio(), loadWarehouse(), loadLmiAssociation()
     ]).then(function (results) {
       var vol = results[0] || {}, ss = results[1] || {}, frt = results[2] || {}, car = results[4] || {};
       runExecSummary({

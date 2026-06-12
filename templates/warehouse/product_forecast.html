@@ -3,6 +3,8 @@
 
 {% block head %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <style>
   .fc-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 1.5rem; }
   .fc-card { border-radius: 10px; padding: 1rem; }
@@ -24,6 +26,16 @@
   .chart-container { position: relative; width: 100%; height: 320px; }
   .fc-no-data { color: #999; font-size: 14px; padding: 2rem 0; text-align: center; }
   @media (max-width: 640px) { .fc-summary { grid-template-columns: repeat(2, 1fr); } }
+  .fc-tip-label { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; user-select: none; }
+  .fc-tip-label .bi-info-circle { font-size: 12px; color: #154e9a; opacity: 0.75; }
+  .fc-tip-label:hover .bi-info-circle { opacity: 1; }
+  .popover-formula { max-width: 620px !important; width: 620px !important; }
+  .popover-formula .popover-header { font-size: 14px; font-weight: 700; background: #eef2fb; color: #154e9a; padding: 10px 16px; }
+  .popover-formula .popover-body { font-size: 13.5px; line-height: 1.65; color: #222; padding: 14px 16px; }
+  .popover-formula .fc-formula-desc { margin-bottom: 14px; }
+  .popover-formula .fc-formula-math { border-top: 1px solid #dde3f0; padding-top: 14px; }
+  .popover-formula .katex-display { margin: 0; font-size: 2em; }
+  .popover-formula .katex { font-size: 2em; }
 </style>
 {% endblock %}
 
@@ -82,11 +94,12 @@
   <div class="card shadow-sm mt-3">
     <div class="card-body small text-muted">
       <strong>Methodology:</strong> Momentum = 6-month recent avg vs prior 6-month avg
-      (denominator floored at 25% of overall avg). Capped at &plusmn;300%.
+      (denominator floored at 50% of overall avg).
       Direction requires positive slope AND momentum &gt;15% for INCREASE,
       or negative slope AND momentum &lt;&minus;15% for DECREASE.
-      Products dormant 6+ months &rarr; DECREASE. Forecast via linear regression on full series.
-      <br><strong>Source:</strong> <code>warship.sp_get_all_shipped_product('AMJK', 'SW', '2010-01-01', '2026-04-01')</code>
+      Products must have enough recent activity to avoid sparse-series distortion.
+      Forecast uses linear regression next-point estimate on full series.
+      <br><strong>Source:</strong> <code id="fc-source">Loading source window...</code>
     </div>
   </div>
 
@@ -97,8 +110,76 @@
 <script>
 (function () {
   var DATA = null;
-  var currentFilter = 'INCREASE';
+  var currentFilter = 'ALL';
   var chart = null;
+
+  var FORMULAS = {
+    momentum:   '\\text{Momentum}=\\dfrac{\\overline{W}_{\\text{recent6}}-\\overline{W}_{\\text{prior6}}}{\\max\\!\\left(\\overline{W}_{\\text{prior6}},\\;0.5\\,\\overline{W}_{\\text{overall}}\\right)}\\times 100\\%',
+    forecast:   '\\widehat{W}_{t+1}=\\beta_0+\\beta_1\\cdot(t+1)',
+    avgMonthly: '\\overline{W}_{\\text{overall}}=\\dfrac{1}{N}\\displaystyle\\sum_{i=1}^{N}W_i',
+    r2:         'R^2=\\dfrac{SS_{xy}^2}{SS_{xx}\\,SS_{yy}}'
+  };
+
+  var DESCRIPTIONS = {
+    momentum:   'How much the recent 6-month average shipment weight shifted versus the prior 6-month window. ' +
+                'The denominator is floored at 50% of the overall average to prevent tiny baselines from producing misleading large percentages. ' +
+                'Positive = recent months are heavier than the prior period; Negative = declining.',
+    forecast:   'The next-month prediction from ordinary least-squares linear regression fitted to the full monthly history. ' +
+                'β0 is the intercept and β1 is the slope. A positive slope predicts growth; negative predicts decline. ' +
+                'Low R² means the series is volatile and the forecast should be treated with caution.',
+    avgMonthly: 'The simple mean of all monthly shipped weights across the product’s active history (N months with weight > 0). ' +
+                'Used as the normalization baseline in the Momentum denominator floor.',
+    r2:         'Coefficient of determination — how tightly the regression line fits the data. ' +
+                'R² = 1.0 is a perfect linear trend. R² < 0.4 means high volatility; use Direction as a watch-list signal only, not a firm forecast. ' +
+                'R² ≥ 0.7 means the trend is reliable enough for planning.'
+  };
+
+  var TITLES = {
+    momentum:   'Momentum — recent vs prior 6-month trend',
+    forecast:   'Forecast — regression next-point estimate',
+    avgMonthly: 'Avg Monthly — overall mean shipped weight',
+    r2:         'R² — regression goodness of fit'
+  };
+
+  function headerWithFormula(label, key, width) {
+    return '<th class="text-end" style="width:' + width + '">' +
+      '<span class="fc-tip-label" data-fc-formula="' + key + '" tabindex="0">' +
+      label + ' <i class="bi bi-info-circle" aria-hidden="true"></i></span></th>';
+  }
+
+  function initFormulaTooltips() {
+    if (!window.bootstrap || !window.bootstrap.Popover) return;
+    document.querySelectorAll('[data-fc-formula]').forEach(function (node) {
+      var existing = window.bootstrap.Popover.getInstance(node);
+      if (existing) existing.dispose();
+      var key = node.getAttribute('data-fc-formula');
+      var latex = FORMULAS[key];
+      var desc  = DESCRIPTIONS[key] || '';
+      var title = TITLES[key] || key;
+      if (!latex) return;
+
+      var body = '<div class="fc-formula-desc">' + desc + '</div>';
+
+      new window.bootstrap.Popover(node, {
+        html: true,
+        title: title,
+        content: body,
+        placement: 'top',
+        trigger: 'click',
+        customClass: 'popover-formula'
+      });
+    });
+
+    // close any open popover when clicking elsewhere
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('[data-fc-formula]')) {
+        document.querySelectorAll('[data-fc-formula]').forEach(function (n) {
+          var p = window.bootstrap.Popover.getInstance(n);
+          if (p) p.hide();
+        });
+      }
+    }, { once: false });
+  }
 
   fetch('/api/warehouse/product-forecast')
     .then(function (r) { return r.json(); })
@@ -113,10 +194,20 @@
       var n = d.forecast.length;
       var m0 = d.months[0] || '?';
       var m1 = d.months[d.months.length - 1] || '?';
+      var minActive = d.meta && d.meta.min_active_months ? d.meta.min_active_months : 6;
+      var minRecent = d.meta && d.meta.min_active_recent_6 ? d.meta.min_active_recent_6 : 4;
       document.getElementById('fc-subtitle').textContent =
         'Based on shipment records from ' + m0 + ' \u2013 ' + m1 +
-        ' \u00b7 ' + n + ' products with 6+ months of history';
-      setFilter('INCREASE');
+        ' \u00b7 ' + n + ' products with ' + minActive + '+ active months and ' + minRecent + '+ active months in last 6';
+
+      var sourceText = "warship.sp_get_all_shipped_product('" +
+        ((d.meta && d.meta.site) || 'AMJK') + "', '" +
+        ((d.meta && d.meta.product_group) || 'SW') + "', '" +
+        ((d.meta && d.meta.start_date) || '2010-01-01') + "', '" +
+        ((d.meta && d.meta.end_date) || m1 + '-01') + "')";
+      document.getElementById('fc-source').textContent = sourceText;
+
+      setFilter('ALL');
     })
     .catch(function (e) {
       document.getElementById('fc-table-wrap').innerHTML =
@@ -145,8 +236,6 @@
       if (currentFilter === 'DECREASE') return a.mp - b.mp;
       return b.aw - a.aw;
     });
-    rows = rows.slice(0, 50);
-
     var dirCls = function (d) { return d === 'INCREASE' ? 'dir-inc' : d === 'DECREASE' ? 'dir-dec' : 'dir-stb'; };
     var fmt = function (n) { return n != null ? n.toLocaleString() : '\u2014'; };
     var pct = function (n) { return n != null ? (n > 0 ? '+' : '') + Math.round(n) + '%' : '\u2014'; };
@@ -156,11 +245,11 @@
       '<thead class="table-light"><tr>' +
       '<th style="width:26%">Product code</th>' +
       '<th style="width:10%">Direction</th>' +
-      '<th class="text-end" style="width:12%">Momentum</th>' +
+      headerWithFormula('Momentum', 'momentum', '12%') +
       '<th class="text-end" style="width:13%">' + lastMonth + '</th>' +
-      '<th class="text-end" style="width:13%">Forecast</th>' +
-      '<th class="text-end" style="width:13%">Avg monthly</th>' +
-      '<th class="text-end" style="width:7%">R\u00b2</th>' +
+      headerWithFormula('Forecast', 'forecast', '13%') +
+      headerWithFormula('Avg monthly', 'avgMonthly', '13%') +
+      headerWithFormula('R\u00b2', 'r2', '7%') +
       '<th class="text-end" style="width:6%">Months</th>' +
       '</tr></thead><tbody>';
 
@@ -181,6 +270,7 @@
     html += '</tbody></table>';
     if (rows.length === 0) html = '<div class="fc-no-data">No products match this filter.</div>';
     document.getElementById('fc-table-wrap').innerHTML = html;
+    initFormulaTooltips();
   };
 
   window.showTrend = function (pc) {

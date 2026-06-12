@@ -42,6 +42,72 @@
     </div>
   </div>
 
+  <!-- Search section -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-header d-flex align-items-center gap-2 py-2">
+          <i class="bi bi-search text-primary"></i>
+          <span class="fw-semibold small">Search Scan Records</span>
+        </div>
+        <div class="card-body">
+          <div class="row g-3 align-items-end">
+            <div class="col-lg-3 col-md-6">
+              <label for="searchDate" class="form-label form-label-sm fw-semibold mb-1">Scan Date</label>
+              <input type="date" id="searchDate" class="form-control form-control-sm" aria-label="Search by scan date">
+            </div>
+            <div class="col-lg-3 col-md-6">
+              <label for="searchPallet" class="form-label form-label-sm fw-semibold mb-1">Pallet Number</label>
+              <input type="text" id="searchPallet" class="form-control form-control-sm" placeholder="e.g. PLT-1024" aria-label="Search by pallet number">
+            </div>
+            <div class="col-lg-3 col-md-6">
+              <label for="searchBol" class="form-label form-label-sm fw-semibold mb-1">BOL</label>
+              <input type="text" id="searchBol" class="form-control form-control-sm" placeholder="e.g. W64B124" aria-label="Search by BOL">
+            </div>
+            <div class="col-lg-3 col-md-6">
+              <label for="searchName" class="form-label form-label-sm fw-semibold mb-1">Name</label>
+              <select id="searchName" class="form-select form-select-sm" aria-label="Search by name">
+                <option value="">All Names</option>
+              </select>
+            </div>
+            <div class="col-lg-3 col-md-12">
+              <div class="d-flex gap-2">
+                <button class="btn btn-primary btn-sm flex-grow-1" id="searchBtn" onclick="searchRecords()">
+                  <i class="bi bi-search me-1"></i>Search
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" onclick="clearSearch()">
+                  <i class="bi bi-x-circle me-1"></i>Clear
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div id="searchSummary" class="text-muted small mt-3"></div>
+
+          <div class="table-responsive mt-2">
+            <table class="table table-striped table-hover table-sm align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Scan Datetime</th>
+                  <th>Pallet</th>
+                  <th>Name</th>
+                  <th>BOL</th>
+                  <th>Status</th>
+                  <th>Source File</th>
+                </tr>
+              </thead>
+              <tbody id="searchResultsBody">
+                <tr>
+                  <td colspan="6" class="text-center text-muted py-3">Run a search to view matching records.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Daily BOL trend chart -->
   <div class="row">
     <div class="col-12">
@@ -129,6 +195,113 @@ function showStatus(message, type) {
   }
 }
 
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text || '';
+  return div.innerHTML;
+}
+
+function formatDateTime(value) {
+  if (!value) {
+    return '<span class="text-muted">-</span>';
+  }
+  const dt = new Date(value);
+  if (Number.isNaN(dt.getTime())) {
+    return escapeHtml(value);
+  }
+  return dt.toLocaleString();
+}
+
+async function searchRecords() {
+  const searchBtn = document.getElementById('searchBtn');
+  const summaryEl = document.getElementById('searchSummary');
+  const resultsBody = document.getElementById('searchResultsBody');
+
+  const scanDate = document.getElementById('searchDate').value.trim();
+  const pallet = document.getElementById('searchPallet').value.trim();
+  const bol = document.getElementById('searchBol').value.trim();
+  const name = document.getElementById('searchName').value.trim();
+
+  const params = new URLSearchParams();
+  if (scanDate) params.set('scan_date', scanDate);
+  if (pallet) params.set('pallet', pallet);
+  if (bol) params.set('bol', bol);
+  if (name) params.set('name', name);
+  params.set('limit', '100');
+
+  searchBtn.disabled = true;
+  searchBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Searching...';
+  resultsBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-3">Searching...</td></tr>';
+
+  try {
+    const response = await fetch(`/maintenance/api/shipment-scan/search?${params.toString()}`, {
+      cache: 'no-store'
+    });
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || 'Search failed');
+    }
+
+    const records = Array.isArray(result.records) ? result.records : [];
+    if (!records.length) {
+      resultsBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-3">No matching records found.</td></tr>';
+    } else {
+      resultsBody.innerHTML = records.map((row) => `
+        <tr>
+          <td>${formatDateTime(row.scan_datetime)}</td>
+          <td>${row.pallet ? escapeHtml(row.pallet) : '<span class="text-muted">-</span>'}</td>
+          <td>${row.name ? escapeHtml(row.name) : '<span class="text-muted">-</span>'}</td>
+          <td>${row.bol ? escapeHtml(row.bol) : '<span class="text-muted">-</span>'}</td>
+          <td>${row.status ? escapeHtml(row.status) : '<span class="text-muted">-</span>'}</td>
+          <td>${row.source_file ? escapeHtml(row.source_file) : '<span class="text-muted">-</span>'}</td>
+        </tr>
+      `).join('');
+    }
+
+    summaryEl.textContent = `Showing ${records.length} of ${result.total || 0} matched records`; 
+  } catch (error) {
+    resultsBody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-3">Search failed. Please try again.</td></tr>';
+    summaryEl.textContent = '';
+    showStatus(`Search failed: ${error.message}`, 'danger');
+  } finally {
+    searchBtn.disabled = false;
+    searchBtn.innerHTML = '<i class="bi bi-search me-1"></i>Search';
+  }
+}
+
+function clearSearch() {
+  document.getElementById('searchDate').value = '';
+  document.getElementById('searchPallet').value = '';
+  document.getElementById('searchBol').value = '';
+  document.getElementById('searchName').value = '';
+  document.getElementById('searchSummary').textContent = '';
+  document.getElementById('searchResultsBody').innerHTML =
+    '<tr><td colspan="6" class="text-center text-muted py-3">Run a search to view matching records.</td></tr>';
+}
+
+async function loadNameOptions() {
+  const select = document.getElementById('searchName');
+  try {
+    const response = await fetch('/maintenance/api/shipment-scan/names', { cache: 'no-store' });
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(result.error || 'Failed to load names');
+    }
+
+    const names = Array.isArray(result.names) ? result.names : [];
+    const options = ['<option value="">All Names</option>'];
+    names.forEach((nameValue) => {
+      const safeName = escapeHtml(nameValue);
+      options.push(`<option value="${safeName}">${safeName}</option>`);
+    });
+    select.innerHTML = options.join('');
+  } catch (error) {
+    select.innerHTML = '<option value="">All Names</option>';
+    showStatus(`Name list load failed: ${error.message}`, 'warning');
+  }
+}
+
 // Daily distinct BOL trend line chart
 async function loadDailyBolTrend() {
   const chartEl = document.getElementById('dailyBolChart');
@@ -197,6 +370,9 @@ async function loadDailyBolTrend() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', loadDailyBolTrend);
+document.addEventListener('DOMContentLoaded', function () {
+  loadDailyBolTrend();
+  loadNameOptions();
+});
 </script>
 {% endblock %}
