@@ -30,6 +30,15 @@ router = APIRouter(tags=["Maintenance"])
 templates = Jinja2Templates(directory="templates")
 _engine = connect_to_database()
 
+_TREND_PRODUCT_FILTERS: dict[str, dict[str, str]] = {
+    "amtopp": {"product_class": "AMTOP", "product_name_normalized": "TTL"},
+    "bopp": {"product_class": "BOPP", "product_name_normalized": "TTL"},
+    "concentrate": {"product_class": "", "product_name_normalized": "CONCENTRATTTL"},
+    "iscc": {"product_class": "ISCC", "product_name_normalized": "TTL"},
+    "sc": {"product_class": "SC", "product_name_normalized": "TTL"},
+    "stretch_film": {"product_class": "STRETCH", "product_name_normalized": "WRTTL"},
+}
+
 
 def _coerce_time(value) -> time:
     """Normalize DB TIME values into a ``datetime.time``.
@@ -305,6 +314,85 @@ async def list_sales_summary(
         total=total,
         limit=limit,
         offset=offset,
+    )
+
+
+@router.get(
+    "/api/sales-summary/mtd-order-trend",
+    summary="Sales Summary MTD Order Trend",
+    description=(
+        "Return summed mtd_order_qty trend for selected product_class+product_name "
+        "combinations, grouped by business_date or year_month."
+    ),
+)
+async def sales_summary_mtd_order_trend(
+    product_key: str = Query(
+        default="stretch_film",
+        description=(
+            "Filter key: amtopp, bopp, concentrate, iscc, sc, stretch_film"
+        ),
+    ),
+    group_by: str = Query(
+        default="year_month",
+        description="Grouping period: year_month or business_date",
+    ),
+) -> JSONResponse:
+    """Return MTD order quantity trend by selected product filter and time grouping."""
+    _ensure_sales_summary_table()
+
+    selected_product = _TREND_PRODUCT_FILTERS.get(product_key)
+    if not selected_product:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid product_key. Use one of: amtopp, bopp, concentrate, iscc, sc, stretch_film",
+        )
+
+    if group_by not in {"year_month", "business_date"}:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid group_by. Use: year_month or business_date",
+        )
+
+    period_sql = (
+        "DATE_FORMAT(business_date, '%Y-%m')"
+        if group_by == "year_month"
+        else "DATE_FORMAT(business_date, '%Y-%m-%d')"
+    )
+
+    with _engine.connect() as conn:
+        rows = conn.execute(
+            text(
+                f"""
+                SELECT
+                    {period_sql} AS period,
+                    SUM(mtd_order_qty) AS mtd_order_qty
+                FROM sales_summary
+                WHERE COALESCE(product_class, '') = :product_class
+                  AND REPLACE(REPLACE(UPPER(COALESCE(product_name, '')), ' ', ''), ':', '') = :product_name_normalized
+                GROUP BY period
+                ORDER BY period ASC
+                """
+            ),
+            {
+                "product_class": selected_product["product_class"],
+                "product_name_normalized": selected_product["product_name_normalized"],
+            },
+        ).fetchall()
+
+    points = [
+        {
+            "period": str(row.period),
+            "mtd_order_qty": int(row.mtd_order_qty or 0),
+        }
+        for row in rows
+    ]
+
+    return JSONResponse(
+        {
+            "product_key": product_key,
+            "group_by": group_by,
+            "points": points,
+        }
     )
 
 

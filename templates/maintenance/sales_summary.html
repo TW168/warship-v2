@@ -2,6 +2,10 @@
 
 {% block title %}Sales Summary{% endblock %}
 
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid py-4">
   <div class="row mb-3">
@@ -29,11 +33,50 @@
           <div id="uploadResult" class="alert mt-3 d-none" role="alert"></div>
         </div>
       </div>
+
+      <div class="card shadow-sm mt-4">
+        <div class="card-header bg-light border-bottom d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">
+            <i class="bi bi-graph-up-arrow me-2"></i>MTD Order Qty Trend
+          </h5>
+          <span class="badge text-bg-light border" id="stretchTrendCount">0 points</span>
+        </div>
+        <div class="card-body">
+          <div class="row g-2 mb-3">
+            <div class="col-md-7">
+              <label for="trendProductFilter" class="form-label small fw-semibold mb-1">Product</label>
+              <select id="trendProductFilter" class="form-select form-select-sm">
+                <option value="amtopp">AMTOPP</option>
+                <option value="bopp">BOPP</option>
+                <option value="concentrate">Concentrate</option>
+                <option value="iscc">ISCC</option>
+                <option value="sc">SC</option>
+                <option value="stretch_film" selected>Stretch film</option>
+              </select>
+            </div>
+            <div class="col-md-5">
+              <label for="trendGroupBy" class="form-label small fw-semibold mb-1">Group By</label>
+              <select id="trendGroupBy" class="form-select form-select-sm">
+                <option value="year_month" selected>Year-Month</option>
+                <option value="business_date">Business Date</option>
+              </select>
+            </div>
+          </div>
+          <div class="position-relative" style="height: 300px;">
+            <canvas id="stretchMtdTrendChart" aria-label="Line chart of STRETCH MTD order quantity by business date" role="img"></canvas>
+          </div>
+          <div id="stretchTrendEmpty" class="text-muted small mt-2 d-none">
+            No records found for the selected product filter. Upload a Sales Summary PDF to populate the chart.
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
 
 <script>
+let stretchTrendChart = null;
+
 function toNumber(value) {
   const n = Number(value);
   return Number.isFinite(n) ? n : 0;
@@ -60,6 +103,118 @@ function setConversionBar(id, ratio) {
   const bar = document.getElementById(id);
   const pct = Math.max(0, Math.min(100, toNumber(ratio) * 100));
   bar.style.width = `${pct}%`;
+}
+
+function destroyStretchChart() {
+  if (stretchTrendChart) {
+    stretchTrendChart.destroy();
+    stretchTrendChart = null;
+  }
+}
+
+function renderStretchChart(points) {
+  const canvas = document.getElementById('stretchMtdTrendChart');
+  const empty = document.getElementById('stretchTrendEmpty');
+  const count = document.getElementById('stretchTrendCount');
+  const labels = points.map((p) => p.period);
+  const values = points.map((p) => toNumber(p.mtd_order_qty));
+
+  count.textContent = `${points.length} point${points.length === 1 ? '' : 's'}`;
+  empty.classList.toggle('d-none', points.length > 0);
+
+  destroyStretchChart();
+
+  if (!points.length) {
+    return;
+  }
+
+  stretchTrendChart = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'MTD Order Qty',
+          data: values,
+          borderColor: '#154e9a',
+          backgroundColor: 'rgba(21, 78, 154, 0.15)',
+          borderWidth: 2,
+          fill: true,
+          tension: 0.2,
+          pointRadius: 2,
+          pointHoverRadius: 4,
+        },
+      ],
+    },
+    options: {
+      maintainAspectRatio: false,
+      responsive: true,
+      interaction: {
+        mode: 'index',
+        intersect: false,
+      },
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+        },
+        tooltip: {
+          callbacks: {
+            label(context) {
+              return `MTD Order Qty: ${formatNumber(context.parsed.y)}`;
+            },
+          },
+        },
+      },
+      scales: {
+        x: {
+          ticks: {
+            maxTicksLimit: 10,
+          },
+          title: {
+            display: true,
+            text: 'Business Date',
+          },
+        },
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback(value) {
+              return formatNumber(value);
+            },
+          },
+          title: {
+            display: true,
+            text: 'MTD Order Qty',
+          },
+        },
+      },
+    },
+  });
+}
+
+async function loadStretchTrend() {
+  const productFilter = document.getElementById('trendProductFilter');
+  const groupByFilter = document.getElementById('trendGroupBy');
+  const productKey = productFilter ? productFilter.value : 'stretch_film';
+  const groupBy = groupByFilter ? groupByFilter.value : 'year_month';
+
+  try {
+    const params = new URLSearchParams({ product_key: productKey, group_by: groupBy });
+    const res = await fetch(`/maintenance/api/sales-summary/mtd-order-trend?${params.toString()}`, { cache: 'no-store' });
+    const payload = await res.json();
+    if (!res.ok) throw new Error(payload.detail || ('HTTP ' + res.status));
+
+    const points = Array.isArray(payload.points) ? payload.points : [];
+    renderStretchChart(points);
+  } catch (err) {
+    destroyStretchChart();
+    const empty = document.getElementById('stretchTrendEmpty');
+    const count = document.getElementById('stretchTrendCount');
+    count.textContent = '0 points';
+    empty.textContent = 'Unable to load STRETCH trend: ' + err.message;
+    empty.classList.remove('d-none');
+  }
 }
 
 async function handleUpload() {
@@ -95,6 +250,7 @@ async function handleUpload() {
     result.innerText = msg;
     result.classList.remove('d-none');
     fileInput.value = '';
+    await loadStretchTrend();
   } catch (err) {
     result.className = 'alert alert-danger mt-3';
     result.textContent = 'Upload failed: ' + err.message;
@@ -110,5 +266,22 @@ if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
     new bootstrap.Tooltip(el);
   });
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  const productFilter = document.getElementById('trendProductFilter');
+  const groupByFilter = document.getElementById('trendGroupBy');
+  if (productFilter) {
+    productFilter.addEventListener('change', () => {
+      loadStretchTrend();
+    });
+  }
+  if (groupByFilter) {
+    groupByFilter.addEventListener('change', () => {
+      loadStretchTrend();
+    });
+  }
+
+  loadStretchTrend();
+});
 </script>
 {% endblock %}

@@ -132,7 +132,7 @@ async def top_customers_tree_map(
     product_group: str = Query(..., description="Product group, e.g. SW"),
     start_date: str = Query(..., description="Inclusive start date (YYYY-MM-DD)"),
     end_date: str = Query(..., description="Inclusive end date (YYYY-MM-DD)"),
-    top_n: int = Query(20, description="Number of top customers to return"),
+    top_n: Optional[int] = Query(None, description="Number of top customers to return (omit for all customers)"),
 ) -> TopCustomersResponse:
     """Call sp_bl_lbs_cnt_carrier_customer and return top N customers for tree map visualization."""
     try:
@@ -144,7 +144,7 @@ async def top_customers_tree_map(
     if start > end:
         raise HTTPException(status_code=400, detail="start_date must be <= end_date")
 
-    if top_n < 1:
+    if top_n is not None and top_n < 1:
         raise HTTPException(status_code=422, detail="top_n must be >= 1")
 
     try:
@@ -249,9 +249,10 @@ async def top_customers_tree_map(
             detail=f"Unexpected columns in result: {list(rows[0].keys()) if rows else []}",
         )
 
-    # Sort and take top N
+    # Sort and optionally apply top N
     normalized.sort(key=lambda x: x["total_weight"], reverse=True)
-    items = [CustomerTreeMapItem(**row) for row in normalized[:top_n]]
+    selected = normalized if top_n is None else normalized[:top_n]
+    items = [CustomerTreeMapItem(**row) for row in selected]
     return TopCustomersResponse(items=items)
 
 

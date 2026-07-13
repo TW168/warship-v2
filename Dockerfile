@@ -5,6 +5,17 @@
 
 FROM python:3.12-slim
 
+# OCR/PDF tooling for scanned trucking schedule uploads
+RUN apt-get update \
+	&& apt-get install -y --no-install-recommends \
+	   tesseract-ocr \
+	   poppler-utils \
+	   ocrmypdf \
+	   ghostscript \
+	   qpdf \
+	   pngquant \
+	&& rm -rf /var/lib/apt/lists/*
+
 # Copy the uv binary from Astral's official image
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 

@@ -2881,3 +2881,1393 @@ jinja2.exceptions.TemplateNotFound: 'maintenance/freight_driver.html' not found 
 2026-06-12 07:40:15 - warship.database - INFO - Database engine created successfully
 2026-06-12 07:40:15 - main - INFO - Registering application routers...
 2026-06-12 07:40:15 - main - INFO - All routers registered successfully
+2026-06-19 08:37:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:10 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:10 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:11 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:11 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:11 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:11 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:11 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:11 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:11 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:11 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:11 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:11 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:11 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:11 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:11 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:11 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:11 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:11 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:11 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:11 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:11 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:11 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:11 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:11 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:11 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:11 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:11 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:11 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:11 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:11 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:11 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:11 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:11 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:11 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:11 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:11 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:11 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:11 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:11 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:11 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:11 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:11 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:11 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:11 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:11 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:11 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:11 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:11 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:11 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:11 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:11 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:11 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:11 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:11 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:11 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:11 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:11 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:11 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:11 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:11 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:11 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:11 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:11 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:11 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:11 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:11 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:11 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:11 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:11 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:11 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:11 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:11 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:11 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:11 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:11 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:11 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:12 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:12 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:12 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:12 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:12 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:12 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:12 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:12 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:12 - main - INFO - Registering application routers...
+2026-06-19 08:37:12 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:12 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:12 - main - INFO - Registering application routers...
+2026-06-19 08:37:12 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:12 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:12 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:12 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:12 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:12 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:12 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:12 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:12 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:12 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:12 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:12 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:12 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 08:37:12 - warship.database - INFO - Database engine created successfully
+2026-06-19 08:37:12 - main - INFO - All routers registered successfully
+2026-06-19 08:37:12 - main - INFO - All routers registered successfully
+2026-06-19 08:37:12 - main - INFO - Registering application routers...
+2026-06-19 08:37:12 - main - INFO - All routers registered successfully
+2026-06-19 16:17:35 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:35 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:35 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:35 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:35 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:35 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:35 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:35 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:35 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:35 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:35 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:35 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:35 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:35 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:35 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:35 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:35 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:35 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:35 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:35 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:35 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:35 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:35 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:35 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:35 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:35 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:35 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:35 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:35 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:35 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:35 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:35 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:35 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:35 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:35 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:35 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:35 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:35 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:35 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:35 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:35 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:35 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:35 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:35 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:35 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:35 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:35 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:35 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:35 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:35 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:35 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:35 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:35 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:35 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:35 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:35 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:35 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:35 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:35 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:35 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:35 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:35 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:35 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:35 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:35 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:35 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:35 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:35 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:35 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:35 - main - INFO - Registering application routers...
+2026-06-19 16:17:35 - main - INFO - Registering application routers...
+2026-06-19 16:17:35 - main - INFO - All routers registered successfully
+2026-06-19 16:17:35 - main - INFO - All routers registered successfully
+2026-06-19 16:17:35 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:36 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:36 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:36 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:36 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:36 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:36 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:36 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:36 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:36 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:36 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:36 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:36 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:36 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:36 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:36 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:36 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:36 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:36 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:36 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:36 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:36 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:36 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:36 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:36 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:36 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:36 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:36 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:36 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:36 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:36 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:36 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-19 16:17:36 - warship.database - INFO - Database engine created successfully
+2026-06-19 16:17:36 - main - INFO - Registering application routers...
+2026-06-19 16:17:36 - main - INFO - All routers registered successfully
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - warship.database - INFO - Database engine created successfully
+2026-06-23 10:25:48 - main - INFO - Registering application routers...
+2026-06-23 10:25:48 - main - INFO - Registering application routers...
+2026-06-23 10:25:48 - main - INFO - Registering application routers...
+2026-06-23 10:25:48 - main - INFO - All routers registered successfully
+2026-06-23 10:25:48 - main - INFO - All routers registered successfully
+2026-06-23 10:25:48 - main - INFO - All routers registered successfully
+2026-06-24 11:34:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:02 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:02 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:02 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:02 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:02 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:02 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:02 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:02 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:02 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:02 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:02 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:02 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:02 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:02 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:02 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:02 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:02 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:02 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:02 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:02 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:02 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:02 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:02 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:02 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:02 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:02 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:02 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:02 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:02 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:02 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:02 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:02 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:02 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:02 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:02 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:02 - main - INFO - Registering application routers...
+2026-06-24 11:34:02 - main - INFO - Registering application routers...
+2026-06-24 11:34:02 - main - INFO - All routers registered successfully
+2026-06-24 11:34:02 - main - INFO - All routers registered successfully
+2026-06-24 11:34:03 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:03 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:03 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:03 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:03 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:03 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:03 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:03 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:03 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:03 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:03 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:03 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:03 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:03 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:03 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:03 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:03 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:03 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:03 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:03 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:03 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:03 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:03 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:03 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:03 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:03 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:03 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:03 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:03 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:03 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:03 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-24 11:34:03 - warship.database - INFO - Database engine created successfully
+2026-06-24 11:34:03 - main - INFO - Registering application routers...
+2026-06-24 11:34:03 - main - INFO - All routers registered successfully
+2026-06-25 10:19:59 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:19:59 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:19:59 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:19:59 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - main - INFO - Registering application routers...
+2026-06-25 10:20:00 - main - INFO - All routers registered successfully
+2026-06-25 10:20:00 - main - INFO - Registering application routers...
+2026-06-25 10:20:00 - main - INFO - All routers registered successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-06-25 10:20:00 - warship.database - INFO - Database engine created successfully
+2026-06-25 10:20:00 - main - INFO - Registering application routers...
+2026-06-25 10:20:00 - main - INFO - All routers registered successfully
+2026-07-01 08:51:24 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:24 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:24 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:24 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:24 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:24 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:24 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:24 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:24 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:24 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:24 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:24 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:24 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:24 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:24 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:24 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:24 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:24 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:24 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:24 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:24 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:24 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:24 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:24 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:24 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:24 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:24 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:24 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:24 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:24 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:24 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:24 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:24 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:24 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:24 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:24 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:24 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:24 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:24 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:24 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:24 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:24 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:24 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:24 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:24 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:24 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:24 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:24 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:24 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:24 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:24 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:24 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:24 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:24 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:24 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:24 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:24 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:24 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:24 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:24 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:24 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:24 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:24 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:24 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:24 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:24 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:24 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:24 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:24 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:24 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:25 - main - INFO - Registering application routers...
+2026-07-01 08:51:25 - main - INFO - Registering application routers...
+2026-07-01 08:51:25 - main - INFO - All routers registered successfully
+2026-07-01 08:51:25 - main - INFO - All routers registered successfully
+2026-07-01 08:51:25 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:25 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:25 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:25 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:25 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:25 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:25 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:25 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:25 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:25 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:25 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:25 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:25 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:25 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:25 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:25 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:25 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:25 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:25 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:25 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:25 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:25 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:25 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:25 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:25 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:25 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:25 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:25 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:25 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:25 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:25 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-01 08:51:25 - warship.database - INFO - Database engine created successfully
+2026-07-01 08:51:25 - main - INFO - Registering application routers...
+2026-07-01 08:51:25 - main - INFO - All routers registered successfully
+2026-07-02 08:30:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:02 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:02 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:02 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:02 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:02 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:02 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:02 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:02 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:02 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:02 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:02 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:02 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:02 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:02 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:02 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:02 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:02 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:02 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:02 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:02 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:02 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:02 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:02 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:02 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:02 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:02 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:02 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:02 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:02 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:02 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:02 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:02 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:02 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:02 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:02 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:02 - main - INFO - Registering application routers...
+2026-07-02 08:30:02 - main - INFO - Registering application routers...
+2026-07-02 08:30:02 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:02 - main - INFO - All routers registered successfully
+2026-07-02 08:30:02 - main - INFO - All routers registered successfully
+2026-07-02 08:30:03 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:03 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:03 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:03 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:03 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:03 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:03 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:03 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:03 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:03 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:03 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:03 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:03 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:03 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:03 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:03 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:03 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:03 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:03 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:03 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:03 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:03 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:03 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:03 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:03 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:03 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:03 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:03 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:03 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:03 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:03 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-02 08:30:03 - warship.database - INFO - Database engine created successfully
+2026-07-02 08:30:03 - main - INFO - Registering application routers...
+2026-07-02 08:30:03 - main - INFO - All routers registered successfully
+2026-07-08 10:00:29 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:29 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:29 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:29 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:30 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:30 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:30 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:30 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:30 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:30 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:30 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:30 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:30 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:30 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:30 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:30 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:30 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:30 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:30 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:30 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:30 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:30 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:30 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:30 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:30 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:30 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:30 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:30 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:30 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:30 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:30 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:30 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:30 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:30 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:30 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:30 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:30 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:30 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:30 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:30 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:30 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:30 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:30 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:30 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:30 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:30 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:30 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:30 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:30 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:30 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:30 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:30 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:30 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:30 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:30 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:30 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:30 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:30 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:30 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:30 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:30 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:30 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:30 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:30 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:30 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:30 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:30 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:30 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:30 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:30 - main - INFO - Registering application routers...
+2026-07-08 10:00:30 - main - INFO - Registering application routers...
+2026-07-08 10:00:30 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:30 - main - INFO - All routers registered successfully
+2026-07-08 10:00:30 - main - INFO - All routers registered successfully
+2026-07-08 10:00:31 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:31 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:31 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:31 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:31 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:31 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:31 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:31 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:31 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:31 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:31 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:31 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:31 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:31 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:31 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:31 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:31 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:31 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:31 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:31 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:31 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:31 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:31 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:31 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:31 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:31 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:31 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:31 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:31 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:31 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:31 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:00:31 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:00:31 - main - INFO - Registering application routers...
+2026-07-08 10:00:31 - main - INFO - All routers registered successfully
+2026-07-08 10:04:09 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:09 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:09 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:04:10 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:04:10 - main - INFO - Registering application routers...
+2026-07-08 10:04:10 - main - INFO - Registering application routers...
+2026-07-08 10:04:10 - main - INFO - Registering application routers...
+2026-07-08 10:04:10 - main - INFO - All routers registered successfully
+2026-07-08 10:04:10 - main - INFO - All routers registered successfully
+2026-07-08 10:04:10 - main - INFO - All routers registered successfully
+2026-07-08 10:23:43 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:23:43 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:23:44 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:23:44 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:23:44 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:23:44 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:23:44 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:23:44 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:23:44 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:23:44 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:23:44 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:23:44 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:23:44 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:23:44 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:23:44 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:23:44 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:23:44 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:23:44 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:23:44 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:23:44 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:23:44 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:23:44 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:23:44 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:23:44 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:23:44 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:23:44 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:23:44 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:23:44 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:23:44 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:23:44 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:23:44 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:23:44 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:23:44 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:23:44 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:23:44 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:23:44 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:23:44 - main - INFO - Registering application routers...
+2026-07-08 10:23:44 - main - INFO - All routers registered successfully
+2026-07-08 10:50:06 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:50:06 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:50:07 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:50:07 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:50:07 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:50:07 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:50:07 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:50:07 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:50:07 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:50:07 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:50:07 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:50:07 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:50:07 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:50:07 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:50:07 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:50:07 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:50:07 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:50:07 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:50:07 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:50:07 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:50:07 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:50:07 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:50:07 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:50:07 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:50:07 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:50:07 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:50:07 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:50:07 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:50:07 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:50:07 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:50:07 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:50:07 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:50:07 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:50:07 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:50:07 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-08 10:50:07 - warship.database - INFO - Database engine created successfully
+2026-07-08 10:50:07 - main - INFO - Registering application routers...
+2026-07-08 10:50:07 - main - INFO - All routers registered successfully
+2026-07-10 09:31:57 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:57 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:57 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:57 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - main - INFO - Registering application routers...
+2026-07-10 09:31:58 - main - INFO - Registering application routers...
+2026-07-10 09:31:58 - main - INFO - All routers registered successfully
+2026-07-10 09:31:58 - main - INFO - All routers registered successfully
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:58 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:58 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:59 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 09:31:59 - warship.database - INFO - Database engine created successfully
+2026-07-10 09:31:59 - main - INFO - Registering application routers...
+2026-07-10 09:31:59 - main - INFO - All routers registered successfully
+2026-07-10 12:44:51 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:51 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:51 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:51 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:51 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:51 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:51 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:51 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-10 12:44:52 - warship.database - INFO - Database engine created successfully
+2026-07-10 12:44:52 - main - INFO - Registering application routers...
+2026-07-10 12:44:52 - main - INFO - Registering application routers...
+2026-07-10 12:44:52 - main - INFO - Registering application routers...
+2026-07-10 12:44:52 - main - INFO - All routers registered successfully
+2026-07-10 12:44:52 - main - INFO - All routers registered successfully
+2026-07-10 12:44:52 - main - INFO - All routers registered successfully
+2026-07-13 08:50:55 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:55 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:55 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:55 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:55 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:55 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:55 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:55 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:55 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:55 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:55 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:55 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:55 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:55 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:55 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:55 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:55 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:55 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:55 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:55 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:55 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:55 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:55 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:55 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:55 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:55 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:55 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:55 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:55 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:55 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:55 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:55 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:55 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:55 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:55 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:55 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:55 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:55 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:55 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:55 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:55 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:55 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:55 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:55 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:55 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:55 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:55 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:55 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:55 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:55 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:55 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:55 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:55 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:55 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:55 - main - INFO - Registering application routers...
+2026-07-13 08:50:55 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:55 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:55 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:55 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:55 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:55 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:55 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:55 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:55 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:55 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:55 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:55 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:55 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:55 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:55 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:55 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:55 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:55 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:55 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:56 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:56 - main - INFO - All routers registered successfully
+2026-07-13 08:50:56 - main - INFO - Registering application routers...
+2026-07-13 08:50:56 - main - INFO - All routers registered successfully
+2026-07-13 08:50:56 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:56 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:56 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:56 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:56 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:56 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:56 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:56 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:56 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:56 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:56 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:56 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:56 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:56 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:56 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:56 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:56 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:56 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:56 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:56 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:56 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:56 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:56 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:56 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:56 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:56 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:56 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:56 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:56 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:56 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:56 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:56 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:56 - warship.database - INFO - Connecting to mysql database at 172.17.15.228:3306/warship
+2026-07-13 08:50:56 - warship.database - INFO - Database engine created successfully
+2026-07-13 08:50:56 - main - INFO - Registering application routers...
+2026-07-13 08:50:56 - main - INFO - All routers registered successfully

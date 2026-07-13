@@ -67,11 +67,13 @@ warship-v2/
 │   ├── tsr_prep.py
 │   ├── maintenance/         # Maintenance section — package, one file per domain
 │   │   ├── __init__.py      # Parent router (prefix=/maintenance), includes all sub-routers
+│   │   ├── closed_complaints.py # Closed complaint XLSX upload into MySQL with duplicate protection
 │   │   ├── shipping_status.py   # ShippingStatus CRUD
 │   │   ├── freight_audit.py     # Freight ¢/lb audit (3 independent methods)
 │   │   ├── shipment_size_impact.py # Volume decomposition and shipment-size workload analysis
 │   │   ├── lmi.py               # LMI document analysis via Ollama deepseek-r1:8b
 │   │   ├── truck_load_map.py    # Truck trailer load planning tool
+│   │   ├── trucking_schedule.py # Trucking schedule PDF upload + table insert/list
 │   │   ├── not_in_xfcma.py      # Not-in-XFCMA PDF upload + CRUD
 │   │   ├── shipment_scan.py     # Shipment scan Excel/CSV upload + management
 │   │   ├── sales_summary.py     # MKORSHDK daily sales summary PDF upload + list
@@ -95,10 +97,12 @@ warship-v2/
 │   └── scrape_gas_prices.py # Cron job: scrape AAA gas prices → MySQL
 ├── schemas/                 # Pydantic request/response models (one file per domain)
 │   ├── health.py
+│   ├── closed_complaints.py
 │   ├── meeting_report.py
 │   ├── not_in_xfcma.py
 │   ├── sales_summary.py
 │   ├── shipment_scan.py
+│   ├── trucking_schedule.py
 │   ├── shipped_product.py
 │   ├── shipping_status.py
 │   ├── silos.py             # SiloAnomalyStatusUpdateRequest
@@ -215,6 +219,13 @@ logger = get_util_logger("pdf_parser")
 | Sales Summary Upload | `GET /maintenance/sales-summary` | Maintenance page for uploading MKORSHDK daily sales summary PDF files. |
 | Sales Summary Upload API | `POST /maintenance/api/sales-summary/upload` | Multipart PDF upload endpoint. Parses product-level daily/MTD order, shipment, and backlog metrics and inserts rows into `sales_summary` while preserving upload history. |
 | Sales Summary List API | `GET /maintenance/api/sales-summary` | JSON endpoint to list `sales_summary` rows with pagination and optional filters (`run_date`, `source_file`). |
+| Sales Summary MTD Trend API | `GET /maintenance/api/sales-summary/mtd-order-trend` | JSON endpoint returning summed `mtd_order_qty` trend points for selected product filters (`amtopp`, `bopp`, `concentrate`, `iscc`, `sc`, `stretch_film`) with grouping by `year_month` or `business_date` for the Sales Summary chart under the upload card. |
+| Closed Complaints Upload | `GET /maintenance/closed-complaints` | Maintenance page for uploading closed complaints Excel files (`.xls` or `.xlsx`) into MySQL. |
+| Closed Complaints Summary API | `GET /maintenance/api/closed-complaints/summary` | JSON endpoint returning complaint summary by `prod_group` with optional `year` filter, enriched with mapped Sales Summary `mtd_order_qty` totals using monthly-max rollups for `CT`, `BP`, `SW`, `IS`, and `SC`. |
+| Closed Complaints Code Summary API | `GET /maintenance/api/closed-complaints/code-summary` | JSON endpoint returning grouped complaint rows by `prod_group` and `code` using `closed_complaints` joined to `comp_error_code` for code descriptions; supports independent filters: `year` (required), optional `month`, optional `prod_group`, and optional `code`. |
+| Closed Complaints Code Summary Options API | `GET /maintenance/api/closed-complaints/code-summary/options` | JSON endpoint returning dropdown options for the grouped code summary table (`years`, `months`, `prod_groups`, and `codes` with descriptions), with cascading optional filters (`year`, `month`, `prod_group`). |
+| Closed Complaints Trends API | `GET /maintenance/api/closed-complaints/trends` | JSON endpoint returning daily trend points for selected `year` with fields: `date`, `mtd_order_qty_lbs`, `complaints`, `claim_amount`, `approved_amount`, `returns`, and computed `complaint_rate` (`complaints / mtd_order_qty_lbs`). |
+| Closed Complaints Upload API | `POST /maintenance/api/closed-complaints/upload` | Excel upload endpoint for `.xls` and `.xlsx`. Parses complaint rows, stores them in `closed_complaints`, and skips duplicate business-key rows using `complaint_no + invoice_no + order_no + seq`. |
 | Silos Status | `GET /silos-status` | Canonical page for daily Site Status CSV upload into `silo_status`, including Current Inventory cards, Daily Avg % Full trend, current Consumption Rate card, and Consumption Rate History card (content filter + lookback window). Legacy maintenance URLs `GET /maintenance/silos-status` and `GET /maintenance/site-status-upload` now 307-redirect to this root route. |
 | Upload Site Status CSV API | `POST /maintenance/api/site-status/upload` | Multipart CSV upload endpoint. Validates required headers, parses rows, auto-creates `silo_status` table if missing, bulk inserts rows, rejects duplicate filenames, and triggers anomaly feature/event refresh for the uploaded snapshot date. |
 | Silos Anomaly Features API | `GET /maintenance/api/silos/anomaly-features` | JSON — historical feature-engineering dataset for anomaly detection (`risk_score`, rolling stats, z-score, run length) from `silo_ml_features_daily`; filters: `days`, `min_risk`, optional `contents_code`. |
@@ -246,6 +257,9 @@ logger = get_util_logger("pdf_parser")
 | LMI Briefing Analysis | `GET /maintenance/lmi/briefing-analysis` | Streaming — cross-month LMI trend analysis across all available documents via Ollama. |
 | Freight ¢/lb Validation | `GET /maintenance/frt-validation` | Freight ¢/lb by product code validation page — cross-checks unit freight calculations. |
 | Truck Load Map | `GET /maintenance/truck-load-map` | Interactive truck trailer load planning tool — drag-and-drop pallet placement with product dimensions from `Product_desc_size`. |
+| Trucking Schedule | `GET /maintenance/trucking-schedule` | Maintenance page for uploading trucking schedule PDF files and reviewing parsed rows from `trucking_schedule`. |
+| Trucking Schedule Upload API | `POST /maintenance/api/trucking-schedule/upload` | Multipart PDF upload endpoint. Parses text-layer rows and automatically runs OCR fallback for scanned PDFs before inserting into `trucking_schedule` columns (`bl_nbr`, `bl_weight`, `carrier_id`, `order_nbr`, `pk_date`, `pk_time`, `rt`, `prld`, `net_weight`, `ship_to_cust`, `st`). |
+| Trucking Schedule List API | `GET /maintenance/api/trucking-schedule` | JSON endpoint returning paginated `trucking_schedule` rows with optional `source_file` filtering. |
 | Silos Current Inventory | `GET /maintenance/api/silos/inventory-current` | JSON — latest silo inventory snapshot per vessel from `fact_silo_status`. |
 | Silos Daily Inventory Trend | `GET /maintenance/api/silos/inventory-daily` | JSON — daily inventory trend per vessel/contents; params: `days` (default 30), optional `vessel_id`. |
 | Silos Consumption Rate | `GET /silos/consumption-rate` | JSON — per-contents burn rate (lbs/day) and days-remaining estimate from `agg_silo_consumption_rate`. Legacy route remains available at `GET /maintenance/api/silos/consumption-rate`. |
@@ -333,6 +347,7 @@ Managed via `pyproject.toml` / `uv.lock`:
 | `pygments` | Syntax highlighting for Software Architectural page |
 | `markdown` | Markdown → HTML for Software Architectural page |
 | `openpyxl` | Read Excel workbooks (`.xlsx`) for freight cost analytics |
+| `xlrd` | Read legacy Excel workbooks (`.xls`) for maintenance uploads |
 | `beautifulsoup4` | HTML parsing for gas price scraper (`scripts/scrape_gas_prices.py`) |
 | `pandas` | DataFrame aggregation for Meeting Report All Site MTD shipped weight/pallet summary |
 | `pdfplumber` | PDF text extraction for QPQUPRFIL not-in-XFCMA reports |
