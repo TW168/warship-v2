@@ -106,7 +106,7 @@
 
           <!-- Maintenance (dropdown) -->
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle {% if active_page in ['maintenance', 'frt_validation', 'freight_audit', 'freight_driver', 'shipment_size_impact', 'lmi', 'truck_load_map', 'trucking_schedule', 'shipping_status', 'not_in_xfcma', 'shipment_scan', 'sales_summary', 'closed_complaints'] %}active{% endif %}"
+            <a class="nav-link dropdown-toggle {% if active_page in ['maintenance', 'frt_validation', 'freight_audit', 'freight_driver', 'shipment_size_impact', 'lmi', 'truck_load_map', 'shipping_status', 'not_in_xfcma', 'shipment_scan', 'sales_summary', 'closed_complaints', 'work_order_upload'] %}active{% endif %}"
                href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
               <i class="bi bi-tools me-1" aria-hidden="true"></i>Maintenance
             </a>
@@ -147,11 +147,6 @@
                 </a>
               </li>
               <li>
-                <a class="dropdown-item {% if active_page == 'trucking_schedule' %}active{% endif %}" href="/maintenance/trucking-schedule">
-                  <i class="bi bi-truck-front me-2" aria-hidden="true"></i>Trucking Schedule
-                </a>
-              </li>
-              <li>
                 <a class="dropdown-item {% if active_page == 'not_in_xfcma' %}active{% endif %}" href="/maintenance/not-in-xfcma">
                   <i class="bi bi-cloud-arrow-up me-2" aria-hidden="true"></i>Upload not in XFCMA
                 </a>
@@ -169,6 +164,11 @@
               <li>
                 <a class="dropdown-item {% if active_page == 'closed_complaints' %}active{% endif %}" href="/maintenance/closed-complaints">
                   <i class="bi bi-file-earmark-arrow-up me-2" aria-hidden="true"></i>Closed Complaints
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item {% if active_page == 'work_order_upload' %}active{% endif %}" href="/maintenance/work-order-upload">
+                  <i class="bi bi-file-earmark-spreadsheet me-2" aria-hidden="true"></i>CFP Extrusion Production Ticket
                 </a>
               </li>
             </ul>

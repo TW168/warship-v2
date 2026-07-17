@@ -1,0 +1,480 @@
+{% extends "base.html" %}
+
+{% block title %}CFP Extrusion Production Ticket{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="row mb-4">
+    <div class="col">
+      <h1 class="page-header h3 mb-0">
+        <i class="bi bi-file-earmark-spreadsheet me-2" style="color: #154e9a;"></i>CFP Extrusion Production Ticket
+      </h1>
+      <p class="text-muted mt-1 mb-0">
+        Upload one or more .xlsx files. Any sheet name containing Timeline is skipped,
+        and every other sheet is converted to the standardized snake_case JSON schema.
+      </p>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-header d-flex align-items-center gap-2 py-2">
+          <i class="bi bi-cloud-upload text-primary"></i>
+          <span class="fw-semibold small">Upload Work Order Files</span>
+        </div>
+        <div class="card-body">
+          <label for="woFiles" class="form-label form-label-sm fw-semibold">Select XLSX File(s)</label>
+          <input id="woFiles" class="form-control form-control-sm" type="file" accept=".xlsx" multiple aria-label="Work order files">
+          <div class="form-text">Example filename: BE09_07102026_N.xlsx (line = first 4 characters).</div>
+
+          <button id="uploadBtn" class="btn btn-primary btn-sm mt-3 w-100" onclick="uploadWorkOrders()">
+            <i class="bi bi-cloud-arrow-up me-1"></i>Upload and Process
+          </button>
+
+          <div id="uploadStatus" class="mt-3 d-none"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header d-flex align-items-center gap-2 py-2">
+          <i class="bi bi-database-check text-primary"></i>
+          <span class="fw-semibold small">Processing Rules</span>
+        </div>
+        <div class="card-body small text-muted">
+          <ul class="mb-0">
+            <li>Production line is parsed from the first 4 filename characters.</li>
+            <li>Sheets with names containing Timeline are skipped (case-insensitive).</li>
+            <li>Each processed sheet becomes one nested <span class="font-monospace">ticket</span> JSON document with charting, downtime, pallets, material usage, and comments in fixed order.</li>
+            <li>Per-line table stores document_hash + document_payload (JSON).</li>
+            <li>Duplicate uploads are blocked by filename + file content hash.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mt-4">
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-header d-flex align-items-center gap-2 py-2">
+          <i class="bi bi-list-check text-primary"></i>
+          <span class="fw-semibold small">Last Upload Result</span>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-striped table-hover table-sm align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>File</th>
+                  <th>Line</th>
+                  <th>Target Table</th>
+                  <th class="text-end">Inserted</th>
+                  <th class="text-end">Parsed Sheets</th>
+                  <th class="text-end">Skipped Sheets</th>
+                  <th>Sheet Details</th>
+                </tr>
+              </thead>
+              <tbody id="resultBody">
+                <tr>
+                  <td colspan="7" class="text-center text-muted py-3">Upload files to view processing details.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mt-4">
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-header d-flex align-items-center gap-2 py-2">
+          <i class="bi bi-table text-primary"></i>
+          <span class="fw-semibold small">Parsed JSON Preview</span>
+        </div>
+        <div class="card-body" id="previewContainer">
+          <p class="text-muted small mb-0">Upload files to preview parsed JSON documents.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function esc(text) {
+  const div = document.createElement('div');
+  div.textContent = text == null ? '' : String(text);
+  return div.innerHTML;
+}
+
+function normalizeDocumentPayload(payload) {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    return payload;
+  }
+
+  if (payload.ticket && typeof payload.ticket === 'object' && !Array.isArray(payload.ticket)) {
+    return {
+      ticket: {
+        line: payload.ticket.line ?? null,
+        prod_date: payload.ticket.prod_date ?? null,
+        ewo: payload.ticket.ewo ?? null,
+        shift: payload.ticket.shift ?? null,
+        crew: payload.ticket.crew ?? null,
+        prod_time: payload.ticket.prod_time ?? null,
+        operator: payload.ticket.operator ?? null,
+        charting: payload.ticket.charting ?? [],
+        downtime: payload.ticket.downtime ?? [],
+        pallets: payload.ticket.pallets ?? payload.ticket.pallet ?? [],
+        material_usage: payload.ticket.material_usage ?? {
+          extruder: [],
+          ext_b: [],
+          ext_c: [],
+          ext_d: [],
+        },
+        comments: payload.ticket.comments ?? payload.ticket.material_usage?.comments ?? null,
+      },
+    };
+  }
+
+  return {
+    ticket: {
+      line: payload.metadata?.line ?? null,
+      prod_date: payload.metadata?.date ?? null,
+      ewo: payload.metadata?.ewo ?? null,
+      shift: payload.metadata?.shift ?? null,
+      crew: payload.metadata?.crew ?? null,
+      prod_time: null,
+      operator: payload.metadata?.operator ?? null,
+      charting: [payload.charting ?? {}],
+      downtime: payload.downtime_log ?? [],
+      pallets: payload.pallets ?? payload.pallet ?? [],
+      material_usage: {
+        extruder: payload.material_usage ?? [],
+        ext_b: [],
+        ext_c: [],
+        ext_d: [],
+      },
+      comments: null,
+    },
+  };
+}
+
+function flattenMaterialUsage(materialUsage) {
+  if (!materialUsage || typeof materialUsage !== 'object' || Array.isArray(materialUsage)) {
+    return [];
+  }
+
+  const rows = [];
+  ['extruder', 'ext_b', 'ext_c', 'ext_d'].forEach((section) => {
+    const block = Array.isArray(materialUsage[section]) ? materialUsage[section] : [];
+    block.forEach((row) => {
+      if (row && typeof row === 'object') {
+        rows.push({ section, ...row });
+      }
+    });
+  });
+
+  return rows;
+}
+
+function renderSheetSummary(sheets) {
+  if (!Array.isArray(sheets) || !sheets.length) {
+    return '<span class="text-muted">No sheets</span>';
+  }
+
+  return sheets.map((sheet) => {
+    const name = esc(sheet.sheet_name || '');
+    if (sheet.skipped) {
+      return `${name}: <span class="text-warning">skipped</span> (${esc(sheet.skip_reason || 'rule match')})`;
+    }
+    const chart = esc((sheet.charting_preview || {}).chart || '');
+    const prodRaw = (sheet.charting_preview || {}).prod_wgt_lbs;
+    const prod = prodRaw === null || prodRaw === undefined ? '-' : Number(prodRaw).toLocaleString();
+    const ticketId = esc((sheet.charting_preview || {}).ticket_id || '');
+    return `${name}: <span class="text-success">parsed</span> (ticket ${ticketId}, chart ${chart}, prod ${prod} lbs)`;
+  }).join('<br>');
+}
+
+function renderExtractedRowsTable(extractedRows) {
+  const rows = Array.isArray(extractedRows) ? extractedRows : [];
+  if (!rows.length) {
+    return '<p class="text-muted small mb-0">No stored rows found for this file.</p>';
+  }
+
+  const kvGrid = (obj) => {
+    const entries = Object.entries(obj || {});
+    if (!entries.length) {
+      return '<div class="small text-muted">No data</div>';
+    }
+
+    return `
+      <div class="row g-2">
+        ${entries.map(([key, value]) => `
+          <div class="col-md-6">
+            <div class="border rounded p-2 h-100 bg-light-subtle">
+              <div class="text-muted small text-uppercase">${esc(key)}</div>
+              <div class="small fw-semibold text-break">${esc(value == null ? '—' : String(value))}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  };
+
+  const compactRows = (items, columns) => {
+    const list = Array.isArray(items) ? items.slice(0, 8) : [];
+    if (!list.length) {
+      return '<div class="small text-muted">No rows</div>';
+    }
+
+    return `
+      <div class="table-responsive">
+        <table class="table table-sm table-striped align-middle mb-0">
+          <thead class="table-light">
+            <tr>${columns.map((col) => `<th>${esc(col.label)}</th>`).join('')}</tr>
+          </thead>
+          <tbody>
+            ${list.map((item) => `
+              <tr>
+                ${columns.map((col) => `<td>${esc(item[col.key] == null ? '—' : String(item[col.key]))}</td>`).join('')}
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+      ${items.length > list.length ? `<div class="small text-muted mt-1">Showing first ${list.length} of ${items.length} rows</div>` : ''}
+    `;
+  };
+
+  const cards = rows.map((row) => {
+    let payload = row.document_payload;
+    if (typeof payload === 'string') {
+      try {
+        payload = JSON.parse(payload);
+      } catch (error) {
+        payload = {};
+      }
+    }
+    const ordered = normalizeDocumentPayload(payload || {});
+    const ticket = ordered.ticket || {};
+    const chartingList = Array.isArray(ticket.charting) ? ticket.charting : [];
+    const charting = chartingList[0] || {};
+    const pallets = Array.isArray(ticket.pallets) ? ticket.pallets : [];
+    const downtime = Array.isArray(ticket.downtime) ? ticket.downtime : [];
+    const materialUsage = flattenMaterialUsage(ticket.material_usage);
+    const rawJson = JSON.stringify(ordered, null, 2);
+
+    const totalInputLbs = materialUsage.reduce((acc, item) => acc + Number(item && item.input_lbs != null ? item.input_lbs : 0), 0);
+    const ticketMeta = {
+      line: ticket.line,
+      prod_date: ticket.prod_date,
+      ewo: ticket.ewo,
+      shift: ticket.shift,
+      crew: ticket.crew,
+      prod_time: ticket.prod_time,
+      operator: ticket.operator,
+    };
+    const sectionCounts = {
+      extruder: Array.isArray(ticket.material_usage?.extruder) ? ticket.material_usage.extruder.length : 0,
+      ext_b: Array.isArray(ticket.material_usage?.ext_b) ? ticket.material_usage.ext_b.length : 0,
+      ext_c: Array.isArray(ticket.material_usage?.ext_c) ? ticket.material_usage.ext_c.length : 0,
+      ext_d: Array.isArray(ticket.material_usage?.ext_d) ? ticket.material_usage.ext_d.length : 0,
+      comments: ticket.comments,
+    };
+
+    return `
+      <div class="border rounded p-3 mb-3">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-2">
+          <div>
+            <div class="fw-semibold">Sheet ${esc(row.sheet_name)} <span class="text-muted">(#${esc(row.sheet_index)})</span></div>
+            <div class="small text-muted">Hash: ${esc(row.document_hash)}</div>
+          </div>
+          <div class="d-flex flex-wrap gap-2">
+            <span class="badge text-bg-primary">Pallets: ${pallets.length}</span>
+            <span class="badge text-bg-secondary">Material rows: ${materialUsage.length}</span>
+            <span class="badge text-bg-info">Downtime rows: ${downtime.length}</span>
+            <span class="badge text-bg-dark">Input lbs: ${Number(totalInputLbs).toLocaleString(undefined, { maximumFractionDigits: 1 })}</span>
+          </div>
+        </div>
+
+        <div class="small fw-semibold mb-1">Stored JSON</div>
+        <pre class="small bg-light border rounded p-3 mb-3" style="max-height: 360px; overflow:auto; white-space: pre-wrap;">${esc(rawJson)}</pre>
+
+        <details>
+          <summary class="small text-muted">Structured view</summary>
+          <div class="pt-3">
+            <div class="row g-3">
+              <div class="col-lg-4">
+                <div class="small fw-semibold mb-1">Ticket</div>
+                ${kvGrid(ticketMeta)}
+              </div>
+              <div class="col-lg-4">
+                <div class="small fw-semibold mb-1">Charting</div>
+                ${kvGrid(charting)}
+              </div>
+              <div class="col-lg-4">
+                <div class="small fw-semibold mb-1">Material Usage Sections</div>
+                ${kvGrid(sectionCounts)}
+              </div>
+            </div>
+
+            <div class="row g-3 mt-1">
+              <div class="col-lg-6">
+                <div class="small fw-semibold mb-1">Material Usage (Top Rows)</div>
+                ${compactRows(materialUsage, [
+                  { key: 'section', label: 'Section' },
+                  { key: 'hopper', label: 'Hopper' },
+                  { key: 'silo', label: 'Silo' },
+                  { key: 'std_pct', label: 'Std %' },
+                  { key: 'input_lbs', label: 'Input lbs' },
+                ])}
+              </div>
+              <div class="col-lg-6">
+                <div class="small fw-semibold mb-1">Pallets (Top Rows)</div>
+                ${compactRows(pallets, [
+                  { key: 'nbr', label: '#' },
+                  { key: 'order_nbr', label: 'Order' },
+                  { key: 'roll_nbr', label: 'Roll Nbr' },
+                  { key: 'seq', label: 'Seq' },
+                  { key: 'barcode', label: 'Barcode' },
+                  { key: 'wgt_lbs', label: 'Wgt lbs' },
+                  { key: 'roll', label: 'Roll' },
+                  { key: 'qc', label: 'QC' },
+                ])}
+              </div>
+            </div>
+
+            <div class="row g-3 mt-1">
+              <div class="col-lg-6">
+                <div class="small fw-semibold mb-1">Downtime (Top Rows)</div>
+                ${compactRows(downtime, [
+                  { key: 'code', label: 'Code' },
+                  { key: 'time_min', label: 'Time min' },
+                ])}
+              </div>
+              <div class="col-lg-6">
+                <div class="small fw-semibold mb-1">Comments</div>
+                <div class="border rounded p-2 bg-light-subtle small text-break">${esc(ticket.comments || '—')}</div>
+              </div>
+            </div>
+          </div>
+        </details>
+      </div>
+    `;
+  }).join('');
+
+  return cards;
+}
+
+function renderExtractionPreview(files, rawResult = null) {
+  const container = document.getElementById('previewContainer');
+  const rows = Array.isArray(files) ? files : [];
+
+  if (!rows.length) {
+    const rawBlock = rawResult ? `
+      <details class="mt-2">
+        <summary class="small text-muted">Raw extraction payload</summary>
+        <pre class="small bg-light border rounded p-2 mt-2 mb-0" style="max-height: 320px; overflow:auto;">${esc(JSON.stringify(rawResult, null, 2))}</pre>
+      </details>
+    ` : '';
+    container.innerHTML = `<p class="text-muted small mb-0">No upload result to preview.</p>${rawBlock}`;
+    return;
+  }
+
+  const blocks = rows.map((file) => {
+    return `
+      <div class="border rounded p-3 mb-3">
+        <div class="fw-semibold">${esc(file.file_name || 'Unknown file')}</div>
+        <div class="small text-muted mb-2">Line ${esc(file.production_line || 'N/A')} -> ${esc(file.target_table || 'N/A')}</div>
+        <div class="small text-muted mb-2">Parsed Sheets: ${Number(file.parsed_sheets || 0)} | Skipped Sheets: ${Number(file.skipped_sheets || 0)}</div>
+        ${renderExtractedRowsTable(file.extracted_rows)}
+      </div>
+    `;
+  }).join('');
+
+  const rawBlock = rawResult ? `
+    <details class="mt-2">
+      <summary class="small text-muted">Raw extraction payload</summary>
+      <pre class="small bg-light border rounded p-2 mt-2 mb-0" style="max-height: 320px; overflow:auto;">${esc(JSON.stringify(rawResult, null, 2))}</pre>
+    </details>
+  ` : '';
+
+  container.innerHTML = `${blocks}${rawBlock}`;
+}
+
+async function uploadWorkOrders() {
+  const input = document.getElementById('woFiles');
+  const button = document.getElementById('uploadBtn');
+  const status = document.getElementById('uploadStatus');
+  const resultBody = document.getElementById('resultBody');
+
+  if (!input.files.length) {
+    status.className = 'alert alert-warning py-2 small mt-3';
+    status.textContent = 'Select at least one .xlsx file.';
+    status.classList.remove('d-none');
+    return;
+  }
+
+  const formData = new FormData();
+  for (const file of input.files) {
+    formData.append('files', file);
+  }
+
+  button.disabled = true;
+  button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
+  status.classList.add('d-none');
+
+  try {
+    const response = await fetch('/maintenance/api/work-order-upload', {
+      method: 'POST',
+      body: formData,
+    });
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.detail || result.error || 'Upload failed');
+    }
+
+    const rows = Array.isArray(result.files) ? result.files : [];
+    if (!rows.length) {
+      resultBody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-3">No files processed.</td></tr>';
+    } else {
+      resultBody.innerHTML = rows.map((row) => {
+        return `
+          <tr>
+            <td>${esc(row.file_name)}</td>
+            <td>${esc(row.production_line)}</td>
+            <td>${esc(row.target_table)}</td>
+            <td class="text-end">${Number(row.inserted_rows || 0).toLocaleString()}</td>
+            <td class="text-end">${Number(row.parsed_sheets || 0).toLocaleString()}</td>
+            <td class="text-end">${Number(row.skipped_sheets || 0).toLocaleString()}</td>
+            <td class="small">${renderSheetSummary(row.sheets)}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    status.className = 'alert alert-success py-2 small mt-3';
+    status.textContent = `${result.message} Inserted: ${Number(result.inserted_rows || 0).toLocaleString()}, Skipped sheets: ${Number(result.skipped_rows || 0).toLocaleString()}.`;
+    status.classList.remove('d-none');
+    renderExtractionPreview(rows, result);
+    input.value = '';
+  } catch (err) {
+    status.className = 'alert alert-danger py-2 small mt-3';
+    status.textContent = `Upload failed: ${err.message}`;
+    status.classList.remove('d-none');
+    renderExtractionPreview([], { error: err.message || String(err) });
+  } finally {
+    button.disabled = false;
+    button.innerHTML = '<i class="bi bi-cloud-arrow-up me-1"></i>Upload and Process';
+  }
+}
+</script>
+{% endblock %}

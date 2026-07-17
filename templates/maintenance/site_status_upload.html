@@ -81,7 +81,7 @@
       <div class="col-lg-6">
         <div class="card shadow-sm h-100">
           <div class="card-header d-flex align-items-center justify-content-between gap-2 flex-wrap">
-            <span><i class="bi bi-clock-history me-2"></i>Consumption Rate History</span>
+            <span><i class="bi bi-clock-history me-2"></i>Resin Inventory History</span>
             <div class="d-flex align-items-center gap-2">
               <select id="burnHistoryContent" class="form-select form-select-sm" style="min-width:150px;" onchange="loadBurnRateHistory()" aria-label="Filter consumption history by content">
                 <option value="">All content</option>
@@ -245,6 +245,21 @@ function fmtDelta(v) {
   return `<span class="${cls}">${sign}${n.toLocaleString(undefined, {maximumFractionDigits:0})}</span>`;
 }
 
+function fmtNumber(v) {
+  if (v == null || Number.isNaN(Number(v))) return '—';
+  return Number(v).toLocaleString(undefined, {maximumFractionDigits: 1});
+}
+
+function renderRows(bodyId, rows, rowRenderer) {
+  const body = document.getElementById(bodyId);
+  if (!body) return;
+  if (!rows.length) {
+    body.innerHTML = '<tr><td colspan="99" class="text-center text-muted py-3">No data found</td></tr>';
+    return;
+  }
+  body.innerHTML = rows.map(rowRenderer).join('');
+}
+
 function todayIsoLocal() {
   const now = new Date();
   const y = now.getFullYear();
@@ -294,6 +309,8 @@ async function loadInventory() {
     </div>`
   ).join('');
 
+  window.__inventoryRows = rows;
+
 }
 
 async function loadTrend() {
@@ -338,7 +355,7 @@ async function loadTrend() {
 }
 
 async function loadBurnRate() {
-  const res  = await fetch('/silos/consumption-rate?days=2');
+  const res  = await fetch('/silos/consumption-rate?days=90');
   if (!res.ok) return;
   const json = await res.json();
   const rows = json.data || [];
@@ -403,6 +420,7 @@ async function loadBurnRateHistory() {
   const traces = [];
   if (content) {
     const sorted = [...rows].sort((a, b) => (a.snapshot_date < b.snapshot_date ? -1 : 1));
+
     traces.push({
       type: 'scatter',
       mode: 'lines+markers',
@@ -463,6 +481,7 @@ async function loadBurnRateHistory() {
     paper_bgcolor: 'transparent',
     font: {family: 'Open Sans', size: 12, color: '#132238'},
     hovermode: 'x unified',
+    hoverlabel: {namelength: -1},
     legend: {orientation: 'h', y: -0.22},
     barmode: 'overlay',
     autosize: true,

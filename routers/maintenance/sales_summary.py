@@ -318,12 +318,16 @@ async def list_sales_summary(
 
 
 @router.get(
-    "/api/sales-summary/mtd-order-trend",
-    summary="Sales Summary MTD Order Trend",
+    "/api/sales-summary/mtd-shipment-trend",
+    summary="Sales Summary MTD Shipment Trend",
     description=(
-        "Return summed mtd_order_qty trend for selected product_class+product_name "
-        "combinations, grouped by business_date or year_month."
+        "Return month-end MTD shipment quantity trend for selected product_class+product_name "
+        "combinations, with one point per year-month."
     ),
+)
+@router.get(
+    "/api/sales-summary/mtd-order-trend",
+    include_in_schema=False,
 )
 async def sales_summary_mtd_order_trend(
     product_key: str = Query(
@@ -332,12 +336,8 @@ async def sales_summary_mtd_order_trend(
             "Filter key: amtopp, bopp, concentrate, iscc, sc, stretch_film"
         ),
     ),
-    group_by: str = Query(
-        default="year_month",
-        description="Grouping period: year_month or business_date",
-    ),
 ) -> JSONResponse:
-    """Return MTD order quantity trend by selected product filter and time grouping."""
+    """Return month-end MTD shipment quantity trend by selected product filter."""
     _ensure_sales_summary_table()
 
     selected_product = _TREND_PRODUCT_FILTERS.get(product_key)
@@ -347,30 +347,36 @@ async def sales_summary_mtd_order_trend(
             detail="Invalid product_key. Use one of: amtopp, bopp, concentrate, iscc, sc, stretch_film",
         )
 
-    if group_by not in {"year_month", "business_date"}:
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid group_by. Use: year_month or business_date",
-        )
-
-    period_sql = (
-        "DATE_FORMAT(business_date, '%Y-%m')"
-        if group_by == "year_month"
-        else "DATE_FORMAT(business_date, '%Y-%m-%d')"
-    )
-
     with _engine.connect() as conn:
         rows = conn.execute(
             text(
-                f"""
+                """
+                WITH product_rows AS (
+                    SELECT
+                        business_date,
+                        mtd_shipment_qty
+                    FROM sales_summary
+                    WHERE COALESCE(product_class, '') = :product_class
+                      AND REPLACE(REPLACE(UPPER(COALESCE(product_name, '')), ' ', ''), ':', '') = :product_name_normalized
+                ),
+                month_end_dates AS (
+                    SELECT
+                        YEAR(business_date) AS year,
+                        MONTH(business_date) AS month,
+                        MAX(business_date) AS period
+                    FROM product_rows
+                    GROUP BY YEAR(business_date), MONTH(business_date)
+                )
                 SELECT
-                    {period_sql} AS period,
-                    SUM(mtd_order_qty) AS mtd_order_qty
-                FROM sales_summary
-                WHERE COALESCE(product_class, '') = :product_class
-                  AND REPLACE(REPLACE(UPPER(COALESCE(product_name, '')), ' ', ''), ':', '') = :product_name_normalized
-                GROUP BY period
-                ORDER BY period ASC
+                    med.year AS year,
+                    med.month AS month,
+                    DATE_FORMAT(med.period, '%Y-%m-%d') AS period,
+                    MAX(pr.mtd_shipment_qty) AS mtd_shipment_qty
+                FROM month_end_dates med
+                JOIN product_rows pr
+                  ON pr.business_date = med.period
+                GROUP BY med.year, med.month, med.period
+                ORDER BY med.year ASC, med.month ASC
                 """
             ),
             {
@@ -381,8 +387,10 @@ async def sales_summary_mtd_order_trend(
 
     points = [
         {
+            "year": int(row.year),
+            "month": int(row.month),
             "period": str(row.period),
-            "mtd_order_qty": int(row.mtd_order_qty or 0),
+            "mtd_shipment_qty": int(row.mtd_shipment_qty or 0),
         }
         for row in rows
     ]
@@ -390,7 +398,6 @@ async def sales_summary_mtd_order_trend(
     return JSONResponse(
         {
             "product_key": product_key,
-            "group_by": group_by,
             "points": points,
         }
     )

@@ -129,6 +129,72 @@ async def silos_inventory_daily(
 
 
 @router.get(
+    "/inventory-daily-actuals",
+    summary="Silos Daily Actual Usage",
+    description=(
+        "Returns the total product weight by contents code for one exact snapshot "
+        "date from the raw silo_status table. This is the actual usage side of the "
+        "daily reconciliation view."
+    ),
+)
+async def silos_inventory_daily_actuals(snapshot_date: str) -> JSONResponse:
+    """Return exact-day product totals directly from the raw silo_status rows."""
+    with _engine.connect() as conn:
+        rows = conn.execute(
+            text(
+                """
+                SELECT
+                    contents AS contents_code,
+                    SUM(COALESCE(product_weight, 0)) AS total_product_weight,
+                    COUNT(*) AS reading_count
+                FROM silo_status
+                WHERE snapshot_date = :snapshot_date
+                GROUP BY contents
+                ORDER BY contents
+                """
+            ),
+            {"snapshot_date": snapshot_date},
+        ).mappings().all()
+
+    return JSONResponse(content={"data": [serialize_row(r) for r in rows]})
+
+
+@router.get(
+    "/consumption-rate-daily",
+    summary="Silos Daily Consumption Delta",
+    description=(
+        "Returns one-day per-product Consumption Rate delta values and derived "
+        "consumed pounds (max(0, -delta)) from silo_agg_consumption_rate."
+    ),
+)
+async def silos_consumption_rate_daily(snapshot_date: str) -> JSONResponse:
+    """Return per-content daily delta and consumed pounds for one date."""
+    with _engine.connect() as conn:
+        rows = conn.execute(
+            text(
+                """
+                SELECT
+                    contents_code,
+                    snapshot_date,
+                    product_weight,
+                    prev_day_weight,
+                    weight_delta,
+                    CASE
+                        WHEN weight_delta < 0 THEN ABS(weight_delta)
+                        ELSE 0
+                    END AS consumed_lbs
+                FROM silo_agg_consumption_rate
+                WHERE snapshot_date = :snapshot_date
+                ORDER BY contents_code
+                """
+            ),
+            {"snapshot_date": snapshot_date},
+        ).mappings().all()
+
+    return JSONResponse(content={"data": [serialize_row(r) for r in rows]})
+
+
+@router.get(
     "/consumption-rate",
     summary="Content Consumption / Burn Rate",
     description=(
