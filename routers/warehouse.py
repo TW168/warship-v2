@@ -14,6 +14,7 @@ Handles:
 
 from datetime import date, timedelta
 
+import httpx
 from fastapi import APIRouter, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
@@ -23,6 +24,11 @@ from database import connect_to_database
 from logging_config import get_router_logger
 from utils.product_forecast import compute_forecast
 
+try:
+    from bs4 import BeautifulSoup
+except ImportError:  # pragma: no cover - fallback for minimal environments
+    BeautifulSoup = None
+
 router = APIRouter(tags=["Warehouse"])
 templates = Jinja2Templates(directory="templates")
 
@@ -30,11 +36,55 @@ _engine = connect_to_database()
 logger = get_router_logger("warehouse")
 
 
+def extract_prefix_pallets(html_text: str, prefix: str = "910") -> list[dict[str, str]]:
+    """Extract pallet IDs from CFP rows that begin with the requested prefix."""
+    if not html_text:
+        return []
+
+    if BeautifulSoup is not None:
+        soup = BeautifulSoup(html_text, "html.parser")
+        table = soup.find("table")
+        if table is None:
+            return []
+
+        rows = table.find_all("tr")
+        if not rows:
+            return []
+
+        header_cells = [cell.get_text(" ", strip=True).lower() for cell in rows[0].find_all(["th", "td"])]
+        if "pallet 1" in header_cells and "pallet 2" in header_cells:
+            pallet1_idx = header_cells.index("pallet 1")
+            pallet2_idx = header_cells.index("pallet 2")
+        else:
+            pallet1_idx = 5
+            pallet2_idx = 6
+
+        matches: list[dict[str, str]] = []
+        for row in rows[1:]:
+            cells = [cell.get_text(" ", strip=True) for cell in row.find_all(["td", "th"])]
+            if len(cells) <= max(pallet1_idx, pallet2_idx):
+                continue
+
+            for idx, location in ((pallet1_idx, "pallet_1"), (pallet2_idx, "pallet_2")):
+                value = cells[idx].strip()
+                if value and value.startswith(prefix):
+                    matches.append({"pallet": value, "location": location})
+
+        return matches
+
+    return []
+
+
+def count_prefix_pallets(html_text: str, prefix: str = "910") -> int:
+    """Count pallet values in CFP HTML that begin with the requested prefix."""
+    return len(extract_prefix_pallets(html_text, prefix=prefix))
+
+
 @router.get(
     "/warehouse",
     response_class=HTMLResponse,
     summary="Warehouse page",
-    description="Warehouse operations dashboard: UDC hourly activity, UDC history trend, and ASH event heatmap.",
+    description="Warehouse operations dashboard: UDC hourly activity, UDC history trend, ASH event heatmap, and CFP cell pallet counts.",
 )
 async def warehouse(request: Request) -> HTMLResponse:
     """Render the warehouse dashboard page."""
@@ -236,6 +286,28 @@ async def pallet_entry_exit(
         "date_from": date_from,
         "date_to": date_to,
     })
+
+
+@router.get(
+    "/api/warehouse/cfp-prefix-pallet-count",
+    summary="CFP cell pallet count by prefix",
+    description="Fetches the CFP cells page, counts pallet values that begin with the requested prefix, and returns the total.",
+)
+async def cfp_prefix_pallet_count(
+    prefix: str = Query(default="910", description="Pallet prefix to count, e.g. 910"),
+) -> JSONResponse:
+    """Count pallet values in the CFP cells HTML that start with the requested prefix."""
+    try:
+        async with httpx.AsyncClient(timeout=20.0) as client:
+            response = await client.get("https://ash123.azurewebsites.net/cfpwh/cells/all_cells")
+            response.raise_for_status()
+            html_text = response.text
+    except Exception as exc:
+        logger.warning("Unable to fetch CFP cells data: %s", exc)
+        return JSONResponse(status_code=502, content={"error": str(exc), "count": 0})
+
+    matches = extract_prefix_pallets(html_text, prefix=prefix)
+    return JSONResponse(content={"prefix": prefix, "count": len(matches), "items": matches})
 
 
 # ---------------------------------------------------------------------------

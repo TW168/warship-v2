@@ -11,11 +11,34 @@
     </h1>
   </div>
 
-  <!-- ── Row 1: UDC Today + UDC History ────────────────────────────────────── -->
+  <!-- ── Row 1: CFP pallet count + Today UDC + UDC History ───────────────── -->
   <div class="row g-4 mb-4">
 
+    <!-- CFP pallet count -->
+    <div class="col-lg-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-header card-header-primary d-flex align-items-center justify-content-between">
+          <span><i class="bi bi-box-seam me-2" aria-hidden="true"></i>Reclaim Boxes in CMA</span>
+          <span id="cfpPalletSpinner"
+                class="spinner-border spinner-border-sm text-white"
+                role="status" aria-label="Loading"></span>
+        </div>
+        <div class="card-body d-flex flex-column justify-content-start">
+          <div class="text-center">
+            <div class="display-4 fw-bold text-primary" id="cfpPalletCount">--</div>
+            <div class="text-muted small mt-2">Reclaim in boxes</div>
+          </div>
+          <div id="cfpPalletList" class="list-group list-group-flush mt-3" style="max-height:260px; overflow-y:auto;"></div>
+          <div id="cfpPalletError" class="alert alert-warning mt-3 d-none small"></div>
+        </div>
+        <div class="card-footer text-muted" style="font-size:0.72rem;">
+          Source: ash123.azurewebsites.net/cfpwh/cells/all_cells
+        </div>
+      </div>
+    </div>
+
     <!-- Today Hourly UDC -->
-    <div class="col-lg-6">
+    <div class="col-lg-4">
       <div class="card shadow-sm h-100">
         <div class="card-header card-header-primary d-flex align-items-center justify-content-between">
           <span><i class="bi bi-clock-history me-2" aria-hidden="true"></i>Today Hourly UDC</span>
@@ -35,7 +58,7 @@
     </div>
 
     <!-- UDC History -->
-    <div class="col-lg-6">
+    <div class="col-lg-4">
       <div class="card shadow-sm h-100">
         <div class="card-header card-header-primary">
           <i class="bi bi-graph-up me-2" aria-hidden="true"></i>UDC History
@@ -74,38 +97,42 @@
   </div><!-- /row 1 -->
 
   <!-- ── Row 2: ASH Event Heatmap ──────────────────────────────────────────── -->
-  <div class="card shadow-sm">
-    <div class="card-header card-header-primary d-flex align-items-center justify-content-between">
-      <span><i class="bi bi-grid-3x3 me-2" aria-hidden="true"></i>ASH Event Heatmap</span>
-    </div>
-    <div class="card-body">
-      <div class="row g-2 align-items-end mb-3">
-        <div class="col-sm-4 col-md-3">
-          <label for="ashStart" class="form-label form-label-sm fw-semibold mb-1">Start date</label>
-          <input type="date" id="ashStart" class="form-control form-control-sm"
-                 aria-label="ASH event start date">
+  <div class="row g-4 mb-4">
+    <div class="col-lg-12">
+      <div class="card shadow-sm h-100">
+        <div class="card-header card-header-primary d-flex align-items-center justify-content-between">
+          <span><i class="bi bi-grid-3x3 me-2" aria-hidden="true"></i>ASH Event Heatmap</span>
         </div>
-        <div class="col-sm-4 col-md-3">
-          <label for="ashEnd" class="form-label form-label-sm fw-semibold mb-1">End date</label>
-          <input type="date" id="ashEnd" class="form-control form-control-sm"
-                 aria-label="ASH event end date">
+        <div class="card-body">
+          <div class="row g-2 align-items-end mb-3">
+            <div class="col-sm-4 col-md-3">
+              <label for="ashStart" class="form-label form-label-sm fw-semibold mb-1">Start date</label>
+              <input type="date" id="ashStart" class="form-control form-control-sm"
+                     aria-label="ASH event start date">
+            </div>
+            <div class="col-sm-4 col-md-3">
+              <label for="ashEnd" class="form-label form-label-sm fw-semibold mb-1">End date</label>
+              <input type="date" id="ashEnd" class="form-control form-control-sm"
+                     aria-label="ASH event end date">
+            </div>
+            <div class="col-auto">
+              <button class="btn btn-primary btn-sm" onclick="loadAshHeatmap()">
+                <span id="ashSpinner"
+                      class="spinner-border spinner-border-sm me-1 d-none"
+                      role="status" aria-hidden="true"></span>
+                <i class="bi bi-funnel me-1" id="ashIcon"></i>Apply
+              </button>
+            </div>
+          </div>
+          <div id="chartAsh" style="min-height:400px;"></div>
+          <div id="ashError" class="alert alert-warning mt-2 d-none small"></div>
         </div>
-        <div class="col-auto">
-          <button class="btn btn-primary btn-sm" onclick="loadAshHeatmap()">
-            <span id="ashSpinner"
-                  class="spinner-border spinner-border-sm me-1 d-none"
-                  role="status" aria-hidden="true"></span>
-            <i class="bi bi-funnel me-1" id="ashIcon"></i>Apply
-          </button>
+        <div class="card-footer text-muted" style="font-size:0.72rem;">
+          Source: warship.event_ash &nbsp;·&nbsp;
+          Origin: ash123.azurewebsites.net/cfpwh/eventsort &nbsp;·&nbsp;
+          Note: approx. Nov 3 <em>Data Shift</em> occurred to clear abnormal, ended Nov 6, 2024.
         </div>
       </div>
-      <div id="chartAsh" style="min-height:400px;"></div>
-      <div id="ashError" class="alert alert-warning mt-2 d-none small"></div>
-    </div>
-    <div class="card-footer text-muted" style="font-size:0.72rem;">
-      Source: warship.event_ash &nbsp;·&nbsp;
-      Origin: ash123.azurewebsites.net/cfpwh/eventsort &nbsp;·&nbsp;
-      Note: approx. Nov 3 <em>Data Shift</em> occurred to clear abnormal, ended Nov 6, 2024.
     </div>
   </div>
 
@@ -256,7 +283,55 @@ async function loadUdcHistory() {
   }
 }
 
-/* ── 3. ASH Event Heatmap ───────────────────────────────────────────────────── */
+/* ── 3. CFP pallet count by prefix ───────────────────────────────────────── */
+async function loadCfpPalletCount() {
+  const spinner = document.getElementById('cfpPalletSpinner');
+  const countEl = document.getElementById('cfpPalletCount');
+  const listEl = document.getElementById('cfpPalletList');
+  const errEl = document.getElementById('cfpPalletError');
+  errEl.classList.add('d-none');
+  spinner.classList.remove('d-none');
+  listEl.innerHTML = '';
+
+  try {
+    const resp = await fetch('/api/warehouse/cfp-prefix-pallet-count?prefix=910');
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || resp.status);
+
+    countEl.textContent = data.count ?? 0;
+    const items = data.items || [];
+
+    if (!items.length) {
+      const empty = document.createElement('div');
+      empty.className = 'text-muted small';
+      empty.textContent = 'No matching pallets found.';
+      listEl.appendChild(empty);
+      return;
+    }
+
+    items.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'list-group-item px-0 py-2 d-flex justify-content-between align-items-center gap-2';
+      const pallet = document.createElement('span');
+      pallet.className = 'fw-semibold';
+      pallet.textContent = item.pallet;
+      const loc = document.createElement('span');
+      loc.className = 'badge rounded-pill bg-light text-dark';
+      loc.textContent = item.location === 'pallet_2' ? 'Pallet 2' : 'Pallet 1';
+      row.appendChild(pallet);
+      row.appendChild(loc);
+      listEl.appendChild(row);
+    });
+  } catch (err) {
+    errEl.textContent = 'Failed to load CFP pallet count: ' + err.message;
+    errEl.classList.remove('d-none');
+    countEl.textContent = '0';
+  } finally {
+    spinner.classList.add('d-none');
+  }
+}
+
+/* ── 4. ASH Event Heatmap ───────────────────────────────────────────────────── */
 async function loadAshHeatmap() {
   const start   = document.getElementById('ashStart').value;
   const end     = document.getElementById('ashEnd').value;
@@ -319,11 +394,13 @@ async function loadAshHeatmap() {
       reversescale: false,
       hoverongaps: false,
       showscale: true,
+      hovertemplate: 'Event Type: %{y}<br>Date: %{x}<br>Occurrences: %{z}<extra></extra>',
     }], {
       ..._layout,
       margin: { t: 30, r: 80, b: 80, l: 260 },
-      xaxis: { type: 'category', tickangle: -45, title: 'Event Date' },
+      xaxis: { type: 'category', tickangle: -45, title: '' },
       yaxis: { title: '', automargin: true },
+      coloraxis: { colorbar: { title: 'Occurrences' } },
       height: chartHeight,
     }, _config);
 
@@ -349,9 +426,10 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('ashStart').value = ashDates.start;
   document.getElementById('ashEnd').value   = ashDates.end;
 
-  // Auto-load all three
+  // Auto-load all four
   loadUdcHourly();
   loadUdcHistory();
+  loadCfpPalletCount();
   loadAshHeatmap();
 });
 </script>
