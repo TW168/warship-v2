@@ -69,7 +69,7 @@ async def shipped_products(
 ) -> list[ShippedProductRow]:
     """Return all shipped product records from the stored procedure."""
     with _engine.connect() as conn:
-        cursor = conn.connection.cursor(dictionary=True, named_tuple=False)
+        cursor = conn.connection.cursor(dictionary=True)
         try:
             cursor.callproc(
                 "sp_get_all_shipped_product",
@@ -121,7 +121,7 @@ async def carrier_cost_analysis(
     """Return carrier cost analysis from the stored procedure."""
     try:
         with _engine.connect() as conn:
-            cursor = conn.connection.cursor(dictionary=True, named_tuple=False)
+            cursor = conn.connection.cursor(dictionary=True)
             # Workaround: in this version of MySQL, date formats are handled differently.
             # Parse the date strings if provided
             parsed_from = None
