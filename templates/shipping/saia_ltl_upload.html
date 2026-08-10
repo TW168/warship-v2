@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}SAIA LTL Freight Upload – Warship{% endblock %}
+
+{% block content %}
+
+<div class="container py-4">
+  <div class="section-band mb-4">
+    <h1 class="section-band-title">
+      <i class="bi bi-cloud-arrow-up"></i>SAIA LTL Freight Upload
+    </h1>
+  </div>
+
+  <!-- Upload Card -->
+  <div class="row mb-4">
+    <div class="col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <label for="saiaFile" class="form-label fw-semibold">
+            Select PDF Report
+          </label>
+          <input type="file" class="form-control mb-3" id="saiaFile" accept=".pdf" aria-label="SAIA LTL freight PDF report">
+          <button class="btn btn-primary w-100" onclick="uploadSaiaLtl()">
+            <i class="bi bi-upload me-2"></i>Upload Report
+          </button>
+          <div id="uploadStatus" class="mt-3"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card shadow-sm bg-light">
+        <div class="card-body">
+          <div class="fw-semibold text-secondary mb-2">Expected Format</div>
+          <ul class="text-muted small ps-3 mb-0">
+            <li>PDF file: SAIA LTL Load and Count Exception Report</li>
+            <li>Program code (D3C/D3R, etc.)</li>
+            <li>Report date and time</li>
+            <li>Pickup date and manifest</li>
+            <li>Pro numbers with consignee, units, weight, and exception status</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Records List -->
+  <div class="section-band mb-3">
+    <h2 class="section-band-title">
+      <i class="bi bi-list-ul"></i>Records
+    </h2>
+  </div>
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-body p-2">
+          <div class="d-flex gap-2 mb-3 flex-wrap">
+            <div class="flex-grow-1">
+              <input type="text" class="form-control form-control-sm" id="filterConsignee"
+                     placeholder="Filter by consignee..." onchange="listSaiaLtl()">
+            </div>
+            <button class="btn btn-sm btn-outline-secondary" onclick="listSaiaLtl()">
+              <i class="bi bi-arrow-clockwise"></i>Refresh
+            </button>
+          </div>
+          <div id="recordsList" style="max-height:600px; overflow-y:auto;">
+            <p class="text-muted text-center pt-3">Loading records...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+async function uploadSaiaLtl() {
+  const fileInput = document.getElementById('saiaFile');
+  if (!fileInput.files.length) {
+    showStatus('No file selected', 'danger');
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('file', fileInput.files[0]);
+
+  showStatus('<div class="spinner-border spinner-border-sm me-2"></div>Uploading...', 'info');
+
+  try {
+    const res = await fetch('/api/shipping/saia-ltl/upload', {
+      method: 'POST',
+      body: formData,
+    });
+    const result = await res.json();
+
+    if (result.success) {
+      showStatus(`✓ Uploaded: ${result.rows_inserted} rows inserted, ${result.rows_skipped} skipped`, 'success');
+      fileInput.value = '';
+      listSaiaLtl();
+    } else {
+      showStatus(`✗ Upload failed: ${result.rows_skipped} errors`, 'danger');
+    }
+  } catch (err) {
+    showStatus(`Error: ${err.message}`, 'danger');
+  }
+}
+
+function showStatus(message, type = 'info') {
+  const statusEl = document.getElementById('uploadStatus');
+  statusEl.innerHTML = `<div class="alert alert-${type} mb-0" role="alert">${message}</div>`;
+}
+
+async function listSaiaLtl() {
+  const consignee = document.getElementById('filterConsignee').value;
+  const params = new URLSearchParams();
+  if (consignee) params.append('consignee', consignee);
+
+  try {
+    const res = await fetch(`/api/shipping/saia-ltl/?${params.toString()}`);
+    const json = await res.json();
+    const rows = json.data || [];
+
+    if (!rows.length) {
+      document.getElementById('recordsList').innerHTML =
+        '<p class="text-muted text-center pt-3">No records found.</p>';
+      return;
+    }
+
+    let html = `
+      <div class="table-responsive">
+        <table class="table table-sm table-hover mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Program</th>
+              <th>Report Date</th>
+              <th>Pro Number</th>
+              <th>Consignee</th>
+              <th>Units</th>
+              <th>Weight</th>
+              <th>Exception</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
+
+    for (const row of rows) {
+      const reportDate = row.report_date ? new Date(row.report_date + 'T00:00:00').toLocaleDateString() : '—';
+      html += `
+        <tr>
+          <td class="fw-semibold">${escapeHtml(row.program || '—')}</td>
+          <td>${reportDate}</td>
+          <td><code>${escapeHtml(row.pro_number || '—')}</code></td>
+          <td>${escapeHtml(row.consignee_name || '—')}</td>
+          <td class="text-end">${row.hunits || 0}</td>
+          <td class="text-end">${(row.weight || 0).toLocaleString(undefined, {maximumFractionDigits: 0})}</td>
+          <td><span class="badge bg-${row.osd_exception === 'CLEAR' ? 'success' : 'warning'}">${escapeHtml(row.osd_exception || '—')}</span></td>
+        </tr>
+      `;
+    }
+
+    html += `
+          </tbody>
+        </table>
+      </div>
+    `;
+    document.getElementById('recordsList').innerHTML = html;
+  } catch (err) {
+    document.getElementById('recordsList').innerHTML =
+      `<p class="text-danger text-center pt-3">Error loading records: ${escapeHtml(err.message)}</p>`;
+  }
+}
+
+function escapeHtml(text) {
+  const map = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'};
+  return String(text).replace(/[&<>"']/g, m => map[m]);
+}
+
+// Load on page init
+document.addEventListener('DOMContentLoaded', listSaiaLtl);
+</script>
+
+{% endblock %}

@@ -84,6 +84,9 @@ warship-v2/
 │   │       ├── upload.py        # Silos page + CSV ingest endpoint
 │   │       ├── api.py           # Inventory and consumption-rate serving endpoints
 │   │       └── anomaly_api.py   # Anomaly investigation queue endpoints
+│   ├── shipping/                # Shipping sub-package
+│   │   ├── __init__.py          # Shipping routes and carrier cost analysis
+│   │   └── saia_ltl.py          # SAIA LTL freight PDF upload + list
 │   └── about.py
 ├── templates/
 │   ├── base.html            # Top navbar, Bootstrap 5, Open Sans
@@ -139,6 +142,18 @@ database = "warship"
 ```
 
 The `connect_to_database()` function returns a SQLAlchemy `Engine`.
+
+#### Known data caveat — shift in/out tables
+
+The raw `1stshiftout_eric`, `2ndshiftout_eric`, `3rdshiftout_eric`, `dayshiftin_eric`, and
+`nightshiftin_eric` tables are **append-only and contain duplicate rows per date** — each
+re-upload re-appends prior dates, so the row count per date grows the further back you go
+(observed up to 7× for older dates). Aggregating them with `SUM()` silently inflates
+historical values and manufactures a downward trend toward the present.
+
+**Always read `daily_shift_averages` instead** — it is the deduplicated one-row-per-date
+view carrying all five shift columns (`avg_day_shift_in`, `avg_night_shift_in`,
+`avg_1st_shift_out`, `avg_2nd_shift_out`, `avg_3rd_shift_out`).
 
 ### Logging (`logging_config.py`)
 Centralized logging infrastructure with structured output:
@@ -196,6 +211,9 @@ logger = get_util_logger("pdf_parser")
 | CFP pallet count API | `GET /api/warehouse/cfp-prefix-pallet-count` | Fetches the CFP cells HTML page, counts pallet values that start with the requested prefix (default `910`), and returns the total for the Warehouse dashboard card |
 | Shipping | `GET /shipping` | Filter bar (date range, site, product group) drives Carrier Cost Analysis card |
 | Carrier Cost Analysis | `GET /api/carrier-cost-analysis` | JSON — calls `sp_carrier_cost_per_pound`; params: `date_from`, `date_to`, `site`, `product_group` (all optional); returns carrier_id, bl_count, total_weight, total_pallets, total_freight_cost, cost_per_pound. Card embedded at bottom of `/shipping` page with Plotly bubble chart + sortable table. |
+| SAIA LTL Freight Upload | `GET /shipping/saia-ltl-upload` | Page for uploading daily SAIA LTL freight load and count exception reports. |
+| SAIA LTL Upload API | `POST /maintenance/api/shipping/saia-ltl/upload` | Multipart PDF upload. Parses program code, report date/time, pickup date/manifest, and line items (pro number, consignee, units, weight, OS&D exception) into `saia_ltl_freight` table. Returns insert/skip counts. |
+| SAIA LTL List API | `GET /api/shipping/saia-ltl/` | JSON — lists `saia_ltl_freight` rows with pagination and optional filters (`report_date`, `consignee`). |
 | TSR Prep | `GET /tsr-prep` | Available-to-ship BL list + Google Map with nearest-neighbor lines and radius circles. Same-city customers are jittered so each gets a separate pin. |
 | Pallet Entry/Exit | `GET /api/warehouse/pallet-entry-exit` | JSON — pallet entry (day+night in) and exit (1st+2nd+3rd out) from `daily_shift_averages`; params: `date_from`, `date_to` |
 | Product Forecast | `GET /warehouse/product-forecast` | Interactive dashboard: per-product trend direction (INCREASE/DECREASE/STABLE), momentum, linear regression forecast, R², Chart.js line chart. Uses active-history guards (min active months + recent activity requirement) to reduce sparse-series distortion. Data from `sp_get_all_shipped_product`. |
@@ -229,7 +247,7 @@ logger = get_util_logger("pdf_parser")
 | Closed Complaints Code Summary Options API | `GET /maintenance/api/closed-complaints/code-summary/options` | JSON endpoint returning dropdown options for the grouped code summary table (`years`, `months`, `prod_groups`, and `codes` with descriptions), with cascading optional filters (`year`, `month`, `prod_group`). |
 | Closed Complaints Trends API | `GET /maintenance/api/closed-complaints/trends` | JSON endpoint returning daily trend points for selected `year` with fields: `date`, `mtd_order_qty_lbs`, `complaints`, `claim_amount`, `approved_amount`, `returns`, and computed `complaint_rate` (`complaints / mtd_order_qty_lbs`). |
 | Closed Complaints Upload API | `POST /maintenance/api/closed-complaints/upload` | Excel upload endpoint for `.xls` and `.xlsx`. Parses complaint rows, stores them in `closed_complaints`, and skips duplicate business-key rows using `complaint_no + invoice_no + order_no + seq`. |
-| Silos Status | `GET /silos-status` | Canonical page for daily Site Status CSV upload into `silo_status`, including Current Inventory cards, Daily Avg % Full trend, current Consumption Rate card, and a simplified Resin Inventory History chart. Includes legacy 307 redirects from `GET /maintenance/silos-status` and `GET /maintenance/site-status-upload`. |
+| Silos Status | `GET /silos-status` | Canonical page for daily Site Status CSV upload into `silo_status`, including Current Inventory cards, Daily Avg % Full trend, current Consumption Rate card, a simplified Resin Inventory History chart, and a "Resin per Pallet Produced" rolling-yield card. Includes legacy 307 redirects from `GET /maintenance/silos-status` and `GET /maintenance/site-status-upload`. |
 | Upload Site Status CSV API | `POST /maintenance/api/site-status/upload` | Multipart CSV upload endpoint. Validates required headers, parses rows, auto-creates `silo_status` table if missing, bulk inserts rows, rejects duplicate filenames, and triggers anomaly feature/event refresh for the uploaded snapshot date. |
 | Silos Anomaly Features API | `GET /maintenance/api/silos/anomaly-features` | JSON — historical feature-engineering dataset for anomaly detection (`risk_score`, rolling stats, z-score, run length) from `silo_ml_features_daily`; filters: `days`, `min_risk`, optional `contents_code`. |
 | Silos Anomaly Events API | `GET /maintenance/api/silos/anomaly-events` | JSON — anomaly investigation queue from `silo_anomaly_events`; filters: `days`, `status`, `min_level` (`medium|high|critical`). |
@@ -264,6 +282,7 @@ logger = get_util_logger("pdf_parser")
 | Silos Daily Inventory Trend | `GET /maintenance/api/silos/inventory-daily` | JSON — daily inventory trend per vessel/contents; params: `days` (default 30), optional `vessel_id`. |
 | Silos Daily Consumption Delta | `GET /maintenance/api/silos/consumption-rate-daily` | JSON — one-day per-product Consumption Rate delta with derived consumed lbs (`max(0, -weight_delta)`); param: `snapshot_date` (`YYYY-MM-DD`). |
 | Silos Consumption Rate | `GET /silos/consumption-rate` | JSON — per-contents burn rate (lbs/day) and days-remaining estimate from `agg_silo_consumption_rate`. Legacy route remains available at `GET /maintenance/api/silos/consumption-rate`. |
+| Silos Resin per Pallet Yield | `GET /maintenance/api/silos/resin-pallet-yield` | JSON — trailing-window rolling yield of resin lbs consumed per pallet **produced**. Resin consumption is derived from day-over-day decreases in end-of-day `silo_status` weight per vessel (increases are refills and excluded); pallet production comes from the deduplicated `daily_shift_averages` shift-**in** columns. Rolling value is a ratio of sums (total resin ÷ total pallets) over the window, never a mean of daily ratios — daily ratios swing >10× because a day's resin draw does not become that same day's pallets. Params: `days` (1–365, default 30), `window` (1–30, default 7). Powers the "Resin per Pallet Produced" card on Silos Status. |
 | Work Order Daily Usage | `GET /maintenance/api/work-order-upload/daily-usage` | JSON — one-day production-reported usage from stored work-order documents including detailed line/silo/hopper rows, hopper totals, product totals, and line-silo totals; param: `work_date` (`YYYY-MM-DD`). |
 | Work Order Daily Usage History | `GET /maintenance/api/work-order-upload/daily-usage-history` | JSON — day-level production-used totals across all stored work-order payloads for a lookback window; params: `days` (1–365), optional `material_code`. |
 
