@@ -392,6 +392,50 @@ def _derive_material_code(
 
 
 @router.get(
+    "/api/work-order-upload/production-dates",
+    summary="Available work-order production dates",
+    description=(
+        "Return the distinct production dates (``ticket.prod_date`` / legacy "
+        "``metadata.date``) present across all stored ``extrusion_prod_ticket_*`` "
+        "tables, most recent first. Used to populate the material usage date picker."
+    ),
+)
+async def work_order_production_dates() -> JSONResponse:
+    """Return distinct production dates across all per-line ticket tables."""
+    with _engine.connect() as conn:
+        tables = conn.execute(
+            text(
+                """
+                SELECT table_name
+                FROM information_schema.tables
+                WHERE table_schema = DATABASE()
+                  AND table_name LIKE 'extrusion_prod_ticket_%'
+                ORDER BY table_name
+                """
+            )
+        ).fetchall()
+
+        dates: set[str] = set()
+        for (table_name,) in tables:
+            rows = conn.execute(
+                text(
+                    f"""
+                    SELECT DISTINCT COALESCE(
+                        JSON_UNQUOTE(JSON_EXTRACT(document_payload, '$.ticket.prod_date')),
+                        JSON_UNQUOTE(JSON_EXTRACT(document_payload, '$.metadata.date'))
+                    ) AS work_date
+                    FROM {table_name}
+                    """
+                )
+            ).fetchall()
+            for (work_date,) in rows:
+                if work_date:
+                    dates.add(str(work_date))
+
+    return JSONResponse(content={"dates": sorted(dates, reverse=True)})
+
+
+@router.get(
     "/api/work-order-upload/daily-usage-history",
     summary="Daily work-order usage history",
     description=(
