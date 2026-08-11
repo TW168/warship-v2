@@ -101,86 +101,6 @@
   <div class="row mt-4">
     <div class="col-12">
       <div class="card shadow-sm">
-        <div class="card-header d-flex align-items-center justify-content-between gap-2 py-2 flex-wrap">
-          <div class="d-flex align-items-center gap-2">
-            <i class="bi bi-arrow-left-right text-primary"></i>
-            <span class="fw-semibold small">Production vs. Silo Material Usage</span>
-          </div>
-          <div class="d-flex align-items-center gap-2">
-            <label for="reconEndDate" class="form-label small text-muted mb-0">Week Ending</label>
-            <select id="reconEndDate" class="form-select form-select-sm w-auto"
-                    onchange="loadMaterialReconciliation()" aria-label="Week ending date">
-              <option value="">Loading dates…</option>
-            </select>
-          </div>
-        </div>
-        <div class="card-body">
-          <p class="small text-muted mb-2">
-            Compares production-reported material usage (work-order tickets) against silo-derived
-            consumption (day-over-day silo weight decrease), summed over the trailing 7 days ending on the
-            selected date. A single day is not a fair comparison — a production ticket records one shift's
-            usage, while silo weight is drawn down continuously, so day-level deltas are mostly timing noise.
-          </p>
-          <div id="reconCoverageNote" class="small text-muted mb-3"></div>
-
-          <div class="fw-semibold small text-secondary mb-2">Matched materials (present on both sides)</div>
-          <div class="table-responsive mb-4">
-            <table class="table table-striped table-hover table-sm align-middle mb-0">
-              <thead class="table-light">
-                <tr>
-                  <th>Material</th>
-                  <th class="text-end">Production Lbs</th>
-                  <th class="text-end">Silo Lbs</th>
-                  <th class="text-end">Delta (Prod − Silo)</th>
-                  <th class="text-end">Delta %</th>
-                </tr>
-              </thead>
-              <tbody id="reconMatchedBody">
-                <tr><td colspan="5" class="text-center text-muted py-3">Select a week-ending date to view reconciliation.</td></tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div class="row g-3">
-            <div class="col-md-6">
-              <div class="fw-semibold small text-secondary mb-2">
-                Production-only materials
-                <i class="bi bi-info-circle text-muted" data-bs-toggle="tooltip"
-                   title="Reported used in production but the material code has no match in silo_status — often a masterbatch/additive dosed at the extruder (never silo-tracked), but can also be a typo'd material code."></i>
-              </div>
-              <div class="table-responsive">
-                <table class="table table-sm table-striped mb-0">
-                  <thead class="table-light"><tr><th>Material</th><th class="text-end">Lbs</th></tr></thead>
-                  <tbody id="reconProductionOnlyBody">
-                    <tr><td colspan="2" class="text-center text-muted py-2">—</td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="fw-semibold small text-secondary mb-2">
-                Silo-only materials
-                <i class="bi bi-info-circle text-muted" data-bs-toggle="tooltip"
-                   title="Consumed from a silo but never reported in a production ticket for this window — usually means no work-order was uploaded for the line/date that used it yet."></i>
-              </div>
-              <div class="table-responsive">
-                <table class="table table-sm table-striped mb-0">
-                  <thead class="table-light"><tr><th>Material</th><th class="text-end">Lbs</th></tr></thead>
-                  <tbody id="reconSiloOnlyBody">
-                    <tr><td colspan="2" class="text-center text-muted py-2">—</td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="row mt-4">
-    <div class="col-12">
-      <div class="card shadow-sm">
         <div class="card-header d-flex align-items-center gap-2 py-2">
           <i class="bi bi-list-check text-primary"></i>
           <span class="fw-semibold small">Last Upload Result</span>
@@ -244,7 +164,6 @@ function formatDateLabel(isoDate) {
 
 async function loadMaterialUsageDates() {
   const usageSelect = document.getElementById('materialUsageDate');
-  const reconSelect = document.getElementById('reconEndDate');
   try {
     const res = await fetch('/maintenance/api/work-order-upload/production-dates');
     const result = await res.json();
@@ -252,98 +171,15 @@ async function loadMaterialUsageDates() {
 
     if (!dates.length) {
       usageSelect.innerHTML = '<option value="">No production dates found</option>';
-      reconSelect.innerHTML = '<option value="">No production dates found</option>';
       return;
     }
 
-    const options = dates.map((d) => `<option value="${esc(d)}">${esc(formatDateLabel(d))}</option>`).join('');
-    usageSelect.innerHTML = options;
+    usageSelect.innerHTML = dates.map((d) => `<option value="${esc(d)}">${esc(formatDateLabel(d))}</option>`).join('');
     usageSelect.value = dates[0];
-    reconSelect.innerHTML = options;
-    reconSelect.value = dates[0];
 
-    await Promise.all([loadMaterialUsageByDate(), loadMaterialReconciliation()]);
+    await loadMaterialUsageByDate();
   } catch (err) {
     usageSelect.innerHTML = '<option value="">Failed to load dates</option>';
-    reconSelect.innerHTML = '<option value="">Failed to load dates</option>';
-  }
-}
-
-async function loadMaterialReconciliation() {
-  const select = document.getElementById('reconEndDate');
-  const matchedBody = document.getElementById('reconMatchedBody');
-  const prodOnlyBody = document.getElementById('reconProductionOnlyBody');
-  const siloOnlyBody = document.getElementById('reconSiloOnlyBody');
-  const coverageNote = document.getElementById('reconCoverageNote');
-  const endDate = select.value;
-
-  if (!endDate) {
-    matchedBody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">Select a week-ending date to view reconciliation.</td></tr>';
-    prodOnlyBody.innerHTML = '<tr><td colspan="2" class="text-center text-muted py-2">—</td></tr>';
-    siloOnlyBody.innerHTML = '<tr><td colspan="2" class="text-center text-muted py-2">—</td></tr>';
-    coverageNote.textContent = '';
-    return;
-  }
-
-  matchedBody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3"><span class="spinner-border spinner-border-sm me-2"></span>Loading…</td></tr>';
-  coverageNote.textContent = '';
-
-  try {
-    const res = await fetch(`/maintenance/api/work-order-upload/material-reconciliation?window_end_date=${encodeURIComponent(endDate)}&window_days=7`);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-
-    const prodDays = (data.production_dates_in_window || []).length;
-    coverageNote.innerHTML = `<i class="bi bi-calendar-range me-1"></i>` +
-      `Window: ${esc(data.window_days)} days ending ${esc(formatDateLabel(data.window_end_date))} — ` +
-      `production data from <strong>${prodDays}</strong> of those days, silo data from <strong>${esc(data.silo_dates_in_window)}</strong> of those days.` +
-      (prodDays < data.window_days
-        ? ` <span class="text-warning-emphasis">Fewer production uploads than silo days in this window — silo totals will look large by comparison; that is a coverage gap, not necessarily a usage gap.</span>`
-        : '');
-
-    const matched = data.matched || [];
-    if (!matched.length) {
-      matchedBody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">No materials matched on both sides for this window.</td></tr>';
-    } else {
-      matchedBody.innerHTML = matched.map((row) => {
-        const deltaClass = row.delta_lbs < 0 ? 'text-danger' : (row.delta_lbs > 0 ? 'text-success' : 'text-muted');
-        const pct = row.delta_pct === null || row.delta_pct === undefined ? '—' : `${row.delta_pct > 0 ? '+' : ''}${row.delta_pct.toFixed(1)}%`;
-        return `
-          <tr>
-            <td class="fw-semibold">${esc(row.material_code)}</td>
-            <td class="text-end">${Number(row.production_lbs).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
-            <td class="text-end">${Number(row.silo_lbs).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
-            <td class="text-end ${deltaClass}">${Number(row.delta_lbs).toLocaleString(undefined, { maximumFractionDigits: 0, signDisplay: 'exceptZero' })}</td>
-            <td class="text-end ${deltaClass}">${esc(pct)}</td>
-          </tr>
-        `;
-      }).join('');
-    }
-
-    const prodOnly = data.production_only || [];
-    prodOnlyBody.innerHTML = prodOnly.length
-      ? prodOnly.map((row) => `
-          <tr>
-            <td>${esc(row.material_code)}</td>
-            <td class="text-end">${Number(row.lbs).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
-          </tr>
-        `).join('')
-      : '<tr><td colspan="2" class="text-center text-muted py-2">None</td></tr>';
-
-    const siloOnly = data.silo_only || [];
-    siloOnlyBody.innerHTML = siloOnly.length
-      ? siloOnly.map((row) => `
-          <tr>
-            <td>${esc(row.material_code)}</td>
-            <td class="text-end">${Number(row.lbs).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
-          </tr>
-        `).join('')
-      : '<tr><td colspan="2" class="text-center text-muted py-2">None</td></tr>';
-
-  } catch (err) {
-    matchedBody.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-3">Failed to load reconciliation: ${esc(err.message)}</td></tr>`;
-    prodOnlyBody.innerHTML = '<tr><td colspan="2" class="text-center text-muted py-2">—</td></tr>';
-    siloOnlyBody.innerHTML = '<tr><td colspan="2" class="text-center text-muted py-2">—</td></tr>';
   }
 }
 
