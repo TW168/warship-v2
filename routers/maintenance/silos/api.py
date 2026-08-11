@@ -8,7 +8,6 @@ so all queries are fast single-table scans — no joins at request time.
 Routes:
     GET /api/silos/inventory-current        — Latest snapshot per vessel
     GET /api/silos/inventory-daily          — Daily aggregate trend (last N days)
-    GET /api/silos/resin-pallet-yield       — Rolling resin lbs consumed per pallet produced
     GET /api/silos/consumption-rate         — Per-product burn rate (last N days)
     GET /silos/consumption-rate             — Public root path for consumption-rate history
 """
@@ -27,74 +26,6 @@ public_router = APIRouter(prefix="/silos", tags=["Silos"])
 
 # One shared engine for this module (created at import time)
 _engine = connect_to_database()
-
-
-def _normalize_day(value: object) -> str | None:
-    """Normalize a date-like value to YYYY-MM-DD for chart joins."""
-    if value is None:
-        return None
-    if isinstance(value, str):
-        return value[:10]
-    if hasattr(value, "date"):
-        return value.date().isoformat()
-    return str(value)[:10]
-
-
-def _build_resin_pallet_yield_series(
-    daily_rows: list[dict],
-    window: int,
-    keep_days: Optional[int] = None,
-) -> list[dict]:
-    """Add a trailing-window resin-per-pallet yield to a daily consumption/production series.
-
-    ``daily_rows`` must be ascending by date, each row carrying ``date``,
-    ``resin_lbs`` (pounds drawn from the silos that day) and ``pallets_in``
-    (pallets produced into the warehouse that day).
-
-    The rolling yield is a **ratio of sums** over the trailing window
-    (total resin / total pallets), not an average of the daily ratios. Daily
-    ratios swing by more than 10x because silo readings are taken at varying
-    times and a day's resin draw does not map to that same day's pallets;
-    summing both sides across the window is what cancels that timing noise.
-
-    ``keep_days`` trims the leading rows that only existed to seed the first
-    window, so callers can request extra history without exposing it.
-    """
-    window = max(1, window)
-    series: list[dict] = []
-
-    for index, row in enumerate(daily_rows):
-        day = _normalize_day(row.get("date"))
-        if day is None:
-            continue
-
-        resin_lbs = float(row.get("resin_lbs") or 0.0)
-        pallets_in = float(row.get("pallets_in") or 0.0)
-
-        # Trailing window inclusive of the current day.
-        window_start = max(0, index - window + 1)
-        window_rows = daily_rows[window_start : index + 1]
-        window_resin = sum(float(r.get("resin_lbs") or 0.0) for r in window_rows)
-        window_pallets = sum(float(r.get("pallets_in") or 0.0) for r in window_rows)
-
-        series.append(
-            {
-                "date": day,
-                "resin_lbs": resin_lbs,
-                "pallets_in": pallets_in,
-                # Daily ratio is kept only as context - it is deliberately noisy.
-                "daily_yield": (resin_lbs / pallets_in) if pallets_in > 0 else None,
-                "rolling_resin_lbs": window_resin,
-                "rolling_pallets_in": window_pallets,
-                "rolling_yield": (window_resin / window_pallets) if window_pallets > 0 else None,
-                # False while the trailing window is still filling up.
-                "rolling_complete": len(window_rows) == window,
-            }
-        )
-
-    if keep_days is not None and keep_days > 0:
-        series = series[-keep_days:]
-    return series
 
 
 @router.get(
@@ -195,96 +126,6 @@ async def silos_inventory_daily(
         ).mappings().all()
 
     return JSONResponse(content={"data": [serialize_row(r) for r in rows]})
-
-
-@router.get(
-    "/resin-pallet-yield",
-    summary="Rolling resin-per-pallet yield",
-    description=(
-        "Returns pounds of resin drawn from the silos per pallet produced into the "
-        "warehouse, as a trailing-window rolling ratio. Resin consumption is derived "
-        "from day-over-day decreases in end-of-day silo weight per vessel (increases "
-        "are refills and are excluded), and pallet production comes from the "
-        "deduplicated ``daily_shift_averages`` shift-in columns. "
-        "Query params: ``days`` (lookback, default 30) and ``window`` (rolling window "
-        "in days, default 7)."
-    ),
-)
-async def silos_resin_pallet_yield(
-    days: int = Query(30, ge=1, le=365, description="Days of history to return"),
-    window: int = Query(7, ge=1, le=30, description="Trailing rolling-window size in days"),
-) -> JSONResponse:
-    """Return a daily and trailing-window resin-per-pallet yield series."""
-    # Pull extra leading days so the first returned row already has a full window.
-    lookback = days + window
-
-    with _engine.connect() as conn:
-        rows = conn.execute(
-            text(
-                """
-                WITH eod AS (
-                    -- Last reading of each day per vessel; snapshots land at varying times.
-                    SELECT
-                        snapshot_date,
-                        vessel_name,
-                        product_weight,
-                        ROW_NUMBER() OVER (
-                            PARTITION BY vessel_name, snapshot_date
-                            ORDER BY measurement_time DESC
-                        ) AS rn
-                    FROM silo_status
-                    WHERE snapshot_date >= DATE_SUB(CURDATE(), INTERVAL :lookback DAY)
-                ),
-                day_end AS (
-                    SELECT snapshot_date, vessel_name, product_weight
-                    FROM eod
-                    WHERE rn = 1
-                ),
-                lagged AS (
-                    SELECT
-                        snapshot_date,
-                        vessel_name,
-                        product_weight,
-                        LAG(product_weight) OVER (
-                            PARTITION BY vessel_name ORDER BY snapshot_date
-                        ) AS prev_weight
-                    FROM day_end
-                ),
-                consumed AS (
-                    -- Only weight decreases count as consumption; increases are deliveries.
-                    SELECT
-                        snapshot_date,
-                        SUM(GREATEST(0, prev_weight - product_weight)) AS resin_lbs
-                    FROM lagged
-                    WHERE prev_weight IS NOT NULL
-                    GROUP BY snapshot_date
-                )
-                SELECT
-                    c.snapshot_date AS date,
-                    c.resin_lbs,
-                    (
-                        COALESCE(a.avg_day_shift_in, 0)
-                        + COALESCE(a.avg_night_shift_in, 0)
-                    ) AS pallets_in
-                FROM consumed c
-                JOIN daily_shift_averages a
-                  ON a.`Date` = DATE_FORMAT(c.snapshot_date, '%Y-%m-%d')
-                ORDER BY c.snapshot_date
-                """
-            ),
-            {"lookback": lookback},
-        ).mappings().all()
-
-    daily_rows = [
-        {
-            "date": row["date"],
-            "resin_lbs": float(row["resin_lbs"] or 0),
-            "pallets_in": float(row["pallets_in"] or 0),
-        }
-        for row in rows
-    ]
-    series = _build_resin_pallet_yield_series(daily_rows, window=window, keep_days=days)
-    return JSONResponse(content={"window": window, "data": series})
 
 
 @router.get(

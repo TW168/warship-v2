@@ -136,46 +136,6 @@
       </div>
     </div>
 
-    <!-- Row 3: Resin-per-pallet yield -->
-    <div class="row g-3 mb-4">
-      <div class="col-12">
-        <div class="card shadow-sm">
-          <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
-            <span><i class="bi bi-diagram-3 me-2"></i>Resin per Pallet Produced</span>
-            <div class="d-flex align-items-center gap-2">
-              <label for="yieldWindow" class="form-label small text-muted mb-0">Smoothing</label>
-              <select id="yieldWindow" class="form-select form-select-sm w-auto"
-                      onchange="loadResinPalletYield()" aria-label="Rolling window size">
-                <option value="7" selected>7-day</option>
-                <option value="14">14-day</option>
-                <option value="30">30-day</option>
-              </select>
-              <label for="yieldDays" class="form-label small text-muted mb-0">Range</label>
-              <select id="yieldDays" class="form-select form-select-sm w-auto"
-                      onchange="loadResinPalletYield()" aria-label="Resin per pallet history window">
-                <option value="14">14 days</option>
-                <option value="30" selected>30 days</option>
-                <option value="60">60 days</option>
-                <option value="90">90 days</option>
-              </select>
-            </div>
-          </div>
-          <div class="card-body p-2">
-            <div id="resinPalletYieldChart" style="height:340px;width:100%;"></div>
-            <div class="px-2 pt-2 small text-muted">
-              <div class="fw-semibold text-secondary mb-2">How to read this chart</div>
-              <div class="d-flex flex-column gap-1">
-                <div>Both series are the same measure: pounds of resin drawn from the silos for every pallet produced into the warehouse.</div>
-                <div>The <strong>dark line</strong> is the smoothed trend &mdash; this is the one to read.</div>
-                <div>The <strong>light bars</strong> are single days. They swing wildly because a day's resin draw does not become that same day's pallets, so do not read them individually.</div>
-                <div>A sustained <strong>rise</strong> in the dark line means more resin per pallet &mdash; a heavier product mix, or more scrap.</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- Row 3: Upload card -->
     <div class="section-band mb-3">
       <h2 class="section-band-title">
@@ -329,110 +289,6 @@ async function loadInventory() {
 
   window.__inventoryRows = rows;
 
-}
-
-async function loadResinPalletYield() {
-  const days = document.getElementById('yieldDays').value;
-  const window_ = document.getElementById('yieldWindow').value;
-  const chartEl = document.getElementById('resinPalletYieldChart');
-
-  const res = await fetch(
-    `/maintenance/api/silos/resin-pallet-yield?days=${days}&window=${window_}`
-  );
-  if (!res.ok) {
-    chartEl.innerHTML = '<p class="text-center text-muted pt-5">Could not load yield data.</p>';
-    return;
-  }
-  const json = await res.json();
-  const rows = json.data || [];
-
-  if (!rows.length) {
-    chartEl.innerHTML =
-      '<p class="text-center text-muted pt-5">No overlapping silo and pallet history yet.</p>';
-    return;
-  }
-
-  const dates = rows.map(r => r.date);
-  // Daily ratio is context only - deliberately recessive.
-  const dailyYield = rows.map(r => (r.daily_yield === null ? null : parseFloat(r.daily_yield)));
-  // Suppress any row whose trailing window is still filling, so no half-formed average is shown.
-  const rollingYield = rows.map(r =>
-    r.rolling_complete && r.rolling_yield !== null ? parseFloat(r.rolling_yield) : null
-  );
-
-  // Period average as a quiet reference line.
-  const totalResin = rows.reduce((sum, r) => sum + parseFloat(r.resin_lbs || 0), 0);
-  const totalPallets = rows.reduce((sum, r) => sum + parseFloat(r.pallets_in || 0), 0);
-  const periodAvg = totalPallets > 0 ? totalResin / totalPallets : null;
-
-  const traces = [
-    {
-      type: 'bar',
-      name: 'Single day',
-      x: dates,
-      y: dailyYield,
-      marker: {color: '#8fb3dc'},
-      hovertemplate: '%{y:,.0f} lbs/pallet<extra>Single day</extra>',
-    },
-    {
-      type: 'scatter',
-      mode: 'lines',
-      name: `${json.window}-day average`,
-      x: dates,
-      y: rollingYield,
-      line: {color: '#154e9a', width: 2, shape: 'spline', smoothing: 0.4},
-      connectgaps: false,
-      hovertemplate: '%{y:,.0f} lbs/pallet<extra>' + json.window + '-day average</extra>',
-    },
-  ];
-
-  // Direct-label the endpoint only; the axis and tooltip carry the rest.
-  const annotations = [];
-  for (let i = rollingYield.length - 1; i >= 0; i--) {
-    if (Number.isFinite(rollingYield[i])) {
-      annotations.push({
-        x: dates[i],
-        y: rollingYield[i],
-        text: `${Math.round(rollingYield[i]).toLocaleString()} lbs/pallet`,
-        showarrow: false,
-        xanchor: 'right',
-        yanchor: 'bottom',
-        yshift: 8,
-        font: {family: 'Open Sans', size: 12, color: '#132238'},
-      });
-      break;
-    }
-  }
-
-  const layout = {
-    margin: {l: 64, r: 24, t: 12, b: 52},
-    xaxis: {type: 'date', tickformat: '%b %d', showgrid: false, linecolor: '#e3e7ec'},
-    yaxis: {
-      title: 'lbs resin per pallet',
-      rangemode: 'tozero',
-      gridcolor: '#edf0f4',
-      zeroline: false,
-    },
-    bargap: 0.45,
-    plot_bgcolor: 'transparent',
-    paper_bgcolor: 'transparent',
-    font: {family: 'Open Sans', size: 12, color: '#132238'},
-    hovermode: 'x unified',
-    legend: {orientation: 'h', y: -0.22},
-    annotations: annotations,
-    shapes: periodAvg
-      ? [{
-          type: 'line',
-          xref: 'paper', x0: 0, x1: 1,
-          yref: 'y', y0: periodAvg, y1: periodAvg,
-          line: {color: '#c4ccd6', width: 1},
-          layer: 'below',
-        }]
-      : [],
-    autosize: true,
-  };
-
-  Plotly.react('resinPalletYieldChart', traces, layout, {responsive: true, displayModeBar: false});
 }
 
 async function loadBurnRate() {
@@ -649,7 +505,7 @@ async function handleUpload() {
     resultBox.classList.remove('d-none');
     fileInput.value = '';
     showToast('CSV uploaded. Refreshing dashboard…');
-    await Promise.all([loadInventory(), loadResinPalletYield(), loadBurnRate(), loadBurnRateHistory()]);
+    await Promise.all([loadInventory(), loadBurnRate(), loadBurnRateHistory()]);
   } catch (err) {
     resultBox.className = 'alert alert-danger mt-3';
     resultBox.textContent = 'Upload failed: ' + err.message;
@@ -682,7 +538,7 @@ document.querySelectorAll('[data-bs-toggle="popover"]').forEach(el => {
 
 (async function init() {
   try {
-    await Promise.all([loadInventory(), loadResinPalletYield(), loadBurnRate(), loadBurnRateHistory()]);
+    await Promise.all([loadInventory(), loadBurnRate(), loadBurnRateHistory()]);
   } catch (e) {
     console.warn('Dashboard load error:', e);
   } finally {
