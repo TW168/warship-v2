@@ -1,25 +1,61 @@
-"""SAIA LTL freight load and count exception report ingestion and serving."""
+"""
+routers/maintenance/saia_ltl.py — SAIA LTL freight report upload and CRUD.
 
-from fastapi import APIRouter, UploadFile, File
-from fastapi.responses import JSONResponse
+Handles daily SAIA LTL "Load and Count Exception Report" PDF ingestion:
+- Upload a PDF, parse header (program, report date/time, pickup date/manifest)
+  and detail rows (pro number, consignee, units, weight, OS&D exception).
+- Insert rows into ``saia_ltl_freight``, skipping duplicate pro numbers.
+- List rows with optional date and consignee filters.
+
+Routes:
+    GET  /saia-ltl                — Upload and records page
+    GET  /api/shipping/saia-ltl        — List rows (optional filters)
+    POST /api/shipping/saia-ltl/upload — Upload one PDF report
+"""
+
+from fastapi import APIRouter, File, Request, UploadFile
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.templating import Jinja2Templates
 from sqlalchemy import text
 
 from database import connect_to_database
-from schemas.saia_ltl_freight import SaiaLtlFreightRow, SaiaLtlFreightUploadResponse
+from logging_config import get_router_logger
+from schemas.saia_ltl_freight import SaiaLtlFreightUploadResponse
 from utils.db_serializer import serialize_row
 from utils.saia_ltl_parser import parse_saia_ltl_pdf
-from logging_config import get_router_logger
 
-router = APIRouter(prefix="/api/shipping/saia-ltl", tags=["Shipping – SAIA LTL Freight"])
+router = APIRouter(tags=["Maintenance"])
+templates = Jinja2Templates(directory="templates")
 logger = get_router_logger("saia_ltl")
 
 _engine = connect_to_database()
 
 
+@router.get(
+    "/saia-ltl",
+    response_class=HTMLResponse,
+    summary="SAIA LTL Freight Upload Page",
+    description=(
+        "Maintenance page for uploading daily SAIA LTL Load and Count "
+        "Exception Report PDFs and browsing parsed records."
+    ),
+)
+async def saia_ltl_page(request: Request) -> HTMLResponse:
+    """Render the SAIA LTL freight upload and records page."""
+    return templates.TemplateResponse(
+        "maintenance/saia_ltl_upload.html",
+        {"request": request, "active_page": "saia_ltl"},
+    )
+
+
 @router.post(
-    "/upload",
+    "/api/shipping/saia-ltl/upload",
     summary="Upload SAIA LTL freight report",
-    description="Multipart PDF upload. Parses the load and count exception report and inserts rows into saia_ltl_freight.",
+    description=(
+        "Multipart PDF upload. Parses the load and count exception report "
+        "and inserts rows into saia_ltl_freight. Rows with a pro_number "
+        "already on file are skipped."
+    ),
 )
 async def upload_saia_ltl(file: UploadFile = File(...)) -> SaiaLtlFreightUploadResponse:
     """Ingest a SAIA LTL freight PDF, parse, and store in the database."""
@@ -42,7 +78,6 @@ async def upload_saia_ltl(file: UploadFile = File(...)) -> SaiaLtlFreightUploadR
             skipped = 0
 
             for row_data in detail_rows:
-                # Combine header + detail row
                 full_row = {
                     "program": header["program"],
                     "report_date": header["report_date"],
@@ -104,7 +139,7 @@ async def upload_saia_ltl(file: UploadFile = File(...)) -> SaiaLtlFreightUploadR
 
 
 @router.get(
-    "/",
+    "/api/shipping/saia-ltl",
     summary="List SAIA LTL freight records",
     description="Returns paginated saia_ltl_freight rows with optional date and consignee filters.",
 )

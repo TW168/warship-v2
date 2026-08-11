@@ -21,9 +21,6 @@ class SaiaLtlFreightRow(BaseModel):
     source_file: str | None = None
     uploaded_at_utc: str | None = None
 
-    class Config:
-        from_attributes = True
-
 
 class SaiaLtlFreightUploadResponse(BaseModel):
     """Response from a SAIA LTL freight file upload."""

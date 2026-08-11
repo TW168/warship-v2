@@ -16,6 +16,7 @@ Truck Load Map          →  truck_load_map.py
 Not-in-XFCMA           →  not_in_xfcma.py
 Shipment Scan          →  shipment_scan.py
 Sales Summary          →  sales_summary.py
+SAIA LTL Freight       →  saia_ltl.py
 Silos (page + ETL + ML) →  silos/   (sub-package)
 
 Usage in main.py (unchanged from pre-refactor):
@@ -31,6 +32,7 @@ from . import (
     freight_driver,
     lmi,
     not_in_xfcma,
+    saia_ltl,
     sales_summary,
     shipment_scan,
     shipment_size_impact,
@@ -54,6 +56,7 @@ router.include_router(not_in_xfcma.router)
 router.include_router(shipment_scan.router)
 router.include_router(sales_summary.router)
 router.include_router(work_order_upload.router)
+router.include_router(saia_ltl.router)
 router.include_router(_silos_router)
 
 __all__ = ["router"]

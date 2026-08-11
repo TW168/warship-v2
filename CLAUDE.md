@@ -77,6 +77,7 @@ warship-v2/
 │   │   ├── shipment_scan.py     # Shipment scan Excel/CSV upload + management
 │   │   ├── sales_summary.py     # MKORSHDK daily sales summary PDF upload + list
 │   │   ├── work_order_upload.py # Production line XLSX upload (multi-sheet) into per-line MySQL tables
+│   │   ├── saia_ltl.py           # SAIA LTL freight report PDF upload + list
 │   │   └── silos/               # Silos sub-package
 │   │       ├── __init__.py      # Silos sub-router, combines upload/api/anomaly_api
 │   │       ├── anomaly.py       # ML feature engineering + event generation helpers
@@ -85,8 +86,7 @@ warship-v2/
 │   │       ├── api.py           # Inventory and consumption-rate serving endpoints
 │   │       └── anomaly_api.py   # Anomaly investigation queue endpoints
 │   ├── shipping/                # Shipping sub-package
-│   │   ├── __init__.py          # Shipping routes and carrier cost analysis
-│   │   └── saia_ltl.py          # SAIA LTL freight PDF upload + list
+│   │   └── __init__.py          # Shipping page, shipped-products, top-customers, carrier cost analysis
 │   └── about.py
 ├── templates/
 │   ├── base.html            # Top navbar, Bootstrap 5, Open Sans
@@ -211,9 +211,6 @@ logger = get_util_logger("pdf_parser")
 | CFP pallet count API | `GET /api/warehouse/cfp-prefix-pallet-count` | Fetches the CFP cells HTML page, counts pallet values that start with the requested prefix (default `910`), and returns the total for the Warehouse dashboard card |
 | Shipping | `GET /shipping` | Filter bar (date range, site, product group) drives Carrier Cost Analysis card |
 | Carrier Cost Analysis | `GET /api/carrier-cost-analysis` | JSON — calls `sp_carrier_cost_per_pound`; params: `date_from`, `date_to`, `site`, `product_group` (all optional); returns carrier_id, bl_count, total_weight, total_pallets, total_freight_cost, cost_per_pound. Card embedded at bottom of `/shipping` page with Plotly bubble chart + sortable table. |
-| SAIA LTL Freight Upload | `GET /shipping/saia-ltl-upload` | Page for uploading daily SAIA LTL freight load and count exception reports. |
-| SAIA LTL Upload API | `POST /maintenance/api/shipping/saia-ltl/upload` | Multipart PDF upload. Parses program code, report date/time, pickup date/manifest, and line items (pro number, consignee, units, weight, OS&D exception) into `saia_ltl_freight` table. Returns insert/skip counts. |
-| SAIA LTL List API | `GET /api/shipping/saia-ltl/` | JSON — lists `saia_ltl_freight` rows with pagination and optional filters (`report_date`, `consignee`). |
 | TSR Prep | `GET /tsr-prep` | Available-to-ship BL list + Google Map with nearest-neighbor lines and radius circles. Same-city customers are jittered so each gets a separate pin. |
 | Pallet Entry/Exit | `GET /api/warehouse/pallet-entry-exit` | JSON — pallet entry (day+night in) and exit (1st+2nd+3rd out) from `daily_shift_averages`; params: `date_from`, `date_to` |
 | Product Forecast | `GET /warehouse/product-forecast` | Interactive dashboard: per-product trend direction (INCREASE/DECREASE/STABLE), momentum, linear regression forecast, R², Chart.js line chart. Uses active-history guards (min active months + recent activity requirement) to reduce sparse-series distortion. Data from `sp_get_all_shipped_product`. |
@@ -229,6 +226,9 @@ logger = get_util_logger("pdf_parser")
 | Upload not in XFCMA | `GET /maintenance/not-in-xfcma` | Maintenance page for PDF upload with success/failure indication only. |
 | Upload not in XFCMA API | `GET/POST/PUT/DELETE /maintenance/api/not-in-xfcma...` | JSON CRUD endpoints for `not_in_xfcma` (`id`, `report_datetime`, `product_code`, `manu_order`, `item`, `pallet`, `location`, `rolls`, `length`, `weight`, `grade`, `last_in_date`, `created_at_utc`, `source_file`). List supports optional filters: `product_code`, `date_from`, `date_to`. |
 | Upload not in XFCMA PDF API | `POST /maintenance/api/not-in-xfcma/upload` | Multipart PDF upload endpoint. Parses QPQUPRFIL report rows and bulk inserts mapped records into `not_in_xfcma`; re-uploading the same filename replaces that file's prior rows. |
+| SAIA LTL Freight Upload | `GET /maintenance/saia-ltl` | Maintenance page for uploading daily SAIA LTL "Load and Count Exception Report" PDFs and browsing parsed records. |
+| SAIA LTL Upload API | `POST /maintenance/api/shipping/saia-ltl/upload` | Multipart PDF upload. Parses program code, report date/time, pickup date/manifest, and line items (pro number, consignee, units, weight, OS&D exception) into `saia_ltl_freight` table (unique on `pro_number` — re-uploading the same report skips already-stored rows). Returns insert/skip counts. |
+| SAIA LTL List API | `GET /maintenance/api/shipping/saia-ltl` | JSON — lists `saia_ltl_freight` rows with pagination and optional filters (`report_date`, `consignee`). |
 | Shipment Scan | `GET /maintenance/shipment-scan` | Maintenance page for Excel/CSV shipment scan file upload plus a daily distinct BOL trend line chart card. |
 | Shipment Scan Upload API | `POST /maintenance/api/shipment-scan/upload` | Multipart Excel/CSV upload endpoint. Parses shipment scan files and stores data as JSON records in `shipment_scan` table with duplicate detection by filename and file size. |
 | Shipment Scan List API | `GET /maintenance/api/shipment-scan` | JSON endpoint to list shipment scan records with pagination and optional filename filtering. Returns records with parsed data, upload metadata, and file information. |

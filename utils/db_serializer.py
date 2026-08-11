@@ -15,7 +15,7 @@ Example
 """
 
 import decimal
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 
 def serialize_value(v: object) -> object:
@@ -23,6 +23,8 @@ def serialize_value(v: object) -> object:
 
     Conversions applied:
     - ``datetime`` / ``date`` → ISO-8601 string via ``.isoformat()``
+    - ``timedelta``          → ``HH:MM:SS`` string (MySQL ``TIME`` columns
+      deserialize as ``timedelta`` since they can exceed 24 hours)
     - ``decimal.Decimal``    → ``float``
     - All other types are returned unchanged.
 
@@ -34,6 +36,11 @@ def serialize_value(v: object) -> object:
     """
     if isinstance(v, (datetime, date)):
         return v.isoformat()
+    if isinstance(v, timedelta):
+        total_seconds = int(v.total_seconds())
+        hours, remainder = divmod(total_seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
     if isinstance(v, decimal.Decimal):
         return float(v)
     return v

@@ -86,7 +86,7 @@ async function uploadSaiaLtl() {
   showStatus('<div class="spinner-border spinner-border-sm me-2"></div>Uploading...', 'info');
 
   try {
-    const res = await fetch('/api/shipping/saia-ltl/upload', {
+    const res = await fetch('/maintenance/api/shipping/saia-ltl/upload', {
       method: 'POST',
       body: formData,
     });
@@ -115,7 +115,7 @@ async function listSaiaLtl() {
   if (consignee) params.append('consignee', consignee);
 
   try {
-    const res = await fetch(`/api/shipping/saia-ltl/?${params.toString()}`);
+    const res = await fetch(`/maintenance/api/shipping/saia-ltl?${params.toString()}`);
     const json = await res.json();
     const rows = json.data || [];
 

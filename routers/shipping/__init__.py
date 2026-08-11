@@ -60,20 +60,6 @@ async def shipping(request: Request) -> HTMLResponse:
 
 
 @router.get(
-    "/shipping/saia-ltl-upload",
-    response_class=HTMLResponse,
-    summary="SAIA LTL freight upload",
-    description="Upload and manage SAIA LTL freight load and count exception reports.",
-)
-async def saia_ltl_upload(request: Request) -> HTMLResponse:
-    """Render the SAIA LTL freight upload page."""
-    return templates.TemplateResponse(
-        "shipping/saia_ltl_upload.html",
-        {"request": request, "active_page": "shipping"},
-    )
-
-
-@router.get(
     "/api/shipping/shipped-products",
     response_model=list[ShippedProductRow],
     summary="All shipped products",
@@ -340,8 +326,3 @@ async def carrier_cost_analysis(
         return JSONResponse(status_code=500, content={"error": str(exc)})
 
     return JSONResponse(content=rows)
-
-
-# Include SAIA LTL sub-router
-from routers.shipping.saia_ltl import router as saia_ltl_router
-router.include_router(saia_ltl_router)
