@@ -15,6 +15,9 @@ from sqlalchemy import text
 
 from database import connect_to_database
 from schemas.work_order_upload import (
+    MaterialReconciliationMatchedRow,
+    MaterialReconciliationResponse,
+    MaterialReconciliationUnmatchedRow,
     WorkOrderBridgedMaterialTotalRow,
     WorkOrderDailyUsageDetailRow,
     WorkOrderDailyUsageLineSiloRow,
@@ -805,6 +808,199 @@ async def daily_work_order_usage(work_date: str) -> WorkOrderDailyUsageResponse:
         line_silo_totals=line_silo_totals,
         hopper_material_bridge=hopper_material_bridge_rows,
         bridged_material_totals=bridged_material_totals,
+    )
+
+
+@router.get(
+    "/api/work-order-upload/material-reconciliation",
+    response_model=MaterialReconciliationResponse,
+    summary="Production vs. silo material usage reconciliation",
+    description=(
+        "Compares production-reported material usage (from stored work-order "
+        "tickets) against silo-derived consumption (day-over-day silo weight "
+        "decreases) over a trailing window ending on ``window_end_date``. "
+        "Sums both sides over the window rather than comparing single days, "
+        "because production tickets record shift-level usage while silo "
+        "weight is drawn down continuously — a one-day comparison is mostly "
+        "timing noise. Materials are matched by code; a material code used "
+        "in production but never seen in silo_status (or vice versa) is "
+        "listed separately rather than silently dropped, since a mismatch "
+        "usually signals a data-entry or material-code problem rather than "
+        "an actual usage gap. Query params: ``window_end_date`` (YYYY-MM-DD, "
+        "default today) and ``window_days`` (default 7)."
+    ),
+)
+async def work_order_material_reconciliation(
+    window_end_date: str | None = Query(None, description="Last date of the window (YYYY-MM-DD); defaults to today"),
+    window_days: int = Query(7, ge=1, le=90, description="Trailing window size in days"),
+) -> MaterialReconciliationResponse:
+    """Compare summed production usage against summed silo consumption over a trailing window."""
+    end_date = (
+        datetime.strptime(window_end_date, "%Y-%m-%d").date()
+        if window_end_date
+        else datetime.utcnow().date()
+    )
+    start_date = end_date - timedelta(days=window_days - 1)
+
+    # --- Production side: sum material_totals-equivalent usage across every
+    # production date that falls inside the window. ---
+    production_totals: dict[str, float] = {}
+    production_dates_in_window: set[str] = set()
+
+    with _engine.connect() as conn:
+        tables = conn.execute(
+            text(
+                """
+                SELECT table_name
+                FROM information_schema.tables
+                WHERE table_schema = DATABASE()
+                  AND table_name LIKE 'extrusion_prod_ticket_%'
+                ORDER BY table_name
+                """
+            )
+        ).fetchall()
+
+        for (table_name,) in tables:
+            rows = conn.execute(
+                text(f"SELECT document_payload FROM {table_name}")
+            ).mappings().all()
+
+            for row in rows:
+                payload = row["document_payload"]
+                if isinstance(payload, str):
+                    try:
+                        payload = json.loads(payload)
+                    except ValueError:
+                        payload = None
+                if not isinstance(payload, dict):
+                    continue
+
+                work_date = _document_work_date(payload)
+                if not work_date:
+                    continue
+                try:
+                    parsed_work_date = datetime.strptime(work_date, "%Y-%m-%d").date()
+                except ValueError:
+                    continue
+                if not (start_date <= parsed_work_date <= end_date):
+                    continue
+
+                production_dates_in_window.add(work_date)
+                charting = _document_charting(payload)
+                formula_code = str(charting.get("formula") or "").strip().upper()
+                film_type = str(charting.get("film_type") or "").strip()
+                film_type_code = film_type.upper() if film_type else ""
+
+                for usage in _document_material_usage_rows(payload):
+                    hopper = str((usage or {}).get("hopper") or "").strip()
+                    if not hopper:
+                        continue
+                    material_code = _derive_material_code(
+                        usage_row=usage,
+                        formula_code=formula_code,
+                        film_type_code=film_type_code,
+                    )
+                    if not material_code or material_code.strip().upper() == "UNKNOWN":
+                        continue
+                    try:
+                        input_lbs = float((usage or {}).get("input_lbs") or 0)
+                    except (TypeError, ValueError):
+                        input_lbs = 0.0
+                    if input_lbs <= 0:
+                        continue
+                    key = material_code.strip().upper()
+                    production_totals[key] = production_totals.get(key, 0.0) + input_lbs
+
+        # --- Silo side: sum day-over-day weight decreases (consumption) per
+        # content code across the same window. Increases are refills/deliveries
+        # and are excluded, matching the logic validated for the silo dashboard. ---
+        silo_rows = conn.execute(
+            text(
+                """
+                WITH eod AS (
+                    SELECT
+                        snapshot_date, vessel_name, contents, product_weight,
+                        ROW_NUMBER() OVER (
+                            PARTITION BY vessel_name, snapshot_date
+                            ORDER BY measurement_time DESC
+                        ) AS rn
+                    FROM silo_status
+                    WHERE snapshot_date >= DATE_SUB(:start_date, INTERVAL 1 DAY)
+                      AND snapshot_date <= :end_date
+                ),
+                day_end AS (
+                    SELECT snapshot_date, vessel_name, contents, product_weight
+                    FROM eod WHERE rn = 1
+                ),
+                lagged AS (
+                    SELECT
+                        snapshot_date, vessel_name, contents, product_weight,
+                        LAG(product_weight) OVER (
+                            PARTITION BY vessel_name ORDER BY snapshot_date
+                        ) AS prev_weight
+                    FROM day_end
+                )
+                SELECT contents, snapshot_date,
+                       SUM(GREATEST(0, prev_weight - product_weight)) AS consumed_lbs
+                FROM lagged
+                WHERE prev_weight IS NOT NULL
+                  AND snapshot_date >= :start_date
+                GROUP BY contents, snapshot_date
+                """
+            ),
+            {"start_date": start_date, "end_date": end_date},
+        ).mappings().all()
+
+    silo_totals: dict[str, float] = {}
+    silo_dates: set[str] = set()
+    for row in silo_rows:
+        contents = str(row["contents"] or "").strip().upper()
+        if not contents:
+            continue
+        silo_totals[contents] = silo_totals.get(contents, 0.0) + float(row["consumed_lbs"] or 0)
+        silo_dates.add(str(row["snapshot_date"]))
+
+    matched_codes = sorted(set(production_totals) & set(silo_totals))
+    production_only_codes = sorted(set(production_totals) - set(silo_totals))
+    silo_only_codes = sorted(set(silo_totals) - set(production_totals))
+
+    matched: list[MaterialReconciliationMatchedRow] = []
+    for code in matched_codes:
+        production_lbs = production_totals[code]
+        silo_lbs = silo_totals[code]
+        delta_lbs = production_lbs - silo_lbs
+        delta_pct = (delta_lbs / silo_lbs * 100.0) if silo_lbs > 0 else None
+        matched.append(
+            MaterialReconciliationMatchedRow(
+                material_code=code,
+                production_lbs=round(production_lbs, 1),
+                silo_lbs=round(silo_lbs, 1),
+                delta_lbs=round(delta_lbs, 1),
+                delta_pct=round(delta_pct, 1) if delta_pct is not None else None,
+            )
+        )
+    matched.sort(key=lambda r: abs(r.delta_lbs), reverse=True)
+
+    production_only = [
+        MaterialReconciliationUnmatchedRow(material_code=code, lbs=round(production_totals[code], 1))
+        for code in production_only_codes
+    ]
+    production_only.sort(key=lambda r: r.lbs, reverse=True)
+
+    silo_only = [
+        MaterialReconciliationUnmatchedRow(material_code=code, lbs=round(silo_totals[code], 1))
+        for code in silo_only_codes
+    ]
+    silo_only.sort(key=lambda r: r.lbs, reverse=True)
+
+    return MaterialReconciliationResponse(
+        window_end_date=end_date.isoformat(),
+        window_days=window_days,
+        production_dates_in_window=sorted(production_dates_in_window),
+        silo_dates_in_window=len(silo_dates),
+        matched=matched,
+        production_only=production_only,
+        silo_only=silo_only,
     )
 
 

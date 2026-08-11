@@ -128,3 +128,32 @@ class WorkOrderDailyUsageResponse(BaseModel):
     line_silo_totals: list[WorkOrderDailyUsageLineSiloRow]
     hopper_material_bridge: list[WorkOrderHopperMaterialBridgeRow]
     bridged_material_totals: list[WorkOrderBridgedMaterialTotalRow]
+
+
+class MaterialReconciliationMatchedRow(BaseModel):
+    """One material present on both the production and silo sides of the window."""
+
+    material_code: str
+    production_lbs: float
+    silo_lbs: float
+    delta_lbs: float
+    delta_pct: float | None = None
+
+
+class MaterialReconciliationUnmatchedRow(BaseModel):
+    """One material present on only one side of the window (no code match)."""
+
+    material_code: str
+    lbs: float
+
+
+class MaterialReconciliationResponse(BaseModel):
+    """Trailing-window production-vs-silo material usage reconciliation."""
+
+    window_end_date: str
+    window_days: int
+    production_dates_in_window: list[str]
+    silo_dates_in_window: int
+    matched: list[MaterialReconciliationMatchedRow]
+    production_only: list[MaterialReconciliationUnmatchedRow]
+    silo_only: list[MaterialReconciliationUnmatchedRow]
