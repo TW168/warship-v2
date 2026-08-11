@@ -331,47 +331,6 @@ async function loadInventory() {
 
 }
 
-async function loadTrend() {
-  const days = document.getElementById('trendDays').value;
-  const res  = await fetch(`/maintenance/api/silos/inventory-daily?days=${days}`);
-  if (!res.ok) return;
-  const json = await res.json();
-  const rows = json.data || [];
-
-  const series = {};
-  for (const r of rows) {
-    const key = r.contents_code;
-    if (!series[key]) series[key] = {x:[], y:[]};
-    series[key].x.push(r.snapshot_date);
-    series[key].y.push(r.avg_percent_full != null ? parseFloat(r.avg_percent_full) : null);
-  }
-
-  const traces = Object.entries(series).map(([name, s], i) => ({
-    type:'scatter', mode:'lines+markers', name,
-    x:s.x, y:s.y,
-    line:{color:VESSEL_COLORS[i % VESSEL_COLORS.length], width:2},
-    marker:{size:5}
-  }));
-
-  const layout = {
-    margin:{l:42, r:10, t:10, b:50},
-    xaxis:{type:'date', tickformat:'%b %d'},
-    yaxis:{range:[0,100], ticksuffix:'%', gridcolor:'#edf0f4'},
-    plot_bgcolor:'transparent', paper_bgcolor:'transparent',
-    legend:{orientation:'h', y:-0.22},
-    font:{family:'Open Sans', size:12, color:'#132238'},
-    hovermode:'x unified',
-    autosize:true
-  };
-
-  if (!traces.length) {
-    document.getElementById('trendChart').innerHTML =
-      '<p class="text-center text-muted pt-5">No trend data yet.</p>';
-    return;
-  }
-  Plotly.react('trendChart', traces, layout, {responsive:true, displayModeBar:false});
-}
-
 async function loadResinPalletYield() {
   const days = document.getElementById('yieldDays').value;
   const window_ = document.getElementById('yieldWindow').value;
@@ -690,7 +649,7 @@ async function handleUpload() {
     resultBox.classList.remove('d-none');
     fileInput.value = '';
     showToast('CSV uploaded. Refreshing dashboard…');
-    await Promise.all([loadInventory(), loadTrend(), loadBurnRate(), loadBurnRateHistory()]);
+    await Promise.all([loadInventory(), loadResinPalletYield(), loadBurnRate(), loadBurnRateHistory()]);
   } catch (err) {
     resultBox.className = 'alert alert-danger mt-3';
     resultBox.textContent = 'Upload failed: ' + err.message;
@@ -723,7 +682,7 @@ document.querySelectorAll('[data-bs-toggle="popover"]').forEach(el => {
 
 (async function init() {
   try {
-    await Promise.all([loadInventory(), loadTrend(), loadResinPalletYield(), loadBurnRate(), loadBurnRateHistory()]);
+    await Promise.all([loadInventory(), loadResinPalletYield(), loadBurnRate(), loadBurnRateHistory()]);
   } catch (e) {
     console.warn('Dashboard load error:', e);
   } finally {
