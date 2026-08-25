@@ -2746,7 +2746,7 @@ function loadProductTrendAnalysisByFilters(site, productGroup) {
       });
     });
     Plotly.newPlot('productTrendChart', traces, {
-      xaxis: { title: 'Month', showgrid: true, gridcolor: '#e9ecef' },
+      xaxis: { title: 'Month', type: 'category', showgrid: true, gridcolor: '#e9ecef' },
       yaxis: { title: 'Weight (lbs)', showgrid: true, gridcolor: '#e9ecef' },
       plot_bgcolor: '#ffffff',
       paper_bgcolor: '#ffffff',
@@ -2780,7 +2780,7 @@ function loadProductTrendAnalysisByFilters(site, productGroup) {
       hovertemplate: '%{x}<br>Avg: %{y:,.0f} lbs<extra></extra>',
     };
     Plotly.newPlot('productDiversityChart', [diversityTrace, diversityTrace2], {
-      xaxis: { title: 'Month', showgrid: true, gridcolor: '#e9ecef' },
+      xaxis: { title: 'Month', type: 'category', showgrid: true, gridcolor: '#e9ecef' },
       yaxis: {
         title: 'Unique Products',
         showgrid: true,

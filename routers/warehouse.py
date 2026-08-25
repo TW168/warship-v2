@@ -58,17 +58,34 @@ def extract_prefix_pallets(html_text: str, prefix: str = "910") -> list[dict[str
         else:
             pallet1_idx = 5
             pallet2_idx = 6
+        stacker_idx = header_cells.index("stacker") if "stacker" in header_cells else None
+        cell_idx = header_cells.index("cell") if "cell" in header_cells else None
+
+        max_idx = max(v for v in (pallet1_idx, pallet2_idx, stacker_idx, cell_idx) if v is not None)
 
         matches: list[dict[str, str]] = []
         for row in rows[1:]:
             cells = [cell.get_text(" ", strip=True) for cell in row.find_all(["td", "th"])]
-            if len(cells) <= max(pallet1_idx, pallet2_idx):
+            if len(cells) <= max_idx:
                 continue
+
+            stacker = cells[stacker_idx].strip() if stacker_idx is not None else ""
+            cell_number = cells[cell_idx].strip() if cell_idx is not None else ""
 
             for idx, location in ((pallet1_idx, "pallet_1"), (pallet2_idx, "pallet_2")):
                 value = cells[idx].strip()
                 if value and value.startswith(prefix):
-                    matches.append({"pallet": value, "location": location})
+                    matches.append({
+                        "pallet": value,
+                        "location": location,
+                        "stacker": stacker,
+                        "cell": cell_number,
+                    })
+
+        # Sequence is a simple 1-based running count over the matched pallets,
+        # not a value from the source table.
+        for i, match in enumerate(matches, start=1):
+            match["sequence"] = str(i)
 
         return matches
 

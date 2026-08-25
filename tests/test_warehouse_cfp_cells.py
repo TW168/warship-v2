@@ -24,4 +24,7 @@ def test_count_prefix_pallets_counts_910_values():
     matches = extract_prefix_pallets(html, prefix="910")
     assert [item["pallet"] for item in matches] == ["9101001", "9102002", "9103003"]
     assert [item["location"] for item in matches] == ["pallet_1", "pallet_1", "pallet_2"]
+    assert [item["sequence"] for item in matches] == ["1", "2", "3"]
+    assert [item["stacker"] for item in matches] == ["1", "1", "1"]
+    assert [item["cell"] for item in matches] == ["1", "2", "2"]
     assert count_prefix_pallets(html, prefix="910") == 3

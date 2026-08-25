@@ -6,6 +6,7 @@ Includes:
   GET /api/shipping/shipped-products        — Call sp_get_all_shipped_product (JSON)
   GET /api/shipping/top-customers           — Call sp_bl_lbs_cnt_carrier_customer (JSON)
   GET /api/carrier-cost-analysis            — Call sp_carrier_cost_per_pound (JSON)
+  GET /api/shipping/truck-arrival-distribution — Truck arrival time-of-day distribution from shipment_scan (JSON)
 """
 
 import datetime
@@ -15,6 +16,7 @@ from typing import Optional
 from fastapi import APIRouter, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
+from sqlalchemy import text
 from database import connect_to_database
 from schemas.shipped_product import ShippedProductRow
 
@@ -326,3 +328,100 @@ async def carrier_cost_analysis(
         return JSONResponse(status_code=500, content={"error": str(exc)})
 
     return JSONResponse(content=rows)
+
+
+@router.get(
+    "/api/shipping/truck-arrival-distribution",
+    summary="Truck arrival time-of-day distribution",
+    description=(
+        "Reads warship.shipment_scan and derives each truck's arrival time as the "
+        "earliest FINISH-status scan_datetime per BOL (a truck/trailer is scanned across "
+        "many pallets as it's loaded, and tagged FINISH once the load is complete; "
+        "non-FINISH statuses are excluded because some BOL numbers are reused and can "
+        "carry stray SHIP/RETURN/EXIT scans from an earlier or later, unrelated event). "
+        "Buckets those times by hour-of-day (0-23) across all available scan history to "
+        "show what time trucks are most likely to arrive. Optional date_from/date_to "
+        "restrict which scan dates are included."
+    ),
+)
+async def truck_arrival_distribution(
+    date_from: Optional[str] = Query(None, description="Inclusive start date (YYYY-MM-DD), filters on scan_datetime"),
+    date_to: Optional[str] = Query(None, description="Inclusive end date (YYYY-MM-DD), filters on scan_datetime"),
+) -> JSONResponse:
+    """Bucket first-seen-per-BOL scan timestamps by hour-of-day."""
+    parsed_from: Optional[datetime.date] = None
+    parsed_to: Optional[datetime.date] = None
+    if date_from:
+        try:
+            parsed_from = datetime.date.fromisoformat(date_from.strip())
+        except ValueError as exc:
+            return JSONResponse(status_code=422, content={"error": f"Invalid date_from: {exc}"})
+    if date_to:
+        try:
+            parsed_to = datetime.date.fromisoformat(date_to.strip())
+        except ValueError as exc:
+            return JSONResponse(status_code=422, content={"error": f"Invalid date_to: {exc}"})
+    if parsed_from and parsed_to and parsed_from > parsed_to:
+        return JSONResponse(status_code=400, content={"error": "date_from must be <= date_to"})
+
+    where_clauses = [
+        "bol IS NOT NULL",
+        "scan_datetime IS NOT NULL",
+        "UPPER(TRIM(status)) = 'FINISH'",
+    ]
+    params: dict = {}
+    if parsed_from:
+        where_clauses.append("scan_datetime >= :date_from")
+        params["date_from"] = parsed_from.isoformat()
+    if parsed_to:
+        where_clauses.append("scan_datetime < DATE_ADD(:date_to, INTERVAL 1 DAY)")
+        params["date_to"] = parsed_to.isoformat()
+    where_sql = " AND ".join(where_clauses)
+
+    try:
+        with _engine.connect() as conn:
+            rows = conn.execute(
+                text(f"""
+                    SELECT HOUR(first_seen) AS hr, COUNT(*) AS truck_count
+                    FROM (
+                        SELECT bol, MIN(scan_datetime) AS first_seen
+                        FROM shipment_scan
+                        WHERE {where_sql}
+                        GROUP BY bol
+                    ) t
+                    GROUP BY hr
+                    ORDER BY hr
+                """),
+                params,
+            ).fetchall()
+
+            date_range = conn.execute(
+                text(f"""
+                    SELECT MIN(scan_datetime) AS min_dt, MAX(scan_datetime) AS max_dt,
+                           COUNT(DISTINCT bol) AS total_trucks
+                    FROM shipment_scan
+                    WHERE {where_sql}
+                """),
+                params,
+            ).fetchone()
+    except Exception as exc:
+        return JSONResponse(status_code=500, content={"error": str(exc)})
+
+    counts_by_hour = {int(r.hr): int(r.truck_count) for r in rows}
+    hours = [
+        {
+            "hour": h,
+            "hour_label": f"{h:02d}:00",
+            "truck_count": counts_by_hour.get(h, 0),
+        }
+        for h in range(24)
+    ]
+
+    return JSONResponse(
+        content={
+            "hours": hours,
+            "total_trucks": int(date_range.total_trucks) if date_range and date_range.total_trucks else 0,
+            "date_from": date_range.min_dt.date().isoformat() if date_range and date_range.min_dt else None,
+            "date_to": date_range.max_dt.date().isoformat() if date_range and date_range.max_dt else None,
+        }
+    )

@@ -241,6 +241,35 @@
     </div>
   </div>
 
+  <!-- Truck Arrival Time Distribution -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-header card-header-primary d-flex align-items-center justify-content-between">
+      <span>
+        <i class="bi bi-clock-history me-2" aria-hidden="true"></i>Truck Arrival Time Distribution
+      </span>
+      <span class="badge text-bg-light text-secondary fw-normal" style="font-size:0.7rem;" id="arrival-badge"></span>
+    </div>
+    <div class="card-body">
+      <!-- Spinner -->
+      <div id="arrival-spinner" class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading…</span>
+        </div>
+      </div>
+
+      <!-- Error -->
+      <div id="arrival-error" class="alert alert-danger d-none"></div>
+
+      <!-- Distribution curve -->
+      <div id="arrival-bubble-chart" style="height:420px;"></div>
+    </div>
+    <div class="card-footer text-muted" style="font-size:0.75rem;">
+      Source: Warship database · <code>shipment_scan</code>. Each truck's arrival time is its earliest
+      FINISH-status scan timestamp; bucketed by hour of day across all available scan history and shown as
+      a smoothed distribution curve.
+    </div>
+  </div>
+
 </div>
 {% endblock %}
 
@@ -461,6 +490,7 @@
     e.preventDefault();
     loadCarrierData();
     loadShippedCharts();
+    loadArrivalDistribution();
   });
 
   /* ── Auto-load on page ready ── */
@@ -599,5 +629,78 @@ function loadShippedCharts() {
 }
 
 loadShippedCharts();
+</script>
+
+<script>
+/* ─────────────────────────────────────────────
+   Truck Arrival Time Distribution — hourly bubble chart
+   ───────────────────────────────────────────── */
+(function () {
+  'use strict';
+
+  function loadArrivalDistribution() {
+    document.getElementById('arrival-spinner').classList.remove('d-none');
+    document.getElementById('arrival-error').classList.add('d-none');
+    document.getElementById('arrival-bubble-chart').innerHTML = '';
+
+    var from = document.getElementById('filter-date-from').value;
+    var to   = document.getElementById('filter-date-to').value;
+
+    var url = '/api/shipping/truck-arrival-distribution';
+    var qs = [];
+    if (from) qs.push('date_from=' + encodeURIComponent(from));
+    if (to)   qs.push('date_to=' + encodeURIComponent(to));
+    if (qs.length) url += '?' + qs.join('&');
+
+    fetch(url)
+      .then(function (r) {
+        if (!r.ok) return r.json().then(function (e) { throw new Error(e.error || 'HTTP ' + r.status); });
+        return r.json();
+      })
+      .then(function (data) {
+        document.getElementById('arrival-spinner').classList.add('d-none');
+
+        var hours = data.hours || [];
+        if (!hours.length || !hours.some(function (h) { return h.truck_count > 0; })) {
+          document.getElementById('arrival-error').textContent = 'No truck scan data available.';
+          document.getElementById('arrival-error').classList.remove('d-none');
+          return;
+        }
+
+        document.getElementById('arrival-badge').textContent =
+          data.total_trucks.toLocaleString() + ' trucks · ' + (data.date_from || '?') + ' – ' + (data.date_to || '?');
+
+        var trace = {
+          x: hours.map(function (h) { return h.hour_label; }),
+          y: hours.map(function (h) { return h.truck_count; }),
+          mode: 'lines+markers',
+          type: 'scatter',
+          line: { shape: 'spline', smoothing: 1.1, width: 2, color: '#154e9a' },
+          marker: { size: 5, color: '#154e9a' },
+          fill: 'tozeroy',
+          fillcolor: 'rgba(21, 78, 154, 0.12)',
+          hovertemplate: '<b>%{x}</b><br>Trucks: %{y}<extra></extra>',
+        };
+
+        Plotly.newPlot('arrival-bubble-chart', [trace], {
+          xaxis:         { title: 'Time of Day', gridcolor: '#e9ecef' },
+          yaxis:         { title: 'Truck Count', zeroline: false, gridcolor: '#e9ecef', rangemode: 'tozero' },
+          plot_bgcolor:  '#ffffff',
+          paper_bgcolor: '#ffffff',
+          font:          { family: 'Open Sans, sans-serif', size: 12 },
+          margin:        { t: 20, r: 20, b: 60, l: 60 },
+          showlegend:    false,
+        }, { responsive: true, displayModeBar: false });
+      })
+      .catch(function (err) {
+        document.getElementById('arrival-spinner').classList.add('d-none');
+        document.getElementById('arrival-error').textContent = 'Failed to load arrival distribution: ' + err.message;
+        document.getElementById('arrival-error').classList.remove('d-none');
+      });
+  }
+
+  window.loadArrivalDistribution = loadArrivalDistribution;
+  loadArrivalDistribution();
+}());
 </script>
 {% endblock %}
