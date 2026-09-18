@@ -327,6 +327,41 @@ async def cfp_prefix_pallet_count(
     return JSONResponse(content={"prefix": prefix, "count": len(matches), "items": matches})
 
 
+async def _fixed_cfp_prefix_pallet_count(prefix: str) -> JSONResponse:
+    """Fetch CFP cells and return pallet items for one configured prefix."""
+    try:
+        async with httpx.AsyncClient(timeout=20.0) as client:
+            response = await client.get("https://ash123.azurewebsites.net/cfpwh/cells/all_cells")
+            response.raise_for_status()
+            html_text = response.text
+    except Exception as exc:
+        logger.warning("Unable to fetch CFP cells data: %s", exc)
+        return JSONResponse(status_code=502, content={"error": str(exc), "prefix": prefix, "count": 0})
+
+    matches = extract_prefix_pallets(html_text, prefix=prefix)
+    return JSONResponse(content={"prefix": prefix, "count": len(matches), "items": matches})
+
+
+@router.get(
+    "/api/warehouse/sheet-81-3313-080",
+    summary="Sheet 81-3313-080 pallets",
+    description="Returns CFP pallet values beginning with 980200 for Sheet 81-3313-080.",
+)
+async def sheet_81_3313_080_pallets() -> JSONResponse:
+    """Return CFP pallets assigned to Sheet 81-3313-080."""
+    return await _fixed_cfp_prefix_pallet_count("980200")
+
+
+@router.get(
+    "/api/warehouse/sheet-81-331-081",
+    summary="Sheet 81-331-081 pallets",
+    description="Returns CFP pallet values beginning with 980201 for Sheet 81-331-081.",
+)
+async def sheet_81_331_081_pallets() -> JSONResponse:
+    """Return CFP pallets assigned to Sheet 81-331-081."""
+    return await _fixed_cfp_prefix_pallet_count("980201")
+
+
 # ---------------------------------------------------------------------------
 # Product Forecast Dashboard
 # ---------------------------------------------------------------------------

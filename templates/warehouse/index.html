@@ -11,166 +11,120 @@
     </h1>
   </div>
 
-  <!-- ── Row 1: CFP pallet count + Color Rolls Scrap + Today UDC + UDC History ── -->
+  <!-- ── Row 1: CFP pallet cards ───────────────────────────────────────────── -->
   <div class="row g-4 mb-4">
-
-    <!-- CFP pallet count -->
     <div class="col-lg-3">
       <div class="card shadow-sm h-100">
         <div class="card-header card-header-primary d-flex align-items-center justify-content-between">
           <span><i class="bi bi-box-seam me-2" aria-hidden="true"></i>Reclaim Boxes in CMA</span>
           <span class="d-flex align-items-center gap-2">
-            <button type="button" class="btn btn-sm btn-light py-0 px-2"
-                    onclick="exportPalletCsv('cfpPallet', 'reclaim_boxes_cma')"
-                    aria-label="Print / export Reclaim Boxes in CMA pallet numbers to CSV"
-                    title="Export pallet numbers to CSV for printing">
-              <i class="bi bi-printer" aria-hidden="true"></i>
-            </button>
-            <span id="cfpPalletSpinner"
-                  class="spinner-border spinner-border-sm text-white"
-                  role="status" aria-label="Loading"></span>
+            <button type="button" class="btn btn-sm btn-light py-0 px-2" onclick="exportPalletCsv('cfpPallet', 'reclaim_boxes_cma')" aria-label="Print / export Reclaim Boxes in CMA pallet numbers to CSV" title="Export pallet numbers to CSV for printing"><i class="bi bi-printer" aria-hidden="true"></i></button>
+            <span id="cfpPalletSpinner" class="spinner-border spinner-border-sm text-white" role="status" aria-label="Loading"></span>
           </span>
         </div>
         <div class="card-body d-flex flex-column justify-content-start">
-          <div class="text-center">
-            <div class="display-4 fw-bold text-primary" id="cfpPalletCount">--</div>
-            <div class="text-muted small mt-2">Reclaim in boxes</div>
-          </div>
+          <div class="text-center"><div class="display-4 fw-bold text-primary" id="cfpPalletCount">--</div><div class="text-muted small mt-2">Reclaim in boxes</div></div>
           <div id="cfpPalletList" class="list-group list-group-flush mt-3" style="max-height:260px; overflow-y:auto;"></div>
           <div id="cfpPalletError" class="alert alert-warning mt-3 d-none small"></div>
         </div>
-        <div class="card-footer text-muted" style="font-size:0.72rem;">
-          Source: ash123.azurewebsites.net/cfpwh/cells/all_cells
-        </div>
+        <div class="card-footer text-muted" style="font-size:0.72rem;">Source: ash123.azurewebsites.net/cfpwh/cells/all_cells</div>
       </div>
     </div>
 
-    <!-- Color Rolls Scrap pallet count -->
     <div class="col-lg-3">
       <div class="card shadow-sm h-100">
         <div class="card-header card-header-primary d-flex align-items-center justify-content-between">
           <span><i class="bi bi-recycle me-2" aria-hidden="true"></i>Color Rolls Scrap in CMA</span>
           <span class="d-flex align-items-center gap-2">
-            <button type="button" class="btn btn-sm btn-light py-0 px-2"
-                    onclick="exportPalletCsv('colorScrap', 'color_rolls_scrap_cma')"
-                    aria-label="Print / export Color Rolls Scrap in CMA pallet numbers to CSV"
-                    title="Export pallet numbers to CSV for printing">
-              <i class="bi bi-printer" aria-hidden="true"></i>
-            </button>
-            <span id="colorScrapSpinner"
-                  class="spinner-border spinner-border-sm text-white"
-                  role="status" aria-label="Loading"></span>
+            <button type="button" class="btn btn-sm btn-light py-0 px-2" onclick="exportPalletCsv('colorScrap', 'color_rolls_scrap_cma')" aria-label="Print / export Color Rolls Scrap in CMA pallet numbers to CSV" title="Export pallet numbers to CSV for printing"><i class="bi bi-printer" aria-hidden="true"></i></button>
+            <span id="colorScrapSpinner" class="spinner-border spinner-border-sm text-white" role="status" aria-label="Loading"></span>
           </span>
         </div>
         <div class="card-body d-flex flex-column justify-content-start">
-          <div class="text-center">
-            <div class="display-4 fw-bold text-primary" id="colorScrapCount">--</div>
-            <div class="text-muted small mt-2">Color rolls scrap</div>
-          </div>
+          <div class="text-center"><div class="display-4 fw-bold text-primary" id="colorScrapCount">--</div><div class="text-muted small mt-2">Color rolls scrap</div></div>
           <div id="colorScrapList" class="list-group list-group-flush mt-3" style="max-height:260px; overflow-y:auto;"></div>
           <div id="colorScrapError" class="alert alert-warning mt-3 d-none small"></div>
         </div>
-        <div class="card-footer text-muted" style="font-size:0.72rem;">
-          Source: ash123.azurewebsites.net/cfpwh/cells/all_cells
-        </div>
+        <div class="card-footer text-muted" style="font-size:0.72rem;">Source: ash123.azurewebsites.net/cfpwh/cells/all_cells</div>
       </div>
     </div>
 
-    <!-- Today Hourly UDC -->
     <div class="col-lg-3">
       <div class="card shadow-sm h-100">
         <div class="card-header card-header-primary d-flex align-items-center justify-content-between">
-          <span><i class="bi bi-clock-history me-2" aria-hidden="true"></i>Today Hourly UDC</span>
-          <span id="udcHourlySpinner"
-                class="spinner-border spinner-border-sm text-white"
-                role="status" aria-label="Loading"></span>
+          <span><i class="bi bi-file-earmark-spreadsheet me-2" aria-hidden="true"></i>Sheet 81-3313-080</span>
+          <span class="d-flex align-items-center gap-2">
+            <button type="button" class="btn btn-sm btn-light py-0 px-2" onclick="exportPalletCsv('sheet080', 'sheet_81-3313-080')" aria-label="Print / export Sheet 81-3313-080 pallet numbers to CSV" title="Export pallet numbers to CSV for printing"><i class="bi bi-printer" aria-hidden="true"></i></button>
+            <span id="sheet080Spinner" class="spinner-border spinner-border-sm text-white" role="status" aria-label="Loading"></span>
+          </span>
         </div>
-        <div class="card-body p-2">
-          <div id="chartUdcHourly" style="height:320px;"></div>
-          <div id="udcHourlyError" class="alert alert-warning m-2 d-none small"></div>
+        <div class="card-body d-flex flex-column justify-content-start">
+          <div class="text-center"><div class="display-4 fw-bold text-primary" id="sheet080Count">--</div><div class="text-muted small mt-2">980200 pallets</div></div>
+          <div id="sheet080List" class="list-group list-group-flush mt-3" style="max-height:260px; overflow-y:auto;"></div>
+          <div id="sheet080Error" class="alert alert-warning mt-3 d-none small"></div>
         </div>
-        <div class="card-footer text-muted" style="font-size:0.72rem;">
-          Source: warship.udc_hourly_ash &nbsp;·&nbsp;
-          Origin: ash123.azurewebsites.net/cfpwh/udcsort
-        </div>
+        <div class="card-footer text-muted" style="font-size:0.72rem;">Source: ash123.azurewebsites.net/cfpwh/cells/all_cells</div>
       </div>
     </div>
 
-    <!-- UDC History -->
     <div class="col-lg-3">
       <div class="card shadow-sm h-100">
-        <div class="card-header card-header-primary">
-          <i class="bi bi-graph-up me-2" aria-hidden="true"></i>UDC History
+        <div class="card-header card-header-primary d-flex align-items-center justify-content-between">
+          <span><i class="bi bi-file-earmark-spreadsheet me-2" aria-hidden="true"></i>Sheet  81-331-081</span>
+          <span class="d-flex align-items-center gap-2">
+            <button type="button" class="btn btn-sm btn-light py-0 px-2" onclick="exportPalletCsv('sheet081', 'sheet_81-331-081')" aria-label="Print / export Sheet 81-331-081 pallet numbers to CSV" title="Export pallet numbers to CSV for printing"><i class="bi bi-printer" aria-hidden="true"></i></button>
+            <span id="sheet081Spinner" class="spinner-border spinner-border-sm text-white" role="status" aria-label="Loading"></span>
+          </span>
         </div>
-        <div class="card-body">
-          <div class="row g-2 align-items-end mb-3">
-            <div class="col-sm-5">
-              <label for="udcStart" class="form-label form-label-sm fw-semibold mb-1">Start date</label>
-              <input type="date" id="udcStart" class="form-control form-control-sm"
-                     aria-label="UDC history start date">
-            </div>
-            <div class="col-sm-5">
-              <label for="udcEnd" class="form-label form-label-sm fw-semibold mb-1">End date</label>
-              <input type="date" id="udcEnd" class="form-control form-control-sm"
-                     aria-label="UDC history end date">
-            </div>
-            <div class="col-auto">
-              <button class="btn btn-primary btn-sm" onclick="loadUdcHistory()">
-                <span id="udcHistSpinner"
-                      class="spinner-border spinner-border-sm me-1 d-none"
-                      role="status" aria-hidden="true"></span>
-                <i class="bi bi-funnel me-1" id="udcHistIcon"></i>Apply
-              </button>
-            </div>
-          </div>
-          <div id="chartUdcHistory" style="height:260px;"></div>
-          <div id="udcHistError" class="alert alert-warning mt-2 d-none small"></div>
+        <div class="card-body d-flex flex-column justify-content-start">
+          <div class="text-center"><div class="display-4 fw-bold text-primary" id="sheet081Count">--</div><div class="text-muted small mt-2">980201 pallets</div></div>
+          <div id="sheet081List" class="list-group list-group-flush mt-3" style="max-height:260px; overflow-y:auto;"></div>
+          <div id="sheet081Error" class="alert alert-warning mt-3 d-none small"></div>
         </div>
-        <div class="card-footer text-muted" style="font-size:0.72rem;">
-          Source: warship.udc_ash &nbsp;·&nbsp;
-          Origin: ash123.azurewebsites.net/cfpwh/udcsort
-        </div>
+        <div class="card-footer text-muted" style="font-size:0.72rem;">Source: ash123.azurewebsites.net/cfpwh/cells/all_cells</div>
       </div>
     </div>
+  </div>
 
-  </div><!-- /row 1 -->
+  <!-- ── Row 2: UDC charts ─────────────────────────────────────────────────── -->
+  <div class="row g-4 mb-4">
+    <div class="col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header card-header-primary d-flex align-items-center justify-content-between"><span><i class="bi bi-clock-history me-2" aria-hidden="true"></i>Today Hourly UDC</span><span id="udcHourlySpinner" class="spinner-border spinner-border-sm text-white" role="status" aria-label="Loading"></span></div>
+        <div class="card-body p-2"><div id="chartUdcHourly" style="height:320px;"></div><div id="udcHourlyError" class="alert alert-warning m-2 d-none small"></div></div>
+        <div class="card-footer text-muted" style="font-size:0.72rem;">Source: warship.udc_hourly_ash &nbsp;·&nbsp; Origin: ash123.azurewebsites.net/cfpwh/udcsort</div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header card-header-primary"><i class="bi bi-graph-up me-2" aria-hidden="true"></i>UDC History</div>
+        <div class="card-body">
+          <div class="row g-2 align-items-end mb-3">
+            <div class="col-sm-5"><label for="udcStart" class="form-label form-label-sm fw-semibold mb-1">Start date</label><input type="date" id="udcStart" class="form-control form-control-sm" aria-label="UDC history start date"></div>
+            <div class="col-sm-5"><label for="udcEnd" class="form-label form-label-sm fw-semibold mb-1">End date</label><input type="date" id="udcEnd" class="form-control form-control-sm" aria-label="UDC history end date"></div>
+            <div class="col-auto"><button class="btn btn-primary btn-sm" onclick="loadUdcHistory()"><span id="udcHistSpinner" class="spinner-border spinner-border-sm me-1 d-none" role="status" aria-hidden="true"></span><i class="bi bi-funnel me-1" id="udcHistIcon"></i>Apply</button></div>
+          </div>
+          <div id="chartUdcHistory" style="height:260px;"></div><div id="udcHistError" class="alert alert-warning mt-2 d-none small"></div>
+        </div>
+        <div class="card-footer text-muted" style="font-size:0.72rem;">Source: warship.udc_ash &nbsp;·&nbsp; Origin: ash123.azurewebsites.net/cfpwh/udcsort</div>
+      </div>
+    </div>
+  </div>
 
-  <!-- ── Row 2: ASH Event Heatmap ──────────────────────────────────────────── -->
+  <!-- ── Row 3: ASH Event Heatmap ──────────────────────────────────────────── -->
   <div class="row g-4 mb-4">
     <div class="col-lg-12">
       <div class="card shadow-sm h-100">
-        <div class="card-header card-header-primary d-flex align-items-center justify-content-between">
-          <span><i class="bi bi-grid-3x3 me-2" aria-hidden="true"></i>ASH Event Heatmap</span>
-        </div>
+        <div class="card-header card-header-primary d-flex align-items-center justify-content-between"><span><i class="bi bi-grid-3x3 me-2" aria-hidden="true"></i>ASH Event Heatmap</span></div>
         <div class="card-body">
           <div class="row g-2 align-items-end mb-3">
-            <div class="col-sm-4 col-md-3">
-              <label for="ashStart" class="form-label form-label-sm fw-semibold mb-1">Start date</label>
-              <input type="date" id="ashStart" class="form-control form-control-sm"
-                     aria-label="ASH event start date">
-            </div>
-            <div class="col-sm-4 col-md-3">
-              <label for="ashEnd" class="form-label form-label-sm fw-semibold mb-1">End date</label>
-              <input type="date" id="ashEnd" class="form-control form-control-sm"
-                     aria-label="ASH event end date">
-            </div>
-            <div class="col-auto">
-              <button class="btn btn-primary btn-sm" onclick="loadAshHeatmap()">
-                <span id="ashSpinner"
-                      class="spinner-border spinner-border-sm me-1 d-none"
-                      role="status" aria-hidden="true"></span>
-                <i class="bi bi-funnel me-1" id="ashIcon"></i>Apply
-              </button>
-            </div>
+            <div class="col-sm-4 col-md-3"><label for="ashStart" class="form-label form-label-sm fw-semibold mb-1">Start date</label><input type="date" id="ashStart" class="form-control form-control-sm" aria-label="ASH event start date"></div>
+            <div class="col-sm-4 col-md-3"><label for="ashEnd" class="form-label form-label-sm fw-semibold mb-1">End date</label><input type="date" id="ashEnd" class="form-control form-control-sm" aria-label="ASH event end date"></div>
+            <div class="col-auto"><button class="btn btn-primary btn-sm" onclick="loadAshHeatmap()"><span id="ashSpinner" class="spinner-border spinner-border-sm me-1 d-none" role="status" aria-hidden="true"></span><i class="bi bi-funnel me-1" id="ashIcon"></i>Apply</button></div>
           </div>
-          <div id="chartAsh" style="min-height:400px;"></div>
-          <div id="ashError" class="alert alert-warning mt-2 d-none small"></div>
+          <div id="chartAsh" style="min-height:400px;"></div><div id="ashError" class="alert alert-warning mt-2 d-none small"></div>
         </div>
-        <div class="card-footer text-muted" style="font-size:0.72rem;">
-          Source: warship.event_ash &nbsp;·&nbsp;
-          Origin: ash123.azurewebsites.net/cfpwh/eventsort &nbsp;·&nbsp;
-          Note: approx. Nov 3 <em>Data Shift</em> occurred to clear abnormal, ended Nov 6, 2024.
-        </div>
+        <div class="card-footer text-muted" style="font-size:0.72rem;">Source: warship.event_ash &nbsp;·&nbsp; Origin: ash123.azurewebsites.net/cfpwh/eventsort &nbsp;·&nbsp; Note: approx. Nov 3 <em>Data Shift</em> occurred to clear abnormal, ended Nov 6, 2024.</div>
       </div>
     </div>
   </div>
@@ -325,7 +279,7 @@ async function loadUdcHistory() {
 /* ── 3. CFP pallet count by prefix ───────────────────────────────────────── */
 const _palletItemsCache = {};  // idSuffix -> last-loaded items array, used by exportPalletCsv()
 
-async function loadCfpPrefixPalletCount(prefix, idSuffix, label) {
+async function loadCfpPrefixPalletCount(prefix, idSuffix, label, endpoint = '/api/warehouse/cfp-prefix-pallet-count') {
   const spinner = document.getElementById(idSuffix + 'Spinner');
   const countEl = document.getElementById(idSuffix + 'Count');
   const listEl = document.getElementById(idSuffix + 'List');
@@ -335,7 +289,10 @@ async function loadCfpPrefixPalletCount(prefix, idSuffix, label) {
   listEl.innerHTML = '';
 
   try {
-    const resp = await fetch(`/api/warehouse/cfp-prefix-pallet-count?prefix=${prefix}`);
+    const url = endpoint === '/api/warehouse/cfp-prefix-pallet-count'
+      ? `${endpoint}?prefix=${prefix}`
+      : endpoint;
+    const resp = await fetch(url);
     const data = await resp.json();
     if (!resp.ok) throw new Error(data.error || resp.status);
 
@@ -379,6 +336,20 @@ function loadCfpPalletCount() {
 
 function loadColorScrapCount() {
   return loadCfpPrefixPalletCount('99', 'colorScrap', 'Color rolls scrap');
+}
+
+function loadSheet080Count() {
+  return loadCfpPrefixPalletCount(
+    '980200', 'sheet080', 'Sheet 81-3313-080',
+    '/api/warehouse/sheet-81-3313-080'
+  );
+}
+
+function loadSheet081Count() {
+  return loadCfpPrefixPalletCount(
+    '980201', 'sheet081', 'Sheet  81-331-081',
+    '/api/warehouse/sheet-81-331-081'
+  );
 }
 
 /* Export a pallet-count card's current pallet numbers to a downloadable CSV for printing */
@@ -515,6 +486,8 @@ document.addEventListener('DOMContentLoaded', () => {
   loadUdcHistory();
   loadCfpPalletCount();
   loadColorScrapCount();
+  loadSheet080Count();
+  loadSheet081Count();
   loadAshHeatmap();
 });
 </script>
