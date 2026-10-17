@@ -106,7 +106,7 @@
 
           <!-- Maintenance (dropdown) -->
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle {% if active_page in ['maintenance', 'frt_validation', 'freight_audit', 'freight_driver', 'shipment_size_impact', 'lmi', 'truck_load_map', 'shipping_status', 'not_in_xfcma', 'shipment_scan', 'sales_summary', 'closed_complaints', 'work_order_upload', 'saia_ltl'] %}active{% endif %}"
+            <a class="nav-link dropdown-toggle {% if active_page in ['maintenance', 'frt_validation', 'freight_audit', 'freight_driver', 'shipment_size_impact', 'lmi', 'truck_load_map', 'shipping_status', 'not_in_xfcma', 'in_cma_not_in_as400', 'shipment_scan', 'sales_summary', 'closed_complaints', 'work_order_upload', 'saia_ltl'] %}active{% endif %}"
                href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
               <i class="bi bi-tools me-1" aria-hidden="true"></i>Maintenance
             </a>
@@ -149,6 +149,11 @@
               <li>
                 <a class="dropdown-item {% if active_page == 'not_in_xfcma' %}active{% endif %}" href="/maintenance/not-in-xfcma">
                   <i class="bi bi-cloud-arrow-up me-2" aria-hidden="true"></i>Upload not in XFCMA
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item {% if active_page == 'in_cma_not_in_as400' %}active{% endif %}" href="/maintenance/in-cma-not-in-as400">
+                  <i class="bi bi-file-earmark-arrow-up me-2" aria-hidden="true"></i>In CMA not in AS400
                 </a>
               </li>
               <li>

@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}In CMA not in AS400{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="row mb-3">
+    <div class="col">
+      <h1 class="page-header">
+        <i class="bi bi-file-earmark-arrow-up me-2" aria-hidden="true"></i>In CMA not in AS400
+      </h1>
+      <p class="text-muted mb-0">Upload and store the original QPQUPRFIL PDF in MySQL.</p>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-5 col-md-7">
+      <div class="card shadow-sm">
+        <div class="card-header card-header-soft">
+          <h2 class="h5 mb-0">Save PDF to database</h2>
+        </div>
+        <div class="card-body">
+          <form id="pdfUploadForm">
+            <label for="pdfFile" class="form-label fw-semibold">Select PDF file</label>
+            <input
+              type="file"
+              class="form-control mb-3"
+              id="pdfFile"
+              accept=".pdf,application/pdf"
+              required
+            >
+            <button type="submit" class="btn btn-primary w-100" id="uploadBtn">
+              <i class="bi bi-cloud-upload me-2" aria-hidden="true"></i>Upload PDF
+            </button>
+          </form>
+          <p class="form-text mt-3 mb-0">
+            The original file is stored in MySQL. Its contents are not parsed.
+            Repeated uploads are kept as separate records.
+          </p>
+        </div>
+      </div>
+      <div id="resultBox" class="alert mt-3 d-none" role="status" aria-live="polite"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById('pdfUploadForm').addEventListener('submit', async (event) => {
+  event.preventDefault();
+
+  const fileInput = document.getElementById('pdfFile');
+  const button = document.getElementById('uploadBtn');
+  const resultBox = document.getElementById('resultBox');
+  const file = fileInput.files[0];
+
+  if (!file) {
+    resultBox.className = 'alert alert-warning mt-3';
+    resultBox.textContent = 'Please select a PDF file.';
+    resultBox.classList.remove('d-none');
+    return;
+  }
+
+  button.disabled = true;
+  button.innerHTML = '<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Uploading…';
+  resultBox.classList.add('d-none');
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  try {
+    const response = await fetch('/maintenance/api/in-cma-not-in-as400/upload', {
+      method: 'POST',
+      body: formData
+    });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.detail || `HTTP ${response.status}`);
+
+    resultBox.className = 'alert alert-success mt-3';
+    resultBox.textContent = `${payload.message} ${payload.filename} (${payload.size_bytes.toLocaleString()} bytes, record #${payload.id}).`;
+    fileInput.value = '';
+  } catch (error) {
+    resultBox.className = 'alert alert-danger mt-3';
+    resultBox.textContent = `Upload failed: ${error.message}`;
+  } finally {
+    button.disabled = false;
+    button.innerHTML = '<i class="bi bi-cloud-upload me-2" aria-hidden="true"></i>Upload PDF';
+    resultBox.classList.remove('d-none');
+  }
+});
+</script>
+{% endblock %}

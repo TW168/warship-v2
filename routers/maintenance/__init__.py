@@ -30,6 +30,7 @@ from . import (
     closed_complaints,
     freight_audit,
     freight_driver,
+    in_cma_not_in_as400,
     lmi,
     not_in_xfcma,
     saia_ltl,
@@ -50,6 +51,7 @@ router.include_router(freight_audit.router)
 router.include_router(closed_complaints.router)
 router.include_router(shipment_size_impact.router)
 router.include_router(freight_driver.router)
+router.include_router(in_cma_not_in_as400.router)
 router.include_router(lmi.router)
 router.include_router(truck_load_map.router)
 router.include_router(not_in_xfcma.router)
