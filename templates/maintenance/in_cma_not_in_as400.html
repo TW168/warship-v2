@@ -9,7 +9,7 @@
       <h1 class="page-header">
         <i class="bi bi-file-earmark-arrow-up me-2" aria-hidden="true"></i>In CMA not in AS400
       </h1>
-      <p class="text-muted mb-0">Upload and store the original QPQUPRFIL PDF in MySQL.</p>
+      <p class="text-muted mb-0">Extract the QPQUPRFIL report rows and save them to MySQL.</p>
     </div>
   </div>
 
@@ -17,11 +17,11 @@
     <div class="col-lg-5 col-md-7">
       <div class="card shadow-sm">
         <div class="card-header card-header-soft">
-          <h2 class="h5 mb-0">Save PDF to database</h2>
+          <h2 class="h5 mb-0">Import report rows</h2>
         </div>
         <div class="card-body">
           <form id="pdfUploadForm">
-            <label for="pdfFile" class="form-label fw-semibold">Select PDF file</label>
+            <label for="pdfFile" class="form-label fw-semibold">Select QPQUPRFIL report PDF</label>
             <input
               type="file"
               class="form-control mb-3"
@@ -30,12 +30,12 @@
               required
             >
             <button type="submit" class="btn btn-primary w-100" id="uploadBtn">
-              <i class="bi bi-cloud-upload me-2" aria-hidden="true"></i>Upload PDF
+              <i class="bi bi-cloud-upload me-2" aria-hidden="true"></i>Extract and save report rows
             </button>
           </form>
           <p class="form-text mt-3 mb-0">
-            The original file is stored in MySQL. Its contents are not parsed.
-            Repeated uploads are kept as separate records.
+            The report is extracted into structured rows. Uploading the same filename
+            again replaces rows previously imported from that filename.
           </p>
         </div>
       </div>
@@ -76,14 +76,14 @@ document.getElementById('pdfUploadForm').addEventListener('submit', async (event
     if (!response.ok) throw new Error(payload.detail || `HTTP ${response.status}`);
 
     resultBox.className = 'alert alert-success mt-3';
-    resultBox.textContent = `${payload.message} ${payload.filename} (${payload.size_bytes.toLocaleString()} bytes, record #${payload.id}).`;
+    resultBox.textContent = `${payload.message} ${payload.filename} (${payload.inserted_rows.toLocaleString()} rows, report time ${payload.report_datetime}).`;
     fileInput.value = '';
   } catch (error) {
     resultBox.className = 'alert alert-danger mt-3';
     resultBox.textContent = `Upload failed: ${error.message}`;
   } finally {
     button.disabled = false;
-    button.innerHTML = '<i class="bi bi-cloud-upload me-2" aria-hidden="true"></i>Upload PDF';
+    button.innerHTML = '<i class="bi bi-cloud-upload me-2" aria-hidden="true"></i>Extract and save report rows';
     resultBox.classList.remove('d-none');
   }
 });

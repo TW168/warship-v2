@@ -74,7 +74,7 @@ warship-v2/
 │   │   ├── lmi.py               # LMI document analysis via Ollama deepseek-r1:8b
 │   │   ├── truck_load_map.py    # Truck trailer load planning tool
 │   │   ├── not_in_xfcma.py      # Not-in-XFCMA PDF upload + CRUD
-│   │   ├── in_cma_not_in_as400.py # Original PDF upload to MySQL
+│   │   ├── in_cma_not_in_as400.py # In-CMA/not-in-AS400 report extraction and upload
 │   │   ├── shipment_scan.py     # Shipment scan Excel/CSV upload + management
 │   │   ├── sales_summary.py     # MKORSHDK daily sales summary PDF upload + list
 │   │   ├── work_order_upload.py # Production line XLSX upload (multi-sheet) into per-line MySQL tables
@@ -117,6 +117,7 @@ warship-v2/
 │   ├── db_serializer.py     # Shared SQLAlchemy → JSON serialization (serialize_row)
 │   ├── extract_lmi_scores.py
 │   ├── inas400_pdf_parser.py
+│   ├── cma_not_in_as400_parser.py
 │   ├── product_forecast.py
 │   └── product_trend_service.py
 ├── static/
@@ -231,8 +232,8 @@ logger = get_util_logger("pdf_parser")
 | Upload not in XFCMA | `GET /maintenance/not-in-xfcma` | Maintenance page for PDF upload with success/failure indication only. |
 | Upload not in XFCMA API | `GET/POST/PUT/DELETE /maintenance/api/not-in-xfcma...` | JSON CRUD endpoints for `not_in_xfcma` (`id`, `report_datetime`, `product_code`, `manu_order`, `item`, `pallet`, `location`, `rolls`, `length`, `weight`, `grade`, `last_in_date`, `created_at_utc`, `source_file`). List supports optional filters: `product_code`, `date_from`, `date_to`. |
 | Upload not in XFCMA PDF API | `POST /maintenance/api/not-in-xfcma/upload` | Multipart PDF upload endpoint. Parses QPQUPRFIL report rows and bulk inserts mapped records into `not_in_xfcma`; re-uploading the same filename replaces that file's prior rows. |
-| In CMA not in AS400 | `GET /maintenance/in-cma-not-in-as400` | Maintenance page for uploading the original QPQUPRFIL PDF to MySQL without parsing its contents. |
-| In CMA not in AS400 PDF API | `POST /maintenance/api/in-cma-not-in-as400/upload` | Multipart single-PDF upload. Stores filename, file size (bytes), original PDF bytes (`LONGBLOB`), and upload timestamp in `in_cma_not_in_as400_documents`; repeated uploads are retained as separate records. |
+| In CMA not in AS400 | `GET /maintenance/in-cma-not-in-as400` | Maintenance page for extracting the "Plt In XFCMA but not In AS400" fixed-width QPQUPRFIL PDF report and importing its rows to MySQL. |
+| In CMA not in AS400 PDF API | `POST /maintenance/api/in-cma-not-in-as400/upload` | Multipart single-PDF upload. Extracts report timestamp, both report dates, order/product/pallet and other report columns into `in_cma_not_in_as400`. Re-uploading a filename replaces its previously imported rows. |
 | SAIA LTL Freight Upload | `GET /maintenance/saia-ltl` | Maintenance page for uploading daily SAIA LTL "Load and Count Exception Report" PDFs and browsing parsed records. |
 | SAIA LTL Upload API | `POST /maintenance/api/shipping/saia-ltl/upload` | Multipart PDF upload. Parses program code, report date/time, pickup date/manifest, and line items (pro number, consignee, units, weight, OS&D exception) into `saia_ltl_freight` table (unique on `pro_number` — re-uploading the same report skips already-stored rows). Returns insert/skip counts. |
 | SAIA LTL List API | `GET /maintenance/api/shipping/saia-ltl` | JSON — lists `saia_ltl_freight` rows with pagination and optional filters (`report_date`, `consignee`). |
@@ -395,4 +396,4 @@ When completing any task, update CLAUDE.md if any of the following changed:
 - A new sub-page or feature area was built → add it to Project Structure
 
 ### Change Notes
-- 2026-10-17: Added the In CMA not in AS400 Maintenance PDF upload page and MySQL `LONGBLOB` storage. Reviewed the maintenance router, shared navigation, upload template/schema patterns, and existing QPQUPRFIL upload behavior. Open questions: none; uploads retain each PDF as a separate record and do not parse its contents.
+- 2026-10-17: Added the In CMA not in AS400 Maintenance page, fixed-column PDF extraction, and MySQL row import. Verified the supplied 4-page QPQUPRFIL report extracts 146 rows. Re-uploading a filename replaces its previous imported rows.
