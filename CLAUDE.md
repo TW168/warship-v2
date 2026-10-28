@@ -62,6 +62,7 @@ warship-v2/
 ├── routers/
 │   ├── health.py            # GET /health
 │   ├── home.py              # GET /, /meeting-report, /briefing
+│   ├── vision_learning.py   # Vision Learning page + transient image/video-frame barcode scan API
 │   ├── warehouse.py
 │   ├── shipping.py
 │   ├── tsr_prep.py
@@ -72,7 +73,6 @@ warship-v2/
 │   │   ├── freight_audit.py     # Freight ¢/lb audit (3 independent methods)
 │   │   ├── shipment_size_impact.py # Volume decomposition and shipment-size workload analysis
 │   │   ├── lmi.py               # LMI document analysis via Ollama deepseek-r1:8b
-│   │   ├── truck_load_map.py    # Truck trailer load planning tool
 │   │   ├── not_in_xfcma.py      # Not-in-XFCMA PDF upload + CRUD
 │   │   ├── in_cma_not_in_as400.py # In-CMA/not-in-AS400 report extraction and upload
 │   │   ├── shipment_scan.py     # Shipment scan Excel/CSV upload + management
@@ -91,6 +91,8 @@ warship-v2/
 │   └── about.py
 ├── templates/
 │   ├── base.html            # Top navbar, Bootstrap 5, Open Sans
+│   ├── vision_learning/
+│   │   └── index.html       # Image and sampled-video barcode scanning workspace
 │   ├── home/
 │   ├── warehouse/
 │   ├── shipping/
@@ -101,6 +103,7 @@ warship-v2/
 │   └── scrape_gas_prices.py # Cron job: scrape AAA gas prices → MySQL
 ├── schemas/                 # Pydantic request/response models (one file per domain)
 │   ├── health.py
+│   ├── vision_learning.py  # Barcode scan response models
 │   ├── closed_complaints.py
 │   ├── meeting_report.py
 │   ├── not_in_xfcma.py
@@ -195,6 +198,8 @@ logger = get_util_logger("pdf_parser")
 | Page | Route | Notes |
 |------|-------|-------|
 | Home | `GET /` | Opens with weather images + gas prices card + quick access nav |
+| Vision Learning | `GET /vision-learning` | Warehouse navigation page; picture barcode detection plus browser-local video preview with barcode scans sampled at 2 frames per second for videos up to 2 minutes. Matching still frames show decoder bounding boxes and timestamps. The video itself is not uploaded; sampled frames are sent to the barcode endpoint. |
+| Vision Learning Barcode Scan API | `POST /api/vision-learning/barcodes` | Multipart image upload (`file`, up to 10 MiB). Detects supported barcode symbologies with ZXing; returns `filename`, `barcode_count`, and `barcodes` (`value`, `symbology`, `x`, `y`, `width`, `height` in uploaded-image pixels). Retries missed images up to 4 megapixels at 2x, then scores and scans up to 120 overlapping candidate regions at 2x. If automatic scanning still misses, the page lets the user select and rescan a crop. Images/frames are processed for the request and not retained in application storage; invalid images return a client error and oversized uploads/dimensions are rejected. HTTP connections do not encrypt image uploads in transit. |
 | Gas Prices | `GET /api/gas-prices` | JSON — latest national avg gas prices from `gas_prices` table (scraped from AAA via cron at 7:30 AM) |
 | Gas Prices History | `GET /api/gas-prices/history` | JSON — full historical series from `gas_prices` (`id`, `fuel_type`, `price`, `scraped_at`) used by Home page multi-line trend chart (one line per fuel type). |
 | Meeting Report | `GET /meeting-report` | Sub-page of Home; filter form (site, product_group, date) |
@@ -210,8 +215,10 @@ logger = get_util_logger("pdf_parser")
 | Freight Lbs by Year | `GET /api/analytics/freight-lbs-by-year-mei` | JSON — monthly lbs from `frt_cost_breakdown_mei`; param: `site` (default SW) |
 | Unit Freight Cost John | `GET /api/analytics/unit-frt-cost-john` | JSON — all rows from `unit_frt_cost_john`: id, yyyy, mm, division, product, wt_lbs, freight |
 | Freight Cost by Plant | `GET /api/analytics/freight-cost-by-plant` | JSON — annual YTD freight cost ($) by plant (BP, SW, CT, YA, Total) for 2019–2026; reads Excel workbook `AMJK Frt cost breakdown by plants-26.02.03.xlsx` |
-| Warehouse | `GET /warehouse` | UDC hourly bar chart and UDC history line chart on row two; ASH event heatmap; and four CFP pallet-count cards on row one from the CFP cells source: "Reclaim Boxes in CMA" (pallet values starting with `910`), "Color Rolls Scrap in CMA" (pallet values starting with `99`), "Sheet 81-3313-080" (pallet values starting with `980200`), and "Sheet  81-331-081" (pallet values starting with `980201`) |
+| Warehouse | `GET /warehouse` | UDC hourly bar chart and UDC history line chart on row two; ASH event heatmap; and four CFP pallet-count cards on row one from the CFP cells source: "Reclaim Boxes in CMA" (pallet values starting with `910`), "Color Rolls Scrap in CMA" (pallet values starting with `99`), "Sheet 81-3313-080" (pallet values starting with `980200`), and "Sheet  81-331-081" (pallet values starting with `980201`). Each card's printer action downloads a filterable, numerically sorted Excel workbook. |
 | CFP pallet count API | `GET /api/warehouse/cfp-prefix-pallet-count` | Fetches the CFP cells HTML page, counts pallet values that start with the requested prefix (default `910`), and returns the total and pallet details. Powers the Reclaim Boxes and Color Rolls Scrap cards. |
+| Reclaim Boxes Excel Export | `GET /api/warehouse/reclaim-boxes/export.xlsx` | Downloads current `910`-prefix pallet data as a formatted Excel sheet with a title row, autofilter headers, frozen header rows, and ascending numeric pallet order. |
+| Warehouse CFP Excel Exports | `GET /api/warehouse/{export_key}/export.xlsx` | Downloads formatted, filterable, numerically sorted Excel workbooks for `color-rolls-scrap` (`99`), `sheet-81-3313-080` (`980200`), or `sheet-81-331-081` (`980201`). |
 | Sheet 81-3313-080 pallet API | `GET /api/warehouse/sheet-81-3313-080` | Fetches CFP cells and returns pallet values beginning with `980200`, including sequence, location, stacker, and cell details for the Warehouse sheet card. |
 | Sheet 81-331-081 pallet API | `GET /api/warehouse/sheet-81-331-081` | Fetches CFP cells and returns pallet values beginning with `980201`, including sequence, location, stacker, and cell details for the Warehouse sheet card. |
 | Shipping | `GET /shipping` | Filter bar (date range, site, product group) drives Carrier Cost Analysis card. Last section is a Truck Arrival Time Distribution smoothed distribution curve sourced from `shipment_scan`, driven by the filter bar's date range (`shipment_scan` has no site column, so the site/product-group filters don't apply to it — only `date_from`/`date_to`). |
@@ -232,7 +239,12 @@ logger = get_util_logger("pdf_parser")
 | Upload not in XFCMA | `GET /maintenance/not-in-xfcma` | Maintenance page for PDF upload with success/failure indication only. |
 | Upload not in XFCMA API | `GET/POST/PUT/DELETE /maintenance/api/not-in-xfcma...` | JSON CRUD endpoints for `not_in_xfcma` (`id`, `report_datetime`, `product_code`, `manu_order`, `item`, `pallet`, `location`, `rolls`, `length`, `weight`, `grade`, `last_in_date`, `created_at_utc`, `source_file`). List supports optional filters: `product_code`, `date_from`, `date_to`. |
 | Upload not in XFCMA PDF API | `POST /maintenance/api/not-in-xfcma/upload` | Multipart PDF upload endpoint. Parses QPQUPRFIL report rows and bulk inserts mapped records into `not_in_xfcma`; re-uploading the same filename replaces that file's prior rows. |
-| In CMA not in AS400 | `GET /maintenance/in-cma-not-in-as400` | Maintenance page for extracting the "Plt In XFCMA but not In AS400" fixed-width QPQUPRFIL PDF report and importing its rows to MySQL. |
+| Pallet in CMA not in AS400 | `GET /maintenance/in-cma-not-in-as400` | Maintenance upload page and snapshot dashboard, including a full-width historical line chart of all, regular, and special pallet counts from the earliest through latest loaded report date. Defaults to the latest `report_datetime` date; shows special-ID series, regular-only age/family, cell occupancy and over-capacity/mixed-order cells, stackers, order types/orders, and sortable/filterable regular/special pallet tables. |
+| XFCMA Summary API | `GET /api/xfcma/summary` | JSON — optional `report_date` (`YYYY-MM-DD`); groups one load snapshot into all/regular/special totals, all four special series, regular-only age/family, all-pallet stacker/order groups, occupancy, over-capacity cells, and mixed-order cells. Python performs grouping. |
+| XFCMA Report Dates API | `GET /api/xfcma/report-dates` | JSON — available report calendar dates derived from `report_datetime`, newest first, with latest load timestamp and row count per date. Powers the In CMA dashboard date selector; a successful upload refreshes the list and selects the uploaded report date. |
+| XFCMA Pallets API | `GET /api/xfcma/pallets` | JSON — required `group` (`regular` or `special`) and optional `report_date`; returns enriched pallet rows ordered by days on report descending. Pallet numbers remain text; report weight is not used. |
+| XFCMA Analysis Workbook | `GET /api/xfcma/analysis` | Excel download — required `report_date` (`YYYY-MM-DD`); produces `SWXFREP4_<date>_analysis.xlsx` with Summary, Data (regular), Special IDs, and Notes sheets. Each sheet prints the title "SWXFREP4, plt In XFCMA but not In AS400 list." in its page header and the actual print date in its footer. |
+| In CMA not in AS400 Legacy Summary API | `GET /maintenance/api/in-cma-not-in-as400/summary` | Compatibility JSON — returns legacy age/family shape, now limited to regular pallets from the latest report snapshot. |
 | In CMA not in AS400 PDF API | `POST /maintenance/api/in-cma-not-in-as400/upload` | Multipart single-PDF upload. Extracts report timestamp, both report dates, order/product/pallet and other report columns into `in_cma_not_in_as400`. Re-uploading a filename replaces its previously imported rows. |
 | SAIA LTL Freight Upload | `GET /maintenance/saia-ltl` | Maintenance page for uploading daily SAIA LTL "Load and Count Exception Report" PDFs and browsing parsed records. |
 | SAIA LTL Upload API | `POST /maintenance/api/shipping/saia-ltl/upload` | Multipart PDF upload. Parses program code, report date/time, pickup date/manifest, and line items (pro number, consignee, units, weight, OS&D exception) into `saia_ltl_freight` table (unique on `pro_number` — re-uploading the same report skips already-stored rows). Returns insert/skip counts. |
@@ -285,7 +297,6 @@ logger = get_util_logger("pdf_parser")
 | LMI Analyze | `POST /maintenance/lmi/analyze` | Streaming — sends one LMI document to Ollama `deepseek-r1:8b` and streams the analysis response (strips `<think>` blocks). |
 | LMI Briefing Analysis | `GET /maintenance/lmi/briefing-analysis` | Streaming — cross-month LMI trend analysis across all available documents via Ollama. |
 | Freight ¢/lb Validation | `GET /maintenance/frt-validation` | Freight ¢/lb by product code validation page — cross-checks unit freight calculations. |
-| Truck Load Map | `GET /maintenance/truck-load-map` | Interactive truck trailer load planning tool — drag-and-drop pallet placement with product dimensions from `Product_desc_size`. |
 | Silos Current Inventory | `GET /maintenance/api/silos/inventory-current` | JSON — latest silo inventory snapshot per vessel from `fact_silo_status`. |
 | Silos Daily Inventory Trend | `GET /maintenance/api/silos/inventory-daily` | JSON — daily inventory trend per vessel/contents; params: `days` (default 30), optional `vessel_id`. |
 | Silos Daily Consumption Delta | `GET /maintenance/api/silos/consumption-rate-daily` | JSON — one-day per-product Consumption Rate delta with derived consumed lbs (`max(0, -weight_delta)`); param: `snapshot_date` (`YYYY-MM-DD`). |
@@ -384,6 +395,9 @@ Managed via `pyproject.toml` / `uv.lock`:
 | `pdfplumber` | PDF text extraction for QPQUPRFIL not-in-XFCMA reports |
 | `httpx` | Async HTTP client — used for Ollama streaming LMI analysis |
 | `openai` | OpenAI SDK — available for future AI features |
+| `pillow` | Validates, orients, and decodes uploaded image files for barcode scanning |
+| `numpy` | Scores image regions to prioritize likely barcode areas for local scanning |
+| `zxing-cpp` | Local barcode detection across supported symbologies |
 
 ---
 
@@ -396,4 +410,10 @@ When completing any task, update CLAUDE.md if any of the following changed:
 - A new sub-page or feature area was built → add it to Project Structure
 
 ### Change Notes
+- 2026-10-22: Removed the Truck Load Map maintenance page, route registration, navigation entry, associated specification, and page assets.
+- 2026-10-22: Updated the XFCMA analysis workbook so each printed sheet includes the requested report title and a dynamic print date; the Notes sheet also displays the title.
+- 2026-10-21: Added the Vision Learning page and its first module, picture barcode detection. Images are limited to 10 MiB and 30 megapixels, decoded by the Warship server for the request, and not retained in application storage. Missed scans retry at 2x and then automatically scan up to 120 edge-ranked regions; interactive crop-and-rescan remains a fallback. Verified the provided second warehouse photo's label crop returns Code 128 value `0900187194`; the first photo did not decode in tested regions.
+- 2026-10-22: Added browser-local Vision Learning video scanning. The browser samples one frame every 0.5 seconds from videos up to 2 minutes, sends only those still frames to the existing barcode endpoint, and displays decoded values, timestamps, and marked example frames. Barcode responses now include bounding-box coordinates for annotations.
+- 2026-10-21: Updated the existing In CMA not in AS400 page with a loaded-report-date selector, regular/special snapshot analytics, cell capacity checks, and pallet detail tabs; added root-level `/api/xfcma` summary, report-dates, pallet-detail, and formatted Excel-analysis download routes using the verified live table columns.
+- 2026-10-17: Added In CMA not in AS400 pallet summary cards and API, grouped by age as of today and by the first three product-code characters across all uploaded reports.
 - 2026-10-17: Added the In CMA not in AS400 Maintenance page, fixed-column PDF extraction, and MySQL row import. Verified the supplied 4-page QPQUPRFIL report extracts 146 rows. Re-uploading a filename replaces its previous imported rows.

@@ -12,7 +12,6 @@ Freight Audit           →  freight_audit.py
 Closed Complaints       →  closed_complaints.py
 Shipment Size Impact    →  shipment_size_impact.py
 LMI Document Analysis   →  lmi.py
-Truck Load Map          →  truck_load_map.py
 Not-in-XFCMA           →  not_in_xfcma.py
 Shipment Scan          →  shipment_scan.py
 Sales Summary          →  sales_summary.py
@@ -38,7 +37,6 @@ from . import (
     shipment_scan,
     shipment_size_impact,
     shipping_status,
-    truck_load_map,
     work_order_upload,
 )
 from .silos import router as _silos_router
@@ -53,7 +51,6 @@ router.include_router(shipment_size_impact.router)
 router.include_router(freight_driver.router)
 router.include_router(in_cma_not_in_as400.router)
 router.include_router(lmi.router)
-router.include_router(truck_load_map.router)
 router.include_router(not_in_xfcma.router)
 router.include_router(shipment_scan.router)
 router.include_router(sales_summary.router)

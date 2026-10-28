@@ -20,7 +20,7 @@ Maintain a single source of truth FAQ organized by user role (Warehouse Operator
 - Full FAQ refresh is needed across all roles.
 
 ## Required Inputs
-- **Single workflow:** Target page/feature name (e.g., "Meeting Report", "Truck Load Map", "Carrier Cost Analysis")
+- **Single workflow:** Target page/feature name (e.g., "Meeting Report", "Carrier Cost Analysis")
 - **Full refresh:** Request "regenerate all FAQs" or "full FAQ refresh"
 - **Error pattern:** Describe the confusion or issue (e.g., "users don't understand ¢/lb calculation")
 
@@ -60,7 +60,7 @@ For each page/feature, ask:
 ### Phase 4: Organize by Role
 Assign each FAQ to user roles who need it (can be multiple):
 - Warehouse Operators: UDC, ASH, pallet entry/exit, event heatmaps
-- Shipping Coordinators: Meeting reports, TSR prep, truck load map, carrier analysis
+- Shipping Coordinators: Meeting reports, TSR prep, carrier analysis
 - Operations Managers: Briefing, freight analytics, weight trends, LMI
 - Administrators: Architecture, Excel upload, data refresh, maintenance pages
 

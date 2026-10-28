@@ -1,0 +1,659 @@
+{% extends "base.html" %}
+
+{% block title %}Vision Learning{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <header class="mb-4">
+    <h1 class="page-header h3 mb-1">
+      <i class="bi bi-eye me-2" aria-hidden="true"></i>Vision Learning
+    </h1>
+    <p class="text-muted mb-0">Scan barcode labels from pictures or sampled video frames, with decoded values and marked locations.</p>
+  </header>
+
+  <div class="row g-4">
+    <div class="col-12 col-xl-5">
+      <section class="card shadow-sm h-100" aria-labelledby="barcodeScanHeading">
+        <div class="card-header card-header-primary">
+          <h2 class="h5 mb-0" id="barcodeScanHeading">
+            <i class="bi bi-upc-scan me-2" aria-hidden="true"></i>Module 1: Find a barcode in a picture
+          </h2>
+        </div>
+        <div class="card-body">
+          <p class="text-muted">Upload a picture and the server will scan it for barcodes. The app does not retain uploaded pictures. If you access Warship over HTTP, uploads are not encrypted in transit.</p>
+          <div class="mb-3">
+            <label for="barcodeImage" class="form-label">Choose a picture</label>
+            <input
+              type="file"
+              id="barcodeImage"
+              class="form-control"
+              accept="image/*"
+              aria-describedby="barcodeImageHelp"
+            >
+            <div id="barcodeImageHelp" class="form-text">JPEG, PNG, WebP, BMP, TIFF, or GIF. Maximum 10 MB.</div>
+          </div>
+          <div class="d-flex gap-2">
+            <button type="button" id="scanBarcodeButton" class="btn btn-primary" disabled>
+              <i class="bi bi-search me-1" aria-hidden="true"></i>Find barcode
+            </button>
+            <button type="button" id="clearBarcodeButton" class="btn btn-outline-secondary" disabled>
+              Clear
+            </button>
+          </div>
+          <div id="barcodeScanStatus" class="mt-3" role="status" aria-live="polite"></div>
+        </div>
+      </section>
+    </div>
+
+    <div class="col-12 col-xl-7">
+      <section class="card shadow-sm h-100" aria-labelledby="picturePreviewHeading">
+        <div class="card-header card-header-soft">
+          <h2 class="h5 mb-0" id="picturePreviewHeading">Picture preview</h2>
+        </div>
+        <div class="card-body d-flex align-items-center justify-content-center">
+          <div id="picturePreviewPlaceholder" class="text-center text-muted py-5">
+            <i class="bi bi-image fs-1 d-block mb-2" aria-hidden="true"></i>
+            Select a picture to preview it here.
+          </div>
+          <img id="picturePreview" class="img-fluid rounded d-none" alt="Preview of the selected barcode image">
+        </div>
+      </section>
+    </div>
+
+    <div class="col-12 d-none" id="barcodeCropPanel">
+      <section class="card shadow-sm" aria-labelledby="barcodeCropHeading">
+        <div class="card-header card-header-soft">
+          <h2 class="h5 mb-0" id="barcodeCropHeading">Select the barcode area</h2>
+        </div>
+        <div class="card-body">
+          <p class="text-muted">Automatic scanning could not decode a barcode in the full picture. Drag a box around one barcode label and scan that area as a fallback.</p>
+          <div class="text-center">
+            <canvas id="barcodeCropCanvas" class="img-fluid border rounded" style="touch-action: none; cursor: crosshair;" aria-label="Drag on the picture to select one barcode area"></canvas>
+          </div>
+          <button type="button" id="scanCropButton" class="btn btn-primary mt-3" disabled>
+            <i class="bi bi-crop me-1" aria-hidden="true"></i>Scan selected area
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <div class="col-12">
+      <section class="card shadow-sm" aria-labelledby="barcodeResultsHeading">
+        <div class="card-header card-header-soft d-flex justify-content-between align-items-center">
+          <h2 class="h5 mb-0" id="barcodeResultsHeading">Detected barcodes</h2>
+          <span id="barcodeResultCount" class="badge text-bg-primary d-none"></span>
+        </div>
+        <div class="card-body">
+          <div id="barcodeResultsPlaceholder" class="text-muted">Upload a picture and choose “Find barcode” to see results.</div>
+          <div id="barcodeResults" class="d-none"></div>
+        </div>
+      </section>
+    </div>
+
+    <div class="col-12">
+      <section class="card shadow-sm" aria-labelledby="videoScanHeading">
+        <div class="card-header card-header-primary">
+          <h2 class="h5 mb-0" id="videoScanHeading">
+            <i class="bi bi-camera-video me-2" aria-hidden="true"></i>Scan a video for barcodes
+          </h2>
+        </div>
+        <div class="card-body">
+          <p class="text-muted">
+            The browser reads the video locally and sends one frame every half second to the barcode scanner.
+            The video file itself is not uploaded or stored. Detected barcode areas are marked on example frames.
+            Video is limited to 2 minutes; supported formats depend on your browser.
+          </p>
+          <div class="row g-3 align-items-end">
+            <div class="col-12 col-lg-8">
+              <label for="barcodeVideo" class="form-label">Choose a video</label>
+              <input
+                type="file"
+                id="barcodeVideo"
+                class="form-control"
+                accept="video/*"
+                aria-describedby="barcodeVideoHelp"
+              >
+              <div id="barcodeVideoHelp" class="form-text">Frames are sent to the server for barcode decoding. HTTP connections do not encrypt them in transit.</div>
+            </div>
+            <div class="col-12 col-lg-4 d-flex gap-2">
+              <button type="button" id="scanVideoButton" class="btn btn-primary" disabled>
+                <i class="bi bi-search me-1" aria-hidden="true"></i>Scan video
+              </button>
+              <button type="button" id="clearVideoButton" class="btn btn-outline-secondary" disabled>Clear</button>
+            </div>
+          </div>
+          <video id="barcodeVideoPreview" class="d-none w-100 rounded mt-3" controls muted playsinline aria-label="Selected video preview"></video>
+          <div id="videoScanStatus" class="mt-3" role="status" aria-live="polite"></div>
+          <div id="videoResultsPlaceholder" class="text-muted mt-3">Choose a video to scan barcode frames.</div>
+          <div id="videoResults" class="row g-3 mt-1 d-none"></div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(() => {
+  const imageInput = document.getElementById('barcodeImage');
+  const scanButton = document.getElementById('scanBarcodeButton');
+  const clearButton = document.getElementById('clearBarcodeButton');
+  const status = document.getElementById('barcodeScanStatus');
+  const preview = document.getElementById('picturePreview');
+  const previewPlaceholder = document.getElementById('picturePreviewPlaceholder');
+  const results = document.getElementById('barcodeResults');
+  const resultsPlaceholder = document.getElementById('barcodeResultsPlaceholder');
+  const resultCount = document.getElementById('barcodeResultCount');
+  const cropPanel = document.getElementById('barcodeCropPanel');
+  const cropCanvas = document.getElementById('barcodeCropCanvas');
+  const cropContext = cropCanvas.getContext('2d');
+  const scanCropButton = document.getElementById('scanCropButton');
+  const videoInput = document.getElementById('barcodeVideo');
+  const scanVideoButton = document.getElementById('scanVideoButton');
+  const clearVideoButton = document.getElementById('clearVideoButton');
+  const videoPreview = document.getElementById('barcodeVideoPreview');
+  const videoStatus = document.getElementById('videoScanStatus');
+  const videoResults = document.getElementById('videoResults');
+  const videoResultsPlaceholder = document.getElementById('videoResultsPlaceholder');
+  let previewUrl = null;
+  let videoPreviewUrl = null;
+  let sourceBitmap = null;
+  let selection = null;
+  let pointerStart = null;
+  let scanInProgress = false;
+  let videoScanInProgress = false;
+  let videoDuration = null;
+
+  const VIDEO_SAMPLE_INTERVAL = 0.5;
+  const MAX_VIDEO_DURATION_SECONDS = 120;
+
+  function clearResults() {
+    results.replaceChildren();
+    results.classList.add('d-none');
+    resultsPlaceholder.classList.remove('d-none');
+    resultsPlaceholder.textContent = 'Upload a picture and choose “Find barcode” to see results.';
+    resultCount.classList.add('d-none');
+  }
+
+  function clearSelection() {
+    imageInput.value = '';
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    previewUrl = null;
+    preview.removeAttribute('src');
+    preview.classList.add('d-none');
+    previewPlaceholder.classList.remove('d-none');
+    if (sourceBitmap) sourceBitmap.close();
+    sourceBitmap = null;
+    selection = null;
+    pointerStart = null;
+    cropPanel.classList.add('d-none');
+    scanCropButton.disabled = true;
+    scanButton.disabled = true;
+    clearButton.disabled = true;
+    status.replaceChildren();
+    clearResults();
+  }
+
+  imageInput.addEventListener('change', () => {
+    if (sourceBitmap) sourceBitmap.close();
+    sourceBitmap = null;
+    selection = null;
+    cropPanel.classList.add('d-none');
+    scanCropButton.disabled = true;
+    clearResults();
+    status.replaceChildren();
+    const file = imageInput.files[0];
+    scanButton.disabled = !file;
+    clearButton.disabled = !file;
+    if (!file) {
+      clearSelection();
+      return;
+    }
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    previewUrl = URL.createObjectURL(file);
+    preview.src = previewUrl;
+    preview.classList.remove('d-none');
+    previewPlaceholder.classList.add('d-none');
+    createImageBitmap(file).then((bitmap) => {
+      if (imageInput.files[0] !== file) {
+        bitmap.close();
+        return;
+      }
+      sourceBitmap = bitmap;
+      const scale = Math.min(1, 1800 / Math.max(bitmap.width, bitmap.height));
+      cropCanvas.width = Math.round(bitmap.width * scale);
+      cropCanvas.height = Math.round(bitmap.height * scale);
+      cropContext.drawImage(bitmap, 0, 0, cropCanvas.width, cropCanvas.height);
+    }).catch(() => {
+      showStatus('This picture could not be opened for crop selection.', 'danger');
+    });
+  });
+
+  clearButton.addEventListener('click', clearSelection);
+
+  function canvasPoint(event) {
+    const rect = cropCanvas.getBoundingClientRect();
+    return {
+      x: Math.max(0, Math.min(cropCanvas.width, (event.clientX - rect.left) * cropCanvas.width / rect.width)),
+      y: Math.max(0, Math.min(cropCanvas.height, (event.clientY - rect.top) * cropCanvas.height / rect.height))
+    };
+  }
+
+  function redrawCropCanvas() {
+    if (!sourceBitmap) return;
+    cropContext.clearRect(0, 0, cropCanvas.width, cropCanvas.height);
+    cropContext.drawImage(sourceBitmap, 0, 0, cropCanvas.width, cropCanvas.height);
+    if (!selection) return;
+    cropContext.fillStyle = 'rgba(21, 78, 154, 0.22)';
+    cropContext.strokeStyle = '#154e9a';
+    cropContext.lineWidth = Math.max(3, cropCanvas.width / 500);
+    cropContext.fillRect(selection.x, selection.y, selection.width, selection.height);
+    cropContext.strokeRect(selection.x, selection.y, selection.width, selection.height);
+  }
+
+  cropCanvas.addEventListener('pointerdown', (event) => {
+    if (!sourceBitmap || scanInProgress) return;
+    cropCanvas.setPointerCapture(event.pointerId);
+    pointerStart = canvasPoint(event);
+    selection = { x: pointerStart.x, y: pointerStart.y, width: 0, height: 0 };
+    redrawCropCanvas();
+  });
+
+  cropCanvas.addEventListener('pointermove', (event) => {
+    if (!pointerStart) return;
+    const point = canvasPoint(event);
+    selection = {
+      x: Math.min(pointerStart.x, point.x),
+      y: Math.min(pointerStart.y, point.y),
+      width: Math.abs(point.x - pointerStart.x),
+      height: Math.abs(point.y - pointerStart.y)
+    };
+    redrawCropCanvas();
+  });
+
+  cropCanvas.addEventListener('pointerup', () => {
+    pointerStart = null;
+    scanCropButton.disabled = !selection || selection.width < 12 || selection.height < 12;
+  });
+
+  async function scanImage(file, isCrop) {
+    if (!file || scanInProgress) return;
+    const formData = new FormData();
+    formData.append('file', file, file.name || (isCrop ? 'barcode-crop.png' : 'uploaded-image'));
+    scanButton.disabled = true;
+    clearButton.disabled = true;
+    scanCropButton.disabled = true;
+    imageInput.disabled = true;
+    scanInProgress = true;
+    const activeButton = isCrop ? scanCropButton : scanButton;
+    const originalButtonText = activeButton.innerHTML;
+    activeButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Scanning…';
+    status.replaceChildren();
+    clearResults();
+
+    try {
+      const response = await fetch('/api/vision-learning/barcodes', {
+        method: 'POST',
+        body: formData
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.detail || `Scan failed (${response.status})`);
+      renderResults(payload);
+      if (payload.barcode_count) {
+        cropPanel.classList.add('d-none');
+        showStatus(`Found ${payload.barcode_count} barcode${payload.barcode_count === 1 ? '' : 's'}.`, 'success');
+      } else {
+        cropPanel.classList.remove('d-none');
+        showStatus(
+          isCrop
+            ? 'No barcode found in that selection. Try a tighter crop around the bars or a closer picture.'
+            : 'No barcode was decoded automatically. Select one barcode area below to try a focused scan.',
+          'info'
+        );
+      }
+    } catch (error) {
+      showStatus(error.message || 'Barcode scan failed.', 'danger');
+    } finally {
+      scanInProgress = false;
+      imageInput.disabled = false;
+      scanButton.disabled = !imageInput.files.length;
+      clearButton.disabled = !imageInput.files.length;
+      scanCropButton.disabled = !selection || selection.width < 12 || selection.height < 12;
+      activeButton.innerHTML = originalButtonText;
+    }
+  }
+
+  scanButton.addEventListener('click', () => scanImage(imageInput.files[0], false));
+
+  scanCropButton.addEventListener('click', async () => {
+    if (!sourceBitmap || !selection) return;
+    const scaleX = sourceBitmap.width / cropCanvas.width;
+    const scaleY = sourceBitmap.height / cropCanvas.height;
+    const sourceRect = {
+      x: Math.round(selection.x * scaleX),
+      y: Math.round(selection.y * scaleY),
+      width: Math.round(selection.width * scaleX),
+      height: Math.round(selection.height * scaleY)
+    };
+    const crop = document.createElement('canvas');
+    crop.width = sourceRect.width;
+    crop.height = sourceRect.height;
+    crop.getContext('2d').drawImage(
+      sourceBitmap,
+      sourceRect.x,
+      sourceRect.y,
+      sourceRect.width,
+      sourceRect.height,
+      0,
+      0,
+      crop.width,
+      crop.height
+    );
+    const blob = await new Promise((resolve) => crop.toBlob(resolve, 'image/jpeg', 0.92));
+    if (!blob) {
+      showStatus('Could not prepare the selected crop. Please try again.', 'danger');
+      return;
+    }
+    if (blob.size > 10 * 1024 * 1024) {
+      showStatus('The selected area is still too large. Select a tighter barcode crop and try again.', 'warning');
+      return;
+    }
+    await scanImage(new File([blob], 'barcode-crop.jpg', { type: 'image/jpeg' }), true);
+  });
+
+  function showStatus(message, type) {
+    const notice = document.createElement('div');
+    notice.className = `alert alert-${type} mb-0`;
+    notice.textContent = message;
+    status.replaceChildren(notice);
+  }
+
+  function renderResults(payload) {
+    resultsPlaceholder.classList.add('d-none');
+    results.replaceChildren();
+    resultCount.textContent = `${payload.barcode_count} found`;
+    resultCount.classList.remove('d-none');
+    if (!payload.barcodes.length) {
+      const message = document.createElement('p');
+      message.className = 'text-muted mb-0';
+      message.textContent = 'No barcode was detected in this picture.';
+      results.append(message);
+      results.classList.remove('d-none');
+      return;
+    }
+
+    const table = document.createElement('table');
+    table.className = 'table table-striped table-hover table-sm mb-0';
+    table.innerHTML = '<thead><tr><th scope="col">#</th><th scope="col">Barcode type</th><th scope="col">Value</th></tr></thead>';
+    const body = document.createElement('tbody');
+    payload.barcodes.forEach((barcode, index) => {
+      const row = document.createElement('tr');
+      row.insertCell().textContent = String(index + 1);
+      row.insertCell().textContent = barcode.symbology;
+      row.insertCell().textContent = barcode.value;
+      body.append(row);
+    });
+    table.append(body);
+    const wrapper = document.createElement('div');
+    wrapper.className = 'table-responsive';
+    wrapper.append(table);
+    results.append(wrapper);
+    results.classList.remove('d-none');
+  }
+
+  function clearVideoResults() {
+    videoResults.replaceChildren();
+    videoResults.classList.add('d-none');
+    videoResultsPlaceholder.classList.remove('d-none');
+    videoResultsPlaceholder.textContent = 'Choose a video to scan barcode frames.';
+  }
+
+  function clearVideoSelection() {
+    videoInput.value = '';
+    if (videoPreviewUrl) URL.revokeObjectURL(videoPreviewUrl);
+    videoPreviewUrl = null;
+    videoPreview.pause();
+    videoPreview.removeAttribute('src');
+    videoPreview.load();
+    videoPreview.classList.add('d-none');
+    videoDuration = null;
+    scanVideoButton.disabled = true;
+    clearVideoButton.disabled = true;
+    videoStatus.replaceChildren();
+    clearVideoResults();
+  }
+
+  function videoTimeLabel(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    const remainder = (seconds % 60).toFixed(1).padStart(4, '0');
+    return `${minutes}:${remainder}`;
+  }
+
+  function seekVideo(time) {
+    return new Promise((resolve, reject) => {
+      const onSeeked = () => {
+        videoPreview.removeEventListener('error', onError);
+        resolve();
+      };
+      const onError = () => {
+        videoPreview.removeEventListener('seeked', onSeeked);
+        reject(new Error('The browser could not read a frame from this video.'));
+      };
+      videoPreview.addEventListener('seeked', onSeeked, { once: true });
+      videoPreview.addEventListener('error', onError, { once: true });
+      videoPreview.currentTime = time;
+      if (Math.abs(videoPreview.currentTime - time) < 0.001 && !videoPreview.seeking) {
+        videoPreview.removeEventListener('seeked', onSeeked);
+        videoPreview.removeEventListener('error', onError);
+        resolve();
+      }
+    });
+  }
+
+  function waitForVideoFrame() {
+    if (videoPreview.readyState >= 2) return Promise.resolve();
+    return new Promise((resolve, reject) => {
+      const onLoaded = () => {
+        videoPreview.removeEventListener('error', onError);
+        resolve();
+      };
+      const onError = () => {
+        videoPreview.removeEventListener('loadeddata', onLoaded);
+        reject(new Error('The browser could not decode this video.'));
+      };
+      videoPreview.addEventListener('loadeddata', onLoaded, { once: true });
+      videoPreview.addEventListener('error', onError, { once: true });
+    });
+  }
+
+  function captureVideoFrame(canvas) {
+    return new Promise((resolve, reject) => {
+      canvas.toBlob((blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error('The browser could not prepare a video frame for scanning.'));
+      }, 'image/jpeg', 0.92);
+    });
+  }
+
+  function drawBarcodeMarker(context, barcode, scaleX, scaleY) {
+    const x = barcode.x * scaleX;
+    const y = barcode.y * scaleY;
+    const width = barcode.width * scaleX;
+    const height = barcode.height * scaleY;
+    context.save();
+    context.strokeStyle = '#dc3545';
+    context.lineWidth = Math.max(3, context.canvas.width / 500);
+    context.strokeRect(x, y, width, height);
+    context.fillStyle = '#dc3545';
+    context.font = `bold ${Math.max(16, context.canvas.width / 70)}px sans-serif`;
+    context.fillText(barcode.value, x, Math.max(20, y - 6));
+    context.restore();
+  }
+
+  function renderVideoMatches(matches, sampledFrames) {
+    videoResults.replaceChildren();
+    videoResultsPlaceholder.classList.add('d-none');
+    if (!matches.size) {
+      videoResultsPlaceholder.textContent = `No barcodes found in ${sampledFrames} sampled frames. Try a closer, steadier video with less glare.`;
+      videoResultsPlaceholder.classList.remove('d-none');
+      return;
+    }
+
+    for (const match of matches.values()) {
+      const column = document.createElement('div');
+      column.className = 'col-12 col-md-6 col-xl-4';
+      const card = document.createElement('article');
+      card.className = 'card h-100 shadow-sm';
+      const image = document.createElement('img');
+      image.className = 'card-img-top';
+      image.src = match.image;
+      image.alt = `Video frame at ${match.times[0]} with barcode ${match.value} marked`;
+      const body = document.createElement('div');
+      body.className = 'card-body';
+      const title = document.createElement('h3');
+      title.className = 'h6';
+      title.textContent = `${match.value} (${match.symbology})`;
+      const timeText = document.createElement('p');
+      timeText.className = 'small text-muted mb-0';
+      timeText.textContent = `Found at: ${match.times.join(', ')}`;
+      body.append(title, timeText);
+      card.append(image, body);
+      column.append(card);
+      videoResults.append(column);
+    }
+    videoResults.classList.remove('d-none');
+  }
+
+  videoInput.addEventListener('change', () => {
+    if (videoPreviewUrl) URL.revokeObjectURL(videoPreviewUrl);
+    videoPreviewUrl = null;
+    videoDuration = null;
+    clearVideoResults();
+    videoStatus.replaceChildren();
+    const file = videoInput.files[0];
+    scanVideoButton.disabled = !file;
+    clearVideoButton.disabled = !file;
+    if (!file) {
+      clearVideoSelection();
+      return;
+    }
+    videoPreviewUrl = URL.createObjectURL(file);
+    videoPreview.src = videoPreviewUrl;
+    videoPreview.classList.remove('d-none');
+    videoPreview.addEventListener('loadedmetadata', () => {
+      videoDuration = videoPreview.duration;
+      if (!Number.isFinite(videoDuration) || videoDuration <= 0) {
+        scanVideoButton.disabled = true;
+        showVideoStatus('The browser could not determine this video’s duration.', 'danger');
+      } else if (videoDuration > MAX_VIDEO_DURATION_SECONDS) {
+        scanVideoButton.disabled = true;
+        showVideoStatus('Videos must be 2 minutes or shorter. Trim the clip and select it again.', 'warning');
+      }
+    }, { once: true });
+    videoPreview.addEventListener('error', () => {
+      scanVideoButton.disabled = true;
+      showVideoStatus('This video format or codec is not supported by the browser. Try an MP4 or WebM video.', 'danger');
+    }, { once: true });
+    videoPreview.load();
+  });
+
+  clearVideoButton.addEventListener('click', clearVideoSelection);
+
+  function showVideoStatus(message, type) {
+    const notice = document.createElement('div');
+    notice.className = `alert alert-${type} mb-0`;
+    notice.textContent = message;
+    videoStatus.replaceChildren(notice);
+  }
+
+  scanVideoButton.addEventListener('click', async () => {
+    if (videoScanInProgress || !videoInput.files[0] || !videoDuration) return;
+    const frameCanvas = document.createElement('canvas');
+    const context = frameCanvas.getContext('2d');
+    if (!context) {
+      showVideoStatus('The browser could not create a canvas for video scanning.', 'danger');
+      return;
+    }
+    const frameScale = Math.min(
+      1,
+      Math.sqrt(30000000 / (videoPreview.videoWidth * videoPreview.videoHeight))
+    );
+    frameCanvas.width = Math.max(1, Math.round(videoPreview.videoWidth * frameScale));
+    frameCanvas.height = Math.max(1, Math.round(videoPreview.videoHeight * frameScale));
+    const totalFrames = Math.ceil(videoDuration / VIDEO_SAMPLE_INTERVAL);
+    const matches = new Map();
+    let scannedFrames = 0;
+    videoScanInProgress = true;
+    scanVideoButton.disabled = true;
+    clearVideoButton.disabled = true;
+    videoInput.disabled = true;
+    const originalButtonText = scanVideoButton.innerHTML;
+
+    try {
+      await waitForVideoFrame();
+      for (let frameIndex = 0, time = 0; time < videoDuration; frameIndex += 1, time += VIDEO_SAMPLE_INTERVAL) {
+        await seekVideo(time);
+        context.drawImage(videoPreview, 0, 0, frameCanvas.width, frameCanvas.height);
+        const blob = await captureVideoFrame(frameCanvas);
+        if (blob.size > 10 * 1024 * 1024) {
+          throw new Error('A video frame exceeds the 10 MB image scan limit.');
+        }
+        const formData = new FormData();
+        formData.append('file', blob, `video-frame-${frameIndex}.jpg`);
+        const response = await fetch('/api/vision-learning/barcodes', { method: 'POST', body: formData });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.detail || `Frame scan failed (${response.status})`);
+
+        for (const barcode of payload.barcodes) {
+          const key = `${barcode.symbology}\u0000${barcode.value}`;
+          const match = matches.get(key) || {
+            value: barcode.value,
+            symbology: barcode.symbology,
+            times: [],
+            image: null
+          };
+          const label = videoTimeLabel(time);
+          if (!match.times.includes(label)) match.times.push(label);
+          if (!match.image) {
+            drawBarcodeMarker(context, barcode, 1, 1);
+            match.image = frameCanvas.toDataURL('image/jpeg', 0.9);
+            context.drawImage(videoPreview, 0, 0, frameCanvas.width, frameCanvas.height);
+          }
+          matches.set(key, match);
+        }
+        scannedFrames = frameIndex + 1;
+        showVideoStatus(`Scanning frame ${frameIndex + 1} of ${totalFrames} (${videoTimeLabel(time)}).`, 'info');
+      }
+      renderVideoMatches(matches, totalFrames);
+      showVideoStatus(
+        matches.size
+          ? `Finished scanning ${totalFrames} frames. Found ${matches.size} unique barcode${matches.size === 1 ? '' : 's'}.`
+          : `Finished scanning ${totalFrames} frames. No barcodes were decoded.`,
+        matches.size ? 'success' : 'info'
+      );
+    } catch (error) {
+      if (matches.size) renderVideoMatches(matches, scannedFrames);
+      const partialResultMessage = matches.size
+        ? ` Partial results from ${scannedFrames} scanned frames are shown below.`
+        : '';
+      showVideoStatus(`${error.message || 'Video barcode scan failed.'}${partialResultMessage}`, 'danger');
+    } finally {
+      videoScanInProgress = false;
+      scanVideoButton.disabled = !videoInput.files.length || !videoDuration || videoDuration > MAX_VIDEO_DURATION_SECONDS;
+      clearVideoButton.disabled = !videoInput.files.length;
+      videoInput.disabled = false;
+      scanVideoButton.innerHTML = originalButtonText;
+      frameCanvas.width = 0;
+      frameCanvas.height = 0;
+    }
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    if (videoPreviewUrl) URL.revokeObjectURL(videoPreviewUrl);
+    if (sourceBitmap) sourceBitmap.close();
+  });
+})();
+</script>
+{% endblock %}

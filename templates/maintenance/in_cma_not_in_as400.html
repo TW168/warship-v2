@@ -1,91 +1,503 @@
 {% extends "base.html" %}
 
-{% block title %}In CMA not in AS400{% endblock %}
+{% block title %}Pallet in CMA not in AS400{% endblock %}
+
+{% block head %}
+{{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4">
   <div class="row mb-3">
     <div class="col">
       <h1 class="page-header">
-        <i class="bi bi-file-earmark-arrow-up me-2" aria-hidden="true"></i>In CMA not in AS400
+        <i class="bi bi-file-earmark-arrow-up me-2" aria-hidden="true"></i>Pallet in CMA not in AS400
       </h1>
-      <p class="text-muted mb-0">Extract the QPQUPRFIL report rows and save them to MySQL.</p>
+      <p class="text-muted mb-0">Report: SWXFREP4, plt In XFCMA but not In AS400 list.</p>
     </div>
   </div>
 
-  <div class="row">
-    <div class="col-lg-5 col-md-7">
-      <div class="card shadow-sm">
-        <div class="card-header card-header-soft">
-          <h2 class="h5 mb-0">Import report rows</h2>
-        </div>
-        <div class="card-body">
-          <form id="pdfUploadForm">
-            <label for="pdfFile" class="form-label fw-semibold">Select QPQUPRFIL report PDF</label>
-            <input
-              type="file"
-              class="form-control mb-3"
-              id="pdfFile"
-              accept=".pdf,application/pdf"
-              required
-            >
+  <section class="card shadow-sm mb-3" aria-labelledby="importReportHeading">
+    <div class="card-header card-header-soft">
+      <h2 id="importReportHeading" class="h5 mb-0">Import report rows</h2>
+    </div>
+    <div class="card-body">
+      <form id="pdfUploadForm">
+        <label for="pdfFile" class="form-label fw-semibold">Select QPQUPRFIL report PDF</label>
+        <div class="row g-2 align-items-end">
+          <div class="col-md-8">
+            <input type="file" class="form-control" id="pdfFile" accept=".pdf,application/pdf" required>
+          </div>
+          <div class="col-md-4">
             <button type="submit" class="btn btn-primary w-100" id="uploadBtn">
               <i class="bi bi-cloud-upload me-2" aria-hidden="true"></i>Extract and save report rows
             </button>
-          </form>
-          <p class="form-text mt-3 mb-0">
-            The report is extracted into structured rows. Uploading the same filename
-            again replaces rows previously imported from that filename.
-          </p>
+          </div>
+        </div>
+      </form>
+      <p class="form-text mt-3 mb-0">Uploading the same filename replaces rows previously imported from that filename.</p>
+      <div id="resultBox" class="alert mt-3 mb-0 d-none" role="status" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section class="card shadow-sm mb-3" aria-labelledby="reportDateHeading">
+    <div class="card-body d-flex flex-wrap align-items-end gap-3">
+      <div>
+        <h2 id="reportDateHeading" class="h6 mb-1">Report date</h2>
+        <div id="reportDateLabel" class="fw-semibold">Loading…</div>
+      </div>
+      <div>
+        <label for="reportDateSelect" class="form-label mb-1">Choose loaded report</label>
+        <select class="form-select" id="reportDateSelect" aria-label="Choose report date" disabled>
+          <option value="">Loading report dates…</option>
+        </select>
+      </div>
+      <button type="button" class="btn btn-primary" id="applyReportDate" disabled>
+        <i class="bi bi-arrow-clockwise me-1" aria-hidden="true"></i>Load analysis
+      </button>
+      <button type="button" class="btn btn-outline-primary" id="downloadAnalysis" disabled>
+        <i class="bi bi-file-earmark-spreadsheet me-1" aria-hidden="true"></i>Download Excel analysis
+      </button>
+      <div id="reportDateNotice" class="small text-muted" role="status" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <div id="dashboardError" class="alert alert-danger d-none" role="alert"></div>
+
+  <div class="row g-3 mb-3" id="kpiCards">
+    <div class="col-6 col-xl"><div class="card shadow-sm h-100"><div class="card-body"><div class="small text-muted">All pallets</div><div id="kpiAll" class="h3 mb-0">—</div></div></div></div>
+    <div class="col-6 col-xl"><div class="card shadow-sm h-100"><div class="card-body"><div class="small text-muted">Regular</div><div id="kpiRegular" class="h3 mb-0">—</div></div></div></div>
+    <div class="col-6 col-xl"><div class="card shadow-sm h-100"><div class="card-body"><div class="small text-muted">Special IDs</div><div id="kpiSpecial" class="h3 mb-0">—</div></div></div></div>
+    <div class="col-6 col-xl"><div class="card shadow-sm h-100"><div class="card-body"><div class="small text-muted">Occupied cells</div><div id="kpiCells" class="h3 mb-0">—</div></div></div></div>
+  </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-12">
+      <div class="card shadow-sm h-100">
+        <div class="card-header card-header-soft d-flex justify-content-between align-items-center">
+          <h2 class="h5 mb-0">Pallet trend</h2>
+          <span id="palletTrendRange" class="small text-muted">Loading date range…</span>
+        </div>
+        <div class="card-body">
+          <div class="position-relative w-100" style="height: 380px;">
+            <canvas id="palletTrendChart" role="img" aria-label="Line chart of all, regular, and special pallet counts by report date"></canvas>
+          </div>
         </div>
       </div>
-      <div id="resultBox" class="alert mt-3 d-none" role="status" aria-live="polite"></div>
     </div>
   </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-12 col-lg-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-header card-header-soft"><h2 class="h5 mb-0">Special IDs by series</h2></div>
+        <div class="card-body p-0"><div class="table-responsive">
+          <table class="table table-striped table-hover table-sm mb-0">
+            <thead class="table-light"><tr><th scope="col">Series</th><th scope="col" class="text-end">Pallets</th><th scope="col" class="text-end">Percent</th></tr></thead>
+            <tbody id="seriesBody"><tr><td colspan="3" class="text-center py-3"><span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Loading…</td></tr></tbody>
+          </table>
+        </div></div>
+      </div>
+    </div>
+    <div class="col-12 col-lg-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-header card-header-soft"><h2 class="h5 mb-0">By days on report <span class="text-muted fs-6">— Regular pallets only</span></h2></div>
+        <div class="card-body p-0"><div class="table-responsive">
+          <table class="table table-striped table-hover table-sm mb-0"><thead class="table-light"><tr><th scope="col">Age</th><th scope="col" class="text-end">Pallets</th><th scope="col" class="text-end">Percent</th></tr></thead><tbody id="ageSummaryBody"></tbody></table>
+        </div></div>
+      </div>
+    </div>
+    <div class="col-12 col-lg-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-header card-header-soft"><h2 class="h5 mb-0">By product family <span class="text-muted fs-6">— Regular pallets only</span></h2></div>
+        <div class="card-body p-0"><div class="table-responsive">
+          <table class="table table-striped table-hover table-sm mb-0"><thead class="table-light"><tr><th scope="col">Product family</th><th scope="col" class="text-end">Pallets</th><th scope="col" class="text-end">Percent</th></tr></thead><tbody id="familySummaryBody"></tbody></table>
+        </div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-12 col-lg-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-header card-header-soft"><h2 class="h5 mb-0">Cell occupancy</h2></div>
+        <div class="card-body p-0"><div class="table-responsive">
+          <table class="table table-striped table-sm mb-0"><thead class="table-light"><tr><th scope="col">Pallets in cell</th><th scope="col" class="text-end">Cells</th><th scope="col" class="text-end">Percent</th></tr></thead><tbody id="occupancyBody"></tbody></table>
+        </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-lg-4">
+      <div class="card shadow-sm h-100"><div class="card-header card-header-soft"><h2 class="h5 mb-0">By stacker</h2></div>
+        <div class="card-body p-0"><div class="table-responsive"><table class="table table-striped table-sm mb-0"><thead class="table-light"><tr><th scope="col">Stacker</th><th scope="col" class="text-end">Pallets</th><th scope="col" class="text-end">Percent</th></tr></thead><tbody id="stackerBody"></tbody></table></div></div>
+      </div>
+    </div>
+    <div class="col-12 col-lg-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-header card-header-soft d-flex justify-content-between align-items-center">
+          <h2 class="h5 mb-0">By order</h2>
+          <button type="button" id="toggleOrders" class="btn btn-sm btn-outline-primary">Show all</button>
+        </div>
+        <div class="card-body p-0"><div class="table-responsive"><table class="table table-striped table-hover table-sm mb-0"><thead class="table-light"><tr><th scope="col">Order</th><th scope="col" class="text-end">Pallets</th><th scope="col" class="text-end">Percent</th></tr></thead><tbody id="orderBody"></tbody></table></div></div>
+      </div>
+    </div>
+  </div>
+
+  <section class="card shadow-sm">
+    <div class="card-header card-header-soft"><h2 class="h5 mb-0">Pallet details</h2></div>
+    <div class="card-body">
+      <ul class="nav nav-tabs mb-3" id="palletTabs" role="tablist">
+        <li class="nav-item" role="presentation"><button class="nav-link active" id="regular-tab" data-bs-toggle="tab" data-bs-target="#regular-panel" type="button" role="tab" aria-controls="regular-panel" aria-selected="true">Regular pallets</button></li>
+        <li class="nav-item" role="presentation"><button class="nav-link" id="special-tab" data-bs-toggle="tab" data-bs-target="#special-panel" type="button" role="tab" aria-controls="special-panel" aria-selected="false">Special IDs</button></li>
+      </ul>
+      <div class="tab-content">
+        {% for key, title in [("regular", "Regular pallets"), ("special", "Special IDs")] %}
+        <div class="tab-pane fade {% if key == 'regular' %}show active{% endif %}" id="{{ key }}-panel" role="tabpanel" aria-labelledby="{{ key }}-tab" tabindex="0">
+          <label class="form-label" for="{{ key }}Filter">Filter {{ title|lower }}</label>
+          <input type="search" class="form-control mb-3 pallet-filter" id="{{ key }}Filter" data-group="{{ key }}" placeholder="Search pallet, order, product, or location">
+          <div class="table-responsive">
+            <table class="table table-striped table-hover table-sm align-middle pallet-table" id="{{ key }}Table" data-group="{{ key }}">
+              <thead class="table-light"><tr>
+                {% for field, label in [("orig_in_date", "Orig In-Date"), ("last_handle_date", "Last Handle Date"), ("order_no", "Order No"), ("product_code", "Product Code"), ("sw_plt_no", "SW Plt No"), ("stacker", "Mach No"), ("cell", "Cell No"), ("location", "Location"), ("days_on_report", "Days on report"), ("age_bucket", "Age bucket"), ("family", "Family"), ("order_type", "Order type"), ("series", "Series"), ("pallets_in_cell", "Pallets in cell")] %}
+                <th scope="col" data-key="{{ field }}"><button type="button" class="btn btn-link btn-sm p-0 text-white text-decoration-none sort-button" data-table="{{ key }}Table" data-key="{{ field }}">{{ label }} <span aria-hidden="true">↕</span></button></th>
+                {% endfor %}
+              </tr></thead>
+              <tbody id="{{ key }}Body"><tr><td colspan="14" class="text-center py-3"><span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Loading…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
 </div>
 
 <script>
+const numberFormat = new Intl.NumberFormat();
+let currentSummary = null;
+let showAllOrders = false;
+let palletTrendChart = null;
+let reportHistory = [];
+const palletRows = { regular: [], special: [] };
+const tableSort = {};
+
+async function renderPalletTrendChart(reports = reportHistory) {
+  const canvas = document.getElementById('palletTrendChart');
+  const rangeLabel = document.getElementById('palletTrendRange');
+  if (typeof Chart === 'undefined') {
+    if (rangeLabel) rangeLabel.textContent = 'Chart.js unavailable';
+    return;
+  }
+  if (!canvas || !reports || reports.length === 0) {
+    if (rangeLabel) rangeLabel.textContent = 'No report history';
+    return;
+  }
+
+  const ordered = [...reports].sort((a, b) => a.report_date.localeCompare(b.report_date));
+  const earliest = ordered[0].report_date;
+  const latest = ordered[ordered.length - 1].report_date;
+  if (rangeLabel) rangeLabel.textContent = `${earliest} to ${latest}`;
+
+  const points = await Promise.all(ordered.map(async (report) => {
+    const response = await fetch(`/api/xfcma/summary?report_date=${encodeURIComponent(report.report_date)}`);
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.detail || `HTTP ${response.status}`);
+    return {
+      date: report.report_date,
+      all: payload.totals?.all ?? 0,
+      regular: payload.totals?.regular ?? 0,
+      special: payload.totals?.special ?? 0,
+    };
+  }));
+
+  if (palletTrendChart) {
+    palletTrendChart.destroy();
+  }
+
+  palletTrendChart = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels: points.map((point) => point.date),
+      datasets: [
+        {
+          label: 'All pallets',
+          data: points.map((point) => point.all),
+          borderColor: '#154e9a',
+          backgroundColor: 'rgba(21, 78, 154, 0.12)',
+          pointBackgroundColor: '#154e9a',
+          borderWidth: 2,
+          tension: 0.25,
+          fill: false,
+        },
+        {
+          label: 'Regular',
+          data: points.map((point) => point.regular),
+          borderColor: '#2d7ff9',
+          backgroundColor: 'rgba(45, 127, 249, 0.12)',
+          pointBackgroundColor: '#2d7ff9',
+          borderWidth: 2,
+          tension: 0.25,
+          fill: false,
+        },
+        {
+          label: 'Special IDs',
+          data: points.map((point) => point.special),
+          borderColor: '#9aa5b1',
+          backgroundColor: 'rgba(154, 165, 177, 0.10)',
+          pointBackgroundColor: '#9aa5b1',
+          borderWidth: 2,
+          tension: 0.25,
+          fill: false,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'top' },
+        tooltip: { callbacks: { label: (context) => `${context.dataset.label}: ${numberFormat.format(context.parsed.y)}` } },
+      },
+      scales: {
+        x: { title: { display: true, text: 'Report date' } },
+        y: {
+          beginAtZero: true,
+          ticks: { callback: (value) => numberFormat.format(value) },
+          title: { display: true, text: 'Pallet count' },
+        },
+      },
+    },
+  });
+}
+
+function addEmptyRow(body, columns, message) {
+  const row = document.createElement('tr');
+  const cell = document.createElement('td');
+  cell.colSpan = columns;
+  cell.className = 'text-center text-muted py-3';
+  cell.textContent = message;
+  row.append(cell);
+  body.replaceChildren(row);
+}
+
+function renderGroups(bodyId, rows) {
+  const body = document.getElementById(bodyId);
+  body.replaceChildren();
+  for (const item of rows) {
+    const row = document.createElement('tr');
+    const label = document.createElement('td');
+    const count = document.createElement('td');
+    const percent = document.createElement('td');
+    label.textContent = item.label;
+    count.className = 'text-end';
+    count.textContent = numberFormat.format(item.count);
+    percent.className = 'text-end';
+    percent.textContent = `${item.percent.toFixed(1)}%`;
+    row.append(label, count, percent);
+    body.append(row);
+  }
+  if (!rows.length) addEmptyRow(body, 3, 'No report rows available.');
+}
+
+function renderSummary(payload) {
+  currentSummary = payload;
+  document.getElementById('dashboardError').classList.add('d-none');
+  document.getElementById('reportDateLabel').textContent = payload.report_date || 'No report loaded';
+  document.getElementById('reportDateSelect').value = payload.report_date || '';
+  const sourceNotice = payload.report_date_source === 'last_date_fallback'
+    ? 'No report load date was available; using MAX(Last Handle Date) as requested.'
+    : payload.report_date_source === 'none' ? 'No report data is available.' : '';
+  document.getElementById('reportDateNotice').textContent = sourceNotice;
+
+  document.getElementById('kpiAll').textContent = numberFormat.format(payload.totals.all);
+  document.getElementById('kpiRegular').textContent = numberFormat.format(payload.totals.regular);
+  document.getElementById('kpiSpecial').textContent = numberFormat.format(payload.totals.special);
+  document.getElementById('kpiCells').textContent = numberFormat.format(payload.totals.occupied_cells);
+
+  renderGroups('seriesBody', payload.by_series);
+  renderGroups('ageSummaryBody', payload.by_age);
+  renderGroups('familySummaryBody', payload.by_family);
+  renderGroups('stackerBody', payload.by_stacker);
+  const occupancy = [
+    payload.cell_occupancy.one_pallet_cells,
+    payload.cell_occupancy.two_pallet_cells
+  ];
+  renderGroups('occupancyBody', occupancy);
+  renderGroups('orderBody', showAllOrders ? payload.by_order : payload.by_order.slice(0, 15));
+  document.getElementById('toggleOrders').classList.toggle('d-none', payload.by_order.length <= 15);
+  document.getElementById('toggleOrders').textContent = showAllOrders ? 'Show top 15' : 'Show all';
+
+}
+
+function renderPalletTable(group) {
+  const body = document.getElementById(`${group}Body`);
+  const filter = document.getElementById(`${group}Filter`).value.trim().toLowerCase();
+  const sort = tableSort[`${group}Table`] || { key: 'days_on_report', direction: 'desc' };
+  let rows = palletRows[group].filter((row) =>
+    Object.values(row).some((value) => String(value ?? '').toLowerCase().includes(filter))
+  );
+  rows.sort((a, b) => {
+    const left = a[sort.key] ?? '';
+    const right = b[sort.key] ?? '';
+    const comparison = typeof left === 'number' && typeof right === 'number'
+      ? left - right : String(left).localeCompare(String(right), undefined, { numeric: true });
+    return comparison * (sort.direction === 'asc' ? 1 : -1);
+  });
+  body.replaceChildren();
+  for (const item of rows) {
+    const row = document.createElement('tr');
+    if (item.pallets_in_cell > 2) row.classList.add('table-danger');
+    for (const key of ['orig_in_date', 'last_handle_date', 'order_no', 'product_code', 'sw_plt_no', 'stacker', 'cell', 'location', 'days_on_report', 'age_bucket', 'family', 'order_type', 'series', 'pallets_in_cell']) {
+      const cell = row.insertCell();
+      cell.textContent = item[key] ?? '';
+    }
+    body.append(row);
+  }
+  if (!rows.length) addEmptyRow(body, 14, 'No matching pallet rows.');
+}
+
+async function loadReportDates(selectedDate = null) {
+  const selector = document.getElementById('reportDateSelect');
+  const loadButton = document.getElementById('applyReportDate');
+  const downloadButton = document.getElementById('downloadAnalysis');
+  const response = await fetch('/api/xfcma/report-dates');
+  const payload = await response.json();
+  if (!response.ok) throw new Error(payload.detail || `HTTP ${response.status}`);
+
+  reportHistory = payload.reports || [];
+  const previousDate = selectedDate || selector.value;
+  selector.replaceChildren();
+  for (const report of reportHistory) {
+    const option = document.createElement('option');
+    option.value = report.report_date;
+    const timestamp = new Date(report.report_datetime).toLocaleTimeString([], {
+      hour: '2-digit', minute: '2-digit', second: '2-digit'
+    });
+    option.textContent = `${report.report_date} · loaded ${timestamp} · ${numberFormat.format(report.row_count)} rows`;
+    selector.append(option);
+  }
+  if (!reportHistory.length) {
+    const option = document.createElement('option');
+    option.value = '';
+    option.textContent = 'No uploaded reports';
+    selector.append(option);
+  } else {
+    selector.value = reportHistory.some((report) => report.report_date === previousDate)
+      ? previousDate : reportHistory[0].report_date;
+  }
+  selector.disabled = reportHistory.length === 0;
+  loadButton.disabled = reportHistory.length === 0;
+  downloadButton.disabled = reportHistory.length === 0;
+  if (reportHistory.length) {
+    await renderPalletTrendChart(reportHistory);
+  }
+  return selector.value;
+}
+
+async function loadDashboard(reportDate = document.getElementById('reportDateSelect').value) {
+  const errorBox = document.getElementById('dashboardError');
+  const requestedDate = reportDate;
+  const query = requestedDate ? `?report_date=${encodeURIComponent(requestedDate)}` : '';
+  try {
+    const response = await fetch(`/api/xfcma/summary${query}`);
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.detail || `HTTP ${response.status}`);
+    renderSummary(payload);
+    await Promise.all(['regular', 'special'].map(async (group) => {
+      const detailResponse = await fetch(`/api/xfcma/pallets?group=${group}${requestedDate ? `&report_date=${encodeURIComponent(requestedDate)}` : ''}`);
+      const detailPayload = await detailResponse.json();
+      if (!detailResponse.ok) throw new Error(detailPayload.detail || `HTTP ${detailResponse.status}`);
+      palletRows[group] = detailPayload.rows;
+      renderPalletTable(group);
+    }));
+    return true;
+  } catch (error) {
+    errorBox.textContent = `Unable to load report: ${error.message}`;
+    errorBox.classList.remove('d-none');
+    return false;
+  }
+}
+
+document.getElementById('applyReportDate').addEventListener('click', () => loadDashboard());
+document.getElementById('downloadAnalysis').addEventListener('click', () => {
+  const selectedDate = document.getElementById('reportDateSelect').value;
+  if (selectedDate) {
+    window.location.href = `/api/xfcma/analysis?report_date=${encodeURIComponent(selectedDate)}`;
+  }
+});
+document.getElementById('toggleOrders').addEventListener('click', () => {
+  showAllOrders = !showAllOrders;
+  if (currentSummary) renderGroups('orderBody', showAllOrders ? currentSummary.by_order : currentSummary.by_order.slice(0, 15));
+  document.getElementById('toggleOrders').textContent = showAllOrders ? 'Show top 15' : 'Show all';
+});
+document.querySelectorAll('.pallet-filter').forEach((input) => input.addEventListener('input', () => renderPalletTable(input.dataset.group)));
+document.querySelectorAll('.sort-button').forEach((button) => button.addEventListener('click', () => {
+  const tableId = button.dataset.table;
+  const previous = tableSort[tableId];
+  tableSort[tableId] = {
+    key: button.dataset.key,
+    direction: previous?.key === button.dataset.key && previous.direction === 'asc' ? 'desc' : 'asc'
+  };
+  renderPalletTable(tableId.replace('Table', ''));
+}));
+
 document.getElementById('pdfUploadForm').addEventListener('submit', async (event) => {
   event.preventDefault();
-
   const fileInput = document.getElementById('pdfFile');
   const button = document.getElementById('uploadBtn');
   const resultBox = document.getElementById('resultBox');
   const file = fileInput.files[0];
-
   if (!file) {
-    resultBox.className = 'alert alert-warning mt-3';
+    resultBox.className = 'alert alert-warning mt-3 mb-0';
     resultBox.textContent = 'Please select a PDF file.';
     resultBox.classList.remove('d-none');
     return;
   }
-
   button.disabled = true;
   button.innerHTML = '<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Uploading…';
   resultBox.classList.add('d-none');
-
   const formData = new FormData();
   formData.append('file', file);
-
   try {
-    const response = await fetch('/maintenance/api/in-cma-not-in-as400/upload', {
-      method: 'POST',
-      body: formData
-    });
-    const payload = await response.json();
-    if (!response.ok) throw new Error(payload.detail || `HTTP ${response.status}`);
+    let payload;
+    try {
+      const response = await fetch('/maintenance/api/in-cma-not-in-as400/upload', { method: 'POST', body: formData });
+      payload = await response.json();
+      if (!response.ok) throw new Error(payload.detail || `HTTP ${response.status}`);
+    } catch (error) {
+      resultBox.className = 'alert alert-danger mt-3 mb-0';
+      resultBox.textContent = `Upload failed: ${error.message}`;
+      return;
+    }
 
-    resultBox.className = 'alert alert-success mt-3';
-    resultBox.textContent = `${payload.message} ${payload.filename} (${payload.inserted_rows.toLocaleString()} rows, report time ${payload.report_datetime}).`;
+    resultBox.className = 'alert alert-success mt-3 mb-0';
+    resultBox.textContent = `${payload.message} ${payload.filename} (${numberFormat.format(payload.inserted_rows)} rows, report time ${payload.report_datetime}).`;
     fileInput.value = '';
-  } catch (error) {
-    resultBox.className = 'alert alert-danger mt-3';
-    resultBox.textContent = `Upload failed: ${error.message}`;
+    const uploadedDate = payload.report_datetime.slice(0, 10);
+    try {
+      await loadReportDates(uploadedDate);
+      if (!await loadDashboard(uploadedDate)) {
+        throw new Error('the selected report analysis did not load');
+      }
+    } catch (error) {
+      resultBox.className = 'alert alert-warning mt-3 mb-0';
+      resultBox.textContent = `Upload succeeded, but the date list or analysis could not refresh: ${error.message}`;
+    }
   } finally {
     button.disabled = false;
     button.innerHTML = '<i class="bi bi-cloud-upload me-2" aria-hidden="true"></i>Extract and save report rows';
     resultBox.classList.remove('d-none');
   }
 });
+
+loadReportDates()
+  .then((selectedDate) => loadDashboard(selectedDate))
+  .catch((error) => {
+    const errorBox = document.getElementById('dashboardError');
+    errorBox.textContent = `Unable to load available report dates: ${error.message}`;
+    errorBox.classList.remove('d-none');
+  });
 </script>
 {% endblock %}

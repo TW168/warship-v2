@@ -72,7 +72,7 @@
 
           <!-- Warehouse (dropdown) -->
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle {% if active_page in ['warehouse', 'product_forecast'] %}active{% endif %}"
+            <a class="nav-link dropdown-toggle {% if active_page in ['warehouse', 'product_forecast', 'in_cma_not_in_as400'] %}active{% endif %}"
                href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
               <i class="bi bi-building me-1" aria-hidden="true"></i>Warehouse
             </a>
@@ -85,6 +85,11 @@
               <li>
                 <a class="dropdown-item {% if active_page == 'product_forecast' %}active{% endif %}" href="/warehouse/product-forecast">
                   <i class="bi bi-graph-up-arrow me-2" aria-hidden="true"></i>Product Forecast
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item {% if active_page == 'in_cma_not_in_as400' %}active{% endif %}" href="/maintenance/in-cma-not-in-as400">
+                  <i class="bi bi-file-earmark-arrow-up me-2" aria-hidden="true"></i>Pallet in CMA not in AS400
                 </a>
               </li>
             </ul>
@@ -106,7 +111,7 @@
 
           <!-- Maintenance (dropdown) -->
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle {% if active_page in ['maintenance', 'frt_validation', 'freight_audit', 'freight_driver', 'shipment_size_impact', 'lmi', 'truck_load_map', 'shipping_status', 'not_in_xfcma', 'in_cma_not_in_as400', 'shipment_scan', 'sales_summary', 'closed_complaints', 'work_order_upload', 'saia_ltl'] %}active{% endif %}"
+            <a class="nav-link dropdown-toggle {% if active_page in ['maintenance', 'frt_validation', 'freight_audit', 'freight_driver', 'shipment_size_impact', 'lmi', 'shipping_status', 'not_in_xfcma', 'shipment_scan', 'sales_summary', 'closed_complaints', 'work_order_upload', 'saia_ltl'] %}active{% endif %}"
                href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
               <i class="bi bi-tools me-1" aria-hidden="true"></i>Maintenance
             </a>
@@ -142,18 +147,8 @@
                 </a>
               </li>
               <li>
-                <a class="dropdown-item {% if active_page == 'truck_load_map' %}active{% endif %}" href="/maintenance/truck-load-map">
-                  <i class="bi bi-diagram-2 me-2" aria-hidden="true"></i>Truck Load Map
-                </a>
-              </li>
-              <li>
                 <a class="dropdown-item {% if active_page == 'not_in_xfcma' %}active{% endif %}" href="/maintenance/not-in-xfcma">
                   <i class="bi bi-cloud-arrow-up me-2" aria-hidden="true"></i>Upload not in XFCMA
-                </a>
-              </li>
-              <li>
-                <a class="dropdown-item {% if active_page == 'in_cma_not_in_as400' %}active{% endif %}" href="/maintenance/in-cma-not-in-as400">
-                  <i class="bi bi-file-earmark-arrow-up me-2" aria-hidden="true"></i>In CMA not in AS400
                 </a>
               </li>
               <li>
@@ -188,6 +183,13 @@
           <li class="nav-item">
             <a class="nav-link {% if active_page == 'silos_status' %}active{% endif %}" href="/maintenance/silos-status">
               <i class="bi bi-bar-chart-steps me-1" aria-hidden="true"></i>Silos Status
+            </a>
+          </li>
+
+          <!-- Vision Learning -->
+          <li class="nav-item">
+            <a class="nav-link {% if active_page == 'vision_learning' %}active{% endif %}" href="/vision-learning">
+              <i class="bi bi-eye me-1" aria-hidden="true"></i>Vision Learning
             </a>
           </li>
 

@@ -20,7 +20,8 @@ from logging_config import setup_logging, get_logger
 setup_logging(level="INFO")
 logger = get_logger(__name__)
 
-from routers import health, home, warehouse, shipping, tsr_prep, maintenance, about
+from routers import health, home, warehouse, shipping, tsr_prep, maintenance, about, vision_learning
+from routers.maintenance.in_cma_not_in_as400 import xfcma_router
 from routers.maintenance.silos.api import public_router as silos_public_router
 
 # Create the FastAPI application with metadata for Swagger UI
@@ -45,8 +46,10 @@ app.include_router(warehouse.router)
 app.include_router(shipping.router)
 app.include_router(tsr_prep.router)
 app.include_router(maintenance.router)
+app.include_router(xfcma_router)
 app.include_router(about.router)
 app.include_router(silos_public_router)
+app.include_router(vision_learning.router)
 logger.info("All routers registered successfully")
 
 

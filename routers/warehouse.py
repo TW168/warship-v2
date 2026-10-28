@@ -12,12 +12,16 @@ Handles:
   GET /api/warehouse/product-forecast     — Product forecast JSON data
 """
 
+import io
 from datetime import date, timedelta
 
 import httpx
-from fastapi import APIRouter, Query, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
+from openpyxl import Workbook
+from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+from openpyxl.utils import get_column_letter
 from sqlalchemy import text
 
 from database import connect_to_database
@@ -95,6 +99,126 @@ def extract_prefix_pallets(html_text: str, prefix: str = "910") -> list[dict[str
 def count_prefix_pallets(html_text: str, prefix: str = "910") -> int:
     """Count pallet values in CFP HTML that begin with the requested prefix."""
     return len(extract_prefix_pallets(html_text, prefix=prefix))
+
+
+def _build_pallet_workbook(
+    items: list[dict[str, str]],
+    *,
+    title_text: str,
+    sheet_title: str,
+) -> io.BytesIO:
+    """Create a styled, filterable workbook sorted by numeric pallet ID."""
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = sheet_title
+    sheet.sheet_view.showGridLines = False
+
+    title_fill = PatternFill("solid", fgColor="154E9A")
+    header_fill = PatternFill("solid", fgColor="DCE8F5")
+    alternate_fill = PatternFill("solid", fgColor="F5F8FC")
+    bottom_border = Border(bottom=Side(style="thin", color="D9E2F0"))
+
+    sheet.merge_cells("A1:F1")
+    title = sheet["A1"]
+    title.value = title_text
+    title.font = Font(name="Arial", size=16, bold=True, color="FFFFFF")
+    title.fill = title_fill
+    title.alignment = Alignment(vertical="center")
+    sheet.row_dimensions[1].height = 30
+
+    headers = ("Sequence", "Pallet Number", "Stacker", "Cell", "Pallet Slot", "Location")
+    sheet.append(headers)
+    for cell in sheet[2]:
+        cell.font = Font(bold=True, color="154E9A")
+        cell.fill = header_fill
+        cell.alignment = Alignment(horizontal="center", vertical="center")
+        cell.border = bottom_border
+    sheet.row_dimensions[2].height = 24
+
+    def pallet_sort_key(item: dict[str, str]) -> tuple[int, int | str, str]:
+        """Sort numeric pallet IDs numerically, before any text IDs."""
+        pallet = item.get("pallet", "").strip()
+        if pallet.isdigit():
+            return (0, int(pallet), pallet)
+        return (1, pallet.casefold(), pallet)
+
+    for sequence, item in enumerate(sorted(items, key=pallet_sort_key), start=1):
+        stacker = item.get("stacker", "").strip()
+        cell_number = item.get("cell", "").strip()
+        slot = item.get("location", "").replace("pallet_", "Pallet ")
+        sheet.append(
+            [
+                sequence,
+                item.get("pallet", ""),
+                stacker,
+                cell_number,
+                slot,
+                f"{stacker}-{cell_number}" if stacker and cell_number else "",
+            ]
+        )
+        row_number = sheet.max_row
+        if sequence % 2 == 0:
+            for cell in sheet[row_number]:
+                cell.fill = alternate_fill
+        for cell in sheet[row_number]:
+            cell.border = bottom_border
+            cell.alignment = Alignment(vertical="center")
+        sheet.cell(row_number, 2).number_format = "@"
+        sheet.cell(row_number, 2).font = Font(bold=True, color="154E9A")
+
+    sheet.auto_filter.ref = f"A2:F{max(sheet.max_row, 2)}"
+    sheet.freeze_panes = "A3"
+    for index, width in enumerate((12, 20, 12, 12, 18, 16), start=1):
+        sheet.column_dimensions[get_column_letter(index)].width = width
+    sheet.sheet_properties.pageSetUpPr.fitToPage = True
+    sheet.page_setup.orientation = "landscape"
+    sheet.page_setup.fitToWidth = 1
+    sheet.page_setup.fitToHeight = 0
+    sheet.print_title_rows = "1:2"
+    sheet.print_options.horizontalCentered = True
+    sheet.sheet_properties.pageSetUpPr.autoPageBreaks = False
+    sheet.oddHeader.center.text = f"&B{title_text}"
+    sheet.oddFooter.right.text = "Page &P of &N"
+    sheet.print_area = f"A1:F{max(sheet.max_row, 2)}"
+
+    output = io.BytesIO()
+    workbook.save(output)
+    output.seek(0)
+    return output
+
+
+async def _download_cfp_pallet_workbook(
+    prefix: str,
+    *,
+    title_text: str,
+    sheet_title: str,
+    filename_slug: str,
+) -> StreamingResponse:
+    """Fetch CFP rows and return a formatted pallet workbook for one prefix."""
+    try:
+        async with httpx.AsyncClient(timeout=20.0) as client:
+            response = await client.get(
+                "https://ash123.azurewebsites.net/cfpwh/cells/all_cells"
+            )
+            response.raise_for_status()
+    except httpx.HTTPError as exc:
+        logger.warning("Unable to fetch CFP cells for %s export: %s", title_text, exc)
+        raise HTTPException(
+            status_code=502, detail=f"Unable to fetch current {title_text} pallet data"
+        ) from exc
+
+    items = extract_prefix_pallets(response.text, prefix=prefix)
+    workbook = _build_pallet_workbook(
+        items,
+        title_text=title_text,
+        sheet_title=sheet_title,
+    )
+    filename = f"{filename_slug}_{date.today().isoformat()}.xlsx"
+    return StreamingResponse(
+        workbook,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @router.get(
@@ -325,6 +449,62 @@ async def cfp_prefix_pallet_count(
 
     matches = extract_prefix_pallets(html_text, prefix=prefix)
     return JSONResponse(content={"prefix": prefix, "count": len(matches), "items": matches})
+
+
+@router.get(
+    "/api/warehouse/reclaim-boxes/export.xlsx",
+    summary="Download Reclaim Boxes pallet list",
+    description=(
+        "Fetches current Reclaim Box pallets from CFP and downloads an Excel "
+        "workbook with a filterable table sorted by pallet number ascending."
+    ),
+)
+async def export_reclaim_boxes_excel() -> StreamingResponse:
+    """Download a styled Excel list of Reclaim Box pallet numbers."""
+    return await _download_cfp_pallet_workbook(
+        "910",
+        title_text="Reclaim Boxes in CMA",
+        sheet_title="Reclaim Boxes",
+        filename_slug="reclaim_boxes_in_cma",
+    )
+
+
+_PALLET_EXPORTS = {
+    "color-rolls-scrap": {
+        "prefix": "99",
+        "title_text": "Color Rolls Scrap in CMA",
+        "sheet_title": "Color Rolls Scrap",
+        "filename_slug": "color_rolls_scrap_in_cma",
+    },
+    "sheet-81-3313-080": {
+        "prefix": "980200",
+        "title_text": "Sheet 81-3313-080",
+        "sheet_title": "Sheet 81-3313-080",
+        "filename_slug": "sheet_81-3313-080",
+    },
+    "sheet-81-331-081": {
+        "prefix": "980201",
+        "title_text": "Sheet 81-331-081",
+        "sheet_title": "Sheet 81-331-081",
+        "filename_slug": "sheet_81-331-081",
+    },
+}
+
+
+@router.get(
+    "/api/warehouse/{export_key}/export.xlsx",
+    summary="Download Warehouse CFP pallet list",
+    description=(
+        "Downloads a formatted Excel pallet list for Color Rolls Scrap or one "
+        "of the sheet-prefix cards, with filters and ascending numeric pallet order."
+    ),
+)
+async def export_warehouse_pallet_excel(export_key: str) -> StreamingResponse:
+    """Download the configured CFP pallet sheet selected by its fixed export key."""
+    export = _PALLET_EXPORTS.get(export_key)
+    if export is None:
+        raise HTTPException(status_code=404, detail="Unknown Warehouse pallet export")
+    return await _download_cfp_pallet_workbook(**export)
 
 
 async def _fixed_cfp_prefix_pallet_count(prefix: str) -> JSONResponse:

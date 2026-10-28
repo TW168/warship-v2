@@ -18,7 +18,7 @@
         <div class="card-header card-header-primary d-flex align-items-center justify-content-between">
           <span><i class="bi bi-box-seam me-2" aria-hidden="true"></i>Reclaim Boxes in CMA</span>
           <span class="d-flex align-items-center gap-2">
-            <button type="button" class="btn btn-sm btn-light py-0 px-2" onclick="exportPalletCsv('cfpPallet', 'reclaim_boxes_cma')" aria-label="Print / export Reclaim Boxes in CMA pallet numbers to CSV" title="Export pallet numbers to CSV for printing"><i class="bi bi-printer" aria-hidden="true"></i></button>
+            <button type="button" class="btn btn-sm btn-light py-0 px-2" onclick="downloadReclaimBoxesExcel(this)" aria-label="Download Reclaim Boxes in CMA pallet list as Excel" title="Download a filterable, sorted Excel pallet list"><i class="bi bi-printer" aria-hidden="true"></i><span class="spinner-border spinner-border-sm d-none" role="status" aria-label="Generating report"></span></button>
             <span id="cfpPalletSpinner" class="spinner-border spinner-border-sm text-white" role="status" aria-label="Loading"></span>
           </span>
         </div>
@@ -36,7 +36,7 @@
         <div class="card-header card-header-primary d-flex align-items-center justify-content-between">
           <span><i class="bi bi-recycle me-2" aria-hidden="true"></i>Color Rolls Scrap in CMA</span>
           <span class="d-flex align-items-center gap-2">
-            <button type="button" class="btn btn-sm btn-light py-0 px-2" onclick="exportPalletCsv('colorScrap', 'color_rolls_scrap_cma')" aria-label="Print / export Color Rolls Scrap in CMA pallet numbers to CSV" title="Export pallet numbers to CSV for printing"><i class="bi bi-printer" aria-hidden="true"></i></button>
+            <button type="button" class="btn btn-sm btn-light py-0 px-2" onclick="downloadWarehousePalletExcel('color-rolls-scrap', this)" aria-label="Download Color Rolls Scrap in CMA pallet list as Excel" title="Download a filterable, sorted Excel pallet list"><i class="bi bi-printer" aria-hidden="true"></i><span class="spinner-border spinner-border-sm d-none" role="status" aria-label="Generating report"></span></button>
             <span id="colorScrapSpinner" class="spinner-border spinner-border-sm text-white" role="status" aria-label="Loading"></span>
           </span>
         </div>
@@ -54,7 +54,7 @@
         <div class="card-header card-header-primary d-flex align-items-center justify-content-between">
           <span><i class="bi bi-file-earmark-spreadsheet me-2" aria-hidden="true"></i>Sheet 81-3313-080</span>
           <span class="d-flex align-items-center gap-2">
-            <button type="button" class="btn btn-sm btn-light py-0 px-2" onclick="exportPalletCsv('sheet080', 'sheet_81-3313-080')" aria-label="Print / export Sheet 81-3313-080 pallet numbers to CSV" title="Export pallet numbers to CSV for printing"><i class="bi bi-printer" aria-hidden="true"></i></button>
+            <button type="button" class="btn btn-sm btn-light py-0 px-2" onclick="downloadWarehousePalletExcel('sheet-81-3313-080', this)" aria-label="Download Sheet 81-3313-080 pallet list as Excel" title="Download a filterable, sorted Excel pallet list"><i class="bi bi-printer" aria-hidden="true"></i><span class="spinner-border spinner-border-sm d-none" role="status" aria-label="Generating report"></span></button>
             <span id="sheet080Spinner" class="spinner-border spinner-border-sm text-white" role="status" aria-label="Loading"></span>
           </span>
         </div>
@@ -72,7 +72,7 @@
         <div class="card-header card-header-primary d-flex align-items-center justify-content-between">
           <span><i class="bi bi-file-earmark-spreadsheet me-2" aria-hidden="true"></i>Sheet  81-331-081</span>
           <span class="d-flex align-items-center gap-2">
-            <button type="button" class="btn btn-sm btn-light py-0 px-2" onclick="exportPalletCsv('sheet081', 'sheet_81-331-081')" aria-label="Print / export Sheet 81-331-081 pallet numbers to CSV" title="Export pallet numbers to CSV for printing"><i class="bi bi-printer" aria-hidden="true"></i></button>
+            <button type="button" class="btn btn-sm btn-light py-0 px-2" onclick="downloadWarehousePalletExcel('sheet-81-331-081', this)" aria-label="Download Sheet 81-331-081 pallet list as Excel" title="Download a filterable, sorted Excel pallet list"><i class="bi bi-printer" aria-hidden="true"></i><span class="spinner-border spinner-border-sm d-none" role="status" aria-label="Generating report"></span></button>
             <span id="sheet081Spinner" class="spinner-border spinner-border-sm text-white" role="status" aria-label="Loading"></span>
           </span>
         </div>
@@ -277,8 +277,6 @@ async function loadUdcHistory() {
 }
 
 /* ── 3. CFP pallet count by prefix ───────────────────────────────────────── */
-const _palletItemsCache = {};  // idSuffix -> last-loaded items array, used by exportPalletCsv()
-
 async function loadCfpPrefixPalletCount(prefix, idSuffix, label, endpoint = '/api/warehouse/cfp-prefix-pallet-count') {
   const spinner = document.getElementById(idSuffix + 'Spinner');
   const countEl = document.getElementById(idSuffix + 'Count');
@@ -298,7 +296,6 @@ async function loadCfpPrefixPalletCount(prefix, idSuffix, label, endpoint = '/ap
 
     countEl.textContent = data.count ?? 0;
     const items = data.items || [];
-    _palletItemsCache[idSuffix] = items;
 
     if (!items.length) {
       const empty = document.createElement('div');
@@ -352,38 +349,54 @@ function loadSheet081Count() {
   );
 }
 
-/* Export a pallet-count card's current pallet numbers to a downloadable CSV for printing */
-function exportPalletCsv(idSuffix, filenamePrefix) {
-  const items = _palletItemsCache[idSuffix] || [];
-  if (!items.length) {
-    alert('No pallet numbers loaded yet — wait for the card to finish loading and try again.');
-    return;
+/* Fetch a workbook and update the clicked button without navigating the page. */
+async function downloadPalletWorkbook(url, button) {
+  const printer = button.querySelector('.bi-printer');
+  const spinner = button.querySelector('.spinner-border');
+  button.disabled = true;
+  button.setAttribute('aria-busy', 'true');
+  printer.classList.add('d-none');
+  spinner.classList.remove('d-none');
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      const errorBody = await response.json().catch(() => ({}));
+      throw new Error(errorBody.detail || `Report request failed (${response.status})`);
+    }
+
+    const workbook = await response.blob();
+    const contentDisposition = response.headers.get('Content-Disposition') || '';
+    const filename = contentDisposition.match(/filename="([^"]+)"/i)?.[1] || 'warehouse-pallets.xlsx';
+    const objectUrl = URL.createObjectURL(workbook);
+    const downloadLink = document.createElement('a');
+    downloadLink.href = objectUrl;
+    downloadLink.download = filename;
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    downloadLink.remove();
+    window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+  } catch (error) {
+    showToast(`Unable to generate pallet report: ${error.message}`, 'danger');
+  } finally {
+    button.disabled = false;
+    button.removeAttribute('aria-busy');
+    spinner.classList.add('d-none');
+    printer.classList.remove('d-none');
   }
+}
 
-  const csvEscape = v => {
-    const s = String(v ?? '');
-    return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
-  };
+/* Download a filterable Excel pallet list for the Reclaim Boxes card */
+function downloadReclaimBoxesExcel(button) {
+  return downloadPalletWorkbook('/api/warehouse/reclaim-boxes/export.xlsx', button);
+}
 
-  const rows = [['Sequence', 'Pallet', 'Stacker', 'Cell']];
-  items.forEach(item => rows.push([
-    csvEscape(item.sequence),
-    csvEscape(item.pallet),
-    csvEscape(item.stacker),
-    csvEscape(item.cell),
-  ]));
-  const csvContent = rows.map(r => r.join(',')).join('\r\n');
-
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  const stamp = isoDate(new Date());
-  a.href = url;
-  a.download = `${filenamePrefix}_pallets_${stamp}.csv`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+/* Download the selected Warehouse pallet card as a formatted Excel workbook */
+function downloadWarehousePalletExcel(exportKey, button) {
+  return downloadPalletWorkbook(
+    `/api/warehouse/${encodeURIComponent(exportKey)}/export.xlsx`,
+    button
+  );
 }
 
 /* ── 4. ASH Event Heatmap ───────────────────────────────────────────────────── */
