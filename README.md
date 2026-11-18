@@ -20,7 +20,40 @@ Warehouse and Shipping Management System built with FastAPI, Bootstrap 5, and My
 uv sync
 ```
 
-### 2. Run the development server
+### 2. Configure local API keys
+
+The application loads a `.env` file from the project root. Configure the
+OpenRouter key and model for the Maintenance > OpenRouter Model page:
+
+```dotenv
+OPENROUTER_API_KEY=
+OPENROUTER_MODEL_ID=openrouter/auto
+```
+
+`.env` is ignored by Git; do not commit it or share the key. Storing this setting
+keeps the key on the server. The Maintenance page sends submitted prompts to
+OpenRouter; its LMI summary action sends extracted text from the selected
+supported file in `raw_data/lmi`, summarizes all extracted text in bounded
+chunks, and displays the model IDs used for those requests. Scanned PDFs are
+OCR-processed locally for up to 50 pages. The summary action does not query
+MySQL. Summary requests use low reasoning effort and retry once with reasoning
+disabled, a larger output-token budget, and OpenRouter Auto's low-cost routing
+tier if a provider exhausts the limit without returning text. Successful
+summaries are saved under `raw_data/lmi/.summaries/`; unchanged source reports
+are removed from the selection list and reuse the saved summary without an API
+key or another OpenRouter request. The page lists saved summaries for download.
+Summaries are converted from model Markdown to readable plain text before
+display and storage, and existing cached Markdown summaries are converted on
+their next read. Generated cache files are excluded from Git.
+
+Scanned PDF reports use local OCR. Install Tesseract and its English language
+data on the server. On Debian/Ubuntu:
+
+```bash
+sudo apt install tesseract-ocr tesseract-ocr-eng
+```
+
+### 3. Run the development server
 
 ```bash
 uv run fastapi dev main.py --port 8088

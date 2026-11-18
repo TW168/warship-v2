@@ -136,7 +136,7 @@ class AnalyzeRequest(BaseModel):
 # Private helpers
 # ---------------------------------------------------------------------------
 
-def _extract_text(path: Path) -> str:
+def _extract_text(path: Path, max_chars: int | None = _MAX_TEXT_CHARS) -> str:
     """Extract plain text from a supported document file.
 
     Supported formats:
@@ -146,26 +146,42 @@ def _extract_text(path: Path) -> str:
 
     Args:
         path: Absolute path to the document file.
+        max_chars: Maximum text length, or ``None`` to extract all available text.
 
     Returns:
-        Up to ``_MAX_TEXT_CHARS`` characters of extracted text.
+        Extracted text, limited to ``max_chars`` when provided.
     """
     ext = path.suffix.lower()
 
     if ext == ".pdf":
         pages = []
+        extracted_chars = 0
         with pdfplumber.open(path) as pdf:
             for page in pdf.pages:
                 page_text = page.extract_text()
                 if page_text:
-                    pages.append(page_text)
-        return "\n".join(pages)[:_MAX_TEXT_CHARS]
+                    separator = 1 if pages else 0
+                    remaining = (
+                        max_chars - extracted_chars - separator
+                        if max_chars is not None
+                        else None
+                    )
+                    if remaining is not None and remaining <= 0:
+                        break
+                    extracted = page_text if remaining is None else page_text[:remaining]
+                    pages.append(extracted)
+                    extracted_chars += separator + len(extracted)
+                    if remaining is not None and len(extracted) < len(page_text):
+                        break
+        return "\n".join(pages)
 
     if ext in (".txt", ".csv"):
-        return path.read_text(encoding="utf-8", errors="ignore")[:_MAX_TEXT_CHARS]
+        with path.open(encoding="utf-8", errors="ignore") as source:
+            return source.read() if max_chars is None else source.read(max_chars)
 
     # DOCX / XLSX extraction not yet implemented
-    return f"[File type {ext} extraction not yet implemented]"
+    placeholder = f"[File type {ext} extraction not yet implemented]"
+    return placeholder if max_chars is None else placeholder[:max_chars]
 
 
 def _build_prompt(filename: str, document_text: str) -> str:

@@ -36,6 +36,7 @@ _engine = connect_to_database()
 SPECIAL_SERIES = (
     ("980201", "980201 - L divider 81"),
     ("980200", "980200 - L divider 80"),
+    ("9802A", "9802A - L divider 80"),
     ("99", "99 - Color roll scrap"),
     ("91", "91 - Reclaim in a box"),
 )
@@ -43,6 +44,7 @@ SPECIAL_SERIES_DISPLAY_ORDER = (
     "91 - Reclaim in a box",
     "99 - Color roll scrap",
     "980200 - L divider 80",
+    "9802A - L divider 80",
     "980201 - L divider 81",
 )
 AGE_BUCKETS = (
@@ -607,7 +609,7 @@ def _write_analysis_workbook(
         ["SW Plt No is stored as text; leading zeros and non-numeric IDs are preserved. Weight is not reported or summed."],
         [None],
         ["Classification"],
-        ["Special ID prefixes are checked in order: 980201, 980200, 99, 91. All other pallet IDs are regular."],
+        ["Special ID prefixes are checked in order: 980201, 980200, 9802A, 99, 91. Both 980200 and 9802A are L divider 80 series. All other pallet IDs are regular."],
         ["Age buckets and product family counts apply to regular pallets. Stacker, order, and occupancy summaries include both sheets."],
         [None],
         ["Cell occupancy"],

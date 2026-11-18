@@ -99,6 +99,15 @@ def _sample_rows():
         {
             "original_in_date": date(2026, 10, 21),
             "last_date": date(2026, 10, 21),
+            "order_no": "RW12345679",
+            "product_code": "AM1",
+            "sw_plt_no": "9802A12345",
+            "machine_no": "2",
+            "cell_id": "103",
+        },
+        {
+            "original_in_date": date(2026, 10, 21),
+            "last_date": date(2026, 10, 21),
             "order_no": "RW12345678",
             "product_code": "AM1",
             "sw_plt_no": "9802000001",
@@ -130,6 +139,7 @@ def test_classify_series_checks_required_prefix_order_and_text_ids():
     """Special IDs are recognized without coercing pallet IDs to numbers."""
     assert upload_module.classify_series("980201980200") == "980201 - L divider 81"
     assert upload_module.classify_series("9802000001") == "980200 - L divider 80"
+    assert upload_module.classify_series("9802A12345") == "9802A - L divider 80"
     assert upload_module.classify_series("9900000001") == "99 - Color roll scrap"
     assert upload_module.classify_series("9100000001") == "91 - Reclaim in a box"
     assert upload_module.classify_series("0900186046") == "regular"
@@ -177,21 +187,22 @@ def test_xfcma_summary_and_pallets_filter_special_ids(client, monkeypatch):
     assert response.status_code == 200
     payload = response.json()
     assert payload["totals"] == {
-        "all": 6,
+        "all": 7,
         "regular": 2,
-        "special": 4,
-        "occupied_cells": 5,
+        "special": 5,
+        "occupied_cells": 6,
     }
     assert [row["label"] for row in payload["by_series"]] == [
         "91 - Reclaim in a box",
         "99 - Color roll scrap",
         "980200 - L divider 80",
+        "9802A - L divider 80",
         "980201 - L divider 81",
     ]
-    assert [row["count"] for row in payload["by_series"]] == [1, 1, 1, 1]
+    assert [row["count"] for row in payload["by_series"]] == [1, 1, 1, 1, 1]
     assert sum(row["count"] for row in payload["by_age"]) == 2
     assert {"label": "(blank)", "count": 1, "percent": 50.0} in payload["by_family"]
-    assert payload["cell_occupancy"]["one_pallet_cells"]["count"] == 4
+    assert payload["cell_occupancy"]["one_pallet_cells"]["count"] == 5
     assert payload["mixed_order_cells"] == [
         {"location": "1-2075", "orders": ["RW22425002", "RW23721011"]}
     ]
@@ -255,7 +266,11 @@ def test_xfcma_analysis_endpoint_downloads_summary_and_data_sheets(client, monke
     assert workbook.sheetnames == ["Summary", "Data", "Special IDs", "Notes"]
     assert workbook["Summary"]["A1"].value == "Regular vs special"
     assert workbook["Data"].max_row == 3
-    assert workbook["Special IDs"].max_row == 5
+    assert workbook["Special IDs"].max_row == 6
+    assert "9802A12345" in [
+        workbook["Special IDs"].cell(row, 5).value
+        for row in range(2, workbook["Special IDs"].max_row + 1)
+    ]
     assert workbook["Data"]["E2"].value == "BE09COREL"
     assert workbook["Data"]["E3"].value == "0900186046"
     assert workbook["Data"]["A1"].value == "Orig In-Date"

@@ -73,6 +73,7 @@ warship-v2/
 │   │   ├── freight_audit.py     # Freight ¢/lb audit (3 independent methods)
 │   │   ├── shipment_size_impact.py # Volume decomposition and shipment-size workload analysis
 │   │   ├── lmi.py               # LMI document analysis via Ollama deepseek-r1:8b
+│   │   ├── openrouter.py        # OpenRouter playground and chunked LMI summaries
 │   │   ├── not_in_xfcma.py      # Not-in-XFCMA PDF upload + CRUD
 │   │   ├── amin_daily_shipment_summary.py # AMIN daily shipment report PDF upload
 │   │   ├── in_cma_not_in_as400.py # In-CMA/not-in-AS400 report extraction and upload
@@ -116,6 +117,7 @@ warship-v2/
 │   ├── shipped_product.py
 │   ├── shipping_status.py
 │   ├── silos.py             # SiloAnomalyStatusUpdateRequest
+│   ├── openrouter.py        # OpenRouter chat and LMI summary request/response models
 │   ├── top_customers.py
 │   └── tsr_prep.py
 ├── utils/
@@ -217,11 +219,11 @@ logger = get_util_logger("pdf_parser")
 | Freight Lbs by Year | `GET /api/analytics/freight-lbs-by-year-mei` | JSON — monthly lbs from `frt_cost_breakdown_mei`; param: `site` (default SW) |
 | Unit Freight Cost John | `GET /api/analytics/unit-frt-cost-john` | JSON — all rows from `unit_frt_cost_john`: id, yyyy, mm, division, product, wt_lbs, freight |
 | Freight Cost by Plant | `GET /api/analytics/freight-cost-by-plant` | JSON — annual YTD freight cost ($) by plant (BP, SW, CT, YA, Total) for 2019–2026; reads Excel workbook `AMJK Frt cost breakdown by plants-26.02.03.xlsx` |
-| Warehouse | `GET /warehouse` | UDC hourly bar chart and UDC history line chart on row two; ASH event heatmap; and four CFP pallet-count cards on row one from the CFP cells source: "Reclaim Boxes in CMA" (pallet values starting with `910`), "Color Rolls Scrap in CMA" (pallet values starting with `99`), "Sheet 81-3313-080" (pallet values starting with `980200`), and "Sheet  81-331-081" (pallet values starting with `980201`). Each card's printer action downloads a filterable, numerically sorted Excel workbook. |
+| Warehouse | `GET /warehouse` | UDC hourly bar chart and UDC history line chart on row two; ASH event heatmap; and four CFP pallet-count cards on row one from the CFP cells source: "Reclaim Boxes in CMA" (pallet values starting with `910`), "Color Rolls Scrap in CMA" (pallet values starting with `99`), "Sheet 81-3313-080" (pallet values starting with `9802A` or `980200`), and "Sheet  81-331-081" (pallet values starting with `980201`). Each card's printer action downloads a filterable, numerically sorted Excel workbook. |
 | CFP pallet count API | `GET /api/warehouse/cfp-prefix-pallet-count` | Fetches the CFP cells HTML page, counts pallet values that start with the requested prefix (default `910`), and returns the total and pallet details. Powers the Reclaim Boxes and Color Rolls Scrap cards. |
 | Reclaim Boxes Excel Export | `GET /api/warehouse/reclaim-boxes/export.xlsx` | Downloads current `910`-prefix pallet data as a formatted Excel sheet with a title row, autofilter headers, frozen header rows, and ascending numeric pallet order. |
-| Warehouse CFP Excel Exports | `GET /api/warehouse/{export_key}/export.xlsx` | Downloads formatted, filterable, numerically sorted Excel workbooks for `color-rolls-scrap` (`99`), `sheet-81-3313-080` (`980200`), or `sheet-81-331-081` (`980201`). |
-| Sheet 81-3313-080 pallet API | `GET /api/warehouse/sheet-81-3313-080` | Fetches CFP cells and returns pallet values beginning with `980200`, including sequence, location, stacker, and cell details for the Warehouse sheet card. |
+| Warehouse CFP Excel Exports | `GET /api/warehouse/{export_key}/export.xlsx` | Downloads formatted, filterable, numerically sorted Excel workbooks for `color-rolls-scrap` (`99`), `sheet-81-3313-080` (`9802A` or `980200`), or `sheet-81-331-081` (`980201`). |
+| Sheet 81-3313-080 pallet API | `GET /api/warehouse/sheet-81-3313-080` | Fetches CFP cells and returns pallet values beginning with `9802A` or `980200`, including sequence, location, stacker, and cell details for the Warehouse sheet card. |
 | Sheet 81-331-081 pallet API | `GET /api/warehouse/sheet-81-331-081` | Fetches CFP cells and returns pallet values beginning with `980201`, including sequence, location, stacker, and cell details for the Warehouse sheet card. |
 | Shipping | `GET /shipping` | Filter bar (date range, site, product group) drives Carrier Cost Analysis card. Last section is a Truck Arrival Time Distribution smoothed distribution curve sourced from `shipment_scan`, driven by the filter bar's date range (`shipment_scan` has no site column, so the site/product-group filters don't apply to it — only `date_from`/`date_to`). |
 | Carrier Cost Analysis | `GET /api/carrier-cost-analysis` | JSON — calls `sp_carrier_cost_per_pound`; params: `date_from`, `date_to`, `site`, `product_group` (all optional); returns carrier_id, bl_count, total_weight, total_pallets, total_freight_cost, cost_per_pound. Card embedded at bottom of `/shipping` page with Plotly bubble chart + sortable table. |
@@ -246,7 +248,7 @@ logger = get_util_logger("pdf_parser")
 | AMIN Shipment Report Months API | `GET /maintenance/api/amin-daily-shipment-summary/periods` | JSON — available report-generation year/month pairs, newest first; powers the page selectors. |
 | AMIN Shipment Monthly Data API | `GET /maintenance/api/amin-daily-shipment-summary/data` | JSON — required `year` and `month`; returns the latest generated report snapshot in that report month, with detail and aggregate rows. |
 | AMIN Shipment Monthly Trend API | `GET /maintenance/api/amin-daily-shipment-summary/monthly-trend` | JSON — one point per year/month from the aggregate row of the latest generated report for that month; powers the independent Qty Shipped (lbs) / average freight chart. |
-| Pallet in CMA not in AS400 | `GET /maintenance/in-cma-not-in-as400` | Maintenance upload page and snapshot dashboard, including a full-width historical line chart of all, regular, and special pallet counts from the earliest through latest loaded report date. Defaults to the latest `report_datetime` date; shows special-ID series, regular-only age/family, cell occupancy and over-capacity/mixed-order cells, stackers, order types/orders, and sortable/filterable regular/special pallet tables. |
+| Pallet in CMA not in AS400 | `GET /maintenance/in-cma-not-in-as400` | Maintenance upload page and snapshot dashboard, including a full-width historical line chart of all, regular, and special pallet counts from the earliest through latest loaded report date. Defaults to the latest `report_datetime` date; shows separate special-ID counts for `980200 - L divider 80` and `9802A - L divider 80`, plus regular-only age/family, cell occupancy and over-capacity/mixed-order cells, stackers, order types/orders, and sortable/filterable regular/special pallet tables. |
 | XFCMA Summary API | `GET /api/xfcma/summary` | JSON — optional `report_date` (`YYYY-MM-DD`); groups one load snapshot into all/regular/special totals, all four special series, regular-only age/family, all-pallet stacker/order groups, occupancy, over-capacity cells, and mixed-order cells. Python performs grouping. |
 | XFCMA Report Dates API | `GET /api/xfcma/report-dates` | JSON — available report calendar dates derived from `report_datetime`, newest first, with latest load timestamp and row count per date. Powers the In CMA dashboard date selector; a successful upload refreshes the list and selects the uploaded report date. |
 | XFCMA Pallets API | `GET /api/xfcma/pallets` | JSON — required `group` (`regular` or `special`) and optional `report_date`; returns enriched pallet rows ordered by days on report descending. Pallet numbers remain text; report weight is not used. |
@@ -256,7 +258,7 @@ logger = get_util_logger("pdf_parser")
 | SAIA LTL Freight Upload | `GET /maintenance/saia-ltl` | Maintenance page for uploading daily SAIA LTL "Load and Count Exception Report" PDFs and browsing parsed records. |
 | SAIA LTL Upload API | `POST /maintenance/api/shipping/saia-ltl/upload` | Multipart PDF upload. Parses program code, report date/time, pickup date/manifest, and line items (pro number, consignee, units, weight, OS&D exception) into `saia_ltl_freight` table (unique on `pro_number` — re-uploading the same report skips already-stored rows). Returns insert/skip counts. |
 | SAIA LTL List API | `GET /maintenance/api/shipping/saia-ltl` | JSON — lists `saia_ltl_freight` rows with pagination and optional filters (`report_date`, `consignee`). |
-| Shipment Scan | `GET /maintenance/shipment-scan` | Maintenance page for Excel/CSV shipment scan file upload plus a daily distinct BOL trend line chart card. |
+| Shipment Scan | `GET /maintenance/shipment-scan` | Maintenance page for Excel/CSV shipment scan file upload plus a daily distinct BOL trend line chart card. The hover tooltip shows the date once above the distinct BOL count. |
 | Shipment Scan Upload API | `POST /maintenance/api/shipment-scan/upload` | Multipart Excel/CSV upload endpoint. Parses shipment scan files and stores data as JSON records in `shipment_scan` table with duplicate detection by filename and file size. |
 | Shipment Scan List API | `GET /maintenance/api/shipment-scan` | JSON endpoint to list shipment scan records with pagination and optional filename filtering. Returns records with parsed data, upload metadata, and file information. |
 | Shipment Scan Daily BOL API | `GET /maintenance/api/shipment-scan/daily-bol` | JSON endpoint returning `DATE(scan_datetime)` grouped daily distinct BOL counts for Shipment Scan line-chart rendering. |
@@ -303,6 +305,10 @@ logger = get_util_logger("pdf_parser")
 | LMI Page | `GET /maintenance/lmi` | LMI document analysis dashboard — lists available monthly LMI text files. |
 | LMI Analyze | `POST /maintenance/lmi/analyze` | Streaming — sends one LMI document to Ollama `deepseek-r1:8b` and streams the analysis response (strips `<think>` blocks). |
 | LMI Briefing Analysis | `GET /maintenance/lmi/briefing-analysis` | Streaming — cross-month LMI trend analysis across all available documents via Ollama. |
+| OpenRouter Model Playground | `GET /maintenance/openrouter` | Maintenance text-chat page using OpenRouter Auto by default; responses show the actual model ID(s) returned by OpenRouter. Includes a selector and action to summarize all extracted text from one supported report in `raw_data/lmi` using bounded chunks; scanned-PDF OCR supports up to 50 pages. Summaries are converted to plain text for display and storage, including cached Markdown summaries migrated on read. Successful summaries are cached by source filename/content hash under `raw_data/lmi/.summaries/`; unchanged source reports disappear from the selector and load their saved summary without another model call. Does not query MySQL. |
+| OpenRouter Chat API | `POST /maintenance/api/openrouter/chat` | JSON — sends one prompt (up to 4,000 characters) to the configured OpenRouter model and returns its response; requires `OPENROUTER_API_KEY` in the project-root `.env`. |
+| OpenRouter LMI Summary API | `POST /maintenance/api/openrouter/lmi-summary` | JSON — accepts a selected filename, extracts all available text from a PDF, TXT, or CSV in `raw_data/lmi`, summarizes it in 24,000-character chunks, then synthesizes the chunk summaries. Converts model Markdown to plain text before returning and saving; version-1 cached Markdown summaries are migrated on read without a model request. Saves successful summaries as `.txt` and metadata under `raw_data/lmi/.summaries/`, keyed by source filename/content hash; a cache hit returns `models`, `document`, `answer`, `summary_id`, and `cached` without requiring an API key or making a model request. A save failure returns `cache_warning`. Uses low reasoning effort and retries once with reasoning disabled, a larger output-token budget, and OpenRouter Auto's low-cost routing tier if a completion ends for token length without visible text; reports the model ID when it still fails. Scanned PDFs fall back to local Tesseract OCR (up to 50 pages). |
+| OpenRouter Saved LMI Summary Download | `GET /maintenance/api/openrouter/lmi-summaries/{summary_id}/download` | Downloads a previously generated plain-text summary from the local hidden summary cache after validating its 64-character hexadecimal cache ID. |
 | Freight ¢/lb Validation | `GET /maintenance/frt-validation` | Freight ¢/lb by product code validation page — cross-checks unit freight calculations. |
 | Silos Current Inventory | `GET /maintenance/api/silos/inventory-current` | JSON — latest silo inventory snapshot per vessel from `fact_silo_status`. |
 | Silos Daily Inventory Trend | `GET /maintenance/api/silos/inventory-daily` | JSON — daily inventory trend per vessel/contents; params: `days` (default 30), optional `vessel_id`. |
@@ -402,9 +408,12 @@ Managed via `pyproject.toml` / `uv.lock`:
 | `pdfplumber` | PDF text extraction for QPQUPRFIL not-in-XFCMA reports |
 | `httpx` | Async HTTP client — used for Ollama streaming LMI analysis |
 | `openai` | OpenAI SDK — available for future AI features |
+| `pypdfium2` | Renders scanned PDF pages for local OCR |
 | `pillow` | Validates, orients, and decodes uploaded image files for barcode scanning |
 | `numpy` | Scores image regions to prioritize likely barcode areas for local scanning |
 | `zxing-cpp` | Local barcode detection across supported symbologies |
+
+Scanned-PDF OCR also requires the system `tesseract` executable and English language data.
 
 ---
 
@@ -418,6 +427,13 @@ When completing any task, update CLAUDE.md if any of the following changed:
 
 ### Change Notes
 - 2026-11-18: Added the AMIN daily shipment summary PDF upload page, `amin_daily_shipment_summary` table, report-month selectors, latest-snapshot table, and an independent monthly dual-axis Qty Shipped (lbs) / average freight chart.
+- 2026-11-16: Limited reasoning effort for OpenRouter LMI summaries and added one retry with reasoning disabled, a larger token budget, and Auto's low-cost tier when a response hits its output-token limit without visible text; failed responses expose the selected model ID.
+- 2026-11-16: Cached successful LMI summaries as plain-text files keyed by source filename/content hash; unchanged summarized reports are hidden from the report selector and reused without OpenRouter calls, with a saved-summary download route.
+- 2026-11-17: Convert generated and previously cached Markdown LMI summaries to plain text before display, save, and download.
+- 2026-11-16: Added a Maintenance OpenRouter text-chat page and an opt-in action to select and summarize one supported document in `raw_data/lmi`; neither queries MySQL.
+- 2026-11-17: Raised selected LMI scanned-PDF OCR to 50 pages and changed summaries to process all extracted text in bounded chunks, then synthesize a final response with the model IDs used for every request.
+- 2026-11-13: Removed the duplicate date from the Shipment Scan trend chart tooltip; the unified hover displays the date once above the distinct BOL count.
+- 2026-11-04: Added a separate `9802A - L divider 80` count alongside `980200 - L divider 80` in the In CMA not in AS400 dashboard and analysis workbook.
 - 2026-10-22: Removed the Truck Load Map maintenance page, route registration, navigation entry, associated specification, and page assets.
 - 2026-10-22: Updated the XFCMA analysis workbook so each printed sheet includes the requested report title and a dynamic print date; the Notes sheet also displays the title.
 - 2026-10-21: Added the Vision Learning page and its first module, picture barcode detection. Images are limited to 10 MiB and 30 megapixels, decoded by the Warship server for the request, and not retained in application storage. Missed scans retry at 2x and then automatically scan up to 120 edge-ranked regions; interactive crop-and-rescan remains a fallback. Verified the provided second warehouse photo's label crop returns Code 128 value `0900187194`; the first photo did not decode in tested regions.

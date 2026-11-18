@@ -40,11 +40,14 @@ _engine = connect_to_database()
 logger = get_router_logger("warehouse")
 
 
-def extract_prefix_pallets(html_text: str, prefix: str = "910") -> list[dict[str, str]]:
-    """Extract pallet IDs from CFP rows that begin with the requested prefix."""
+def extract_prefix_pallets(
+    html_text: str, prefix: str | tuple[str, ...] = "910"
+) -> list[dict[str, str]]:
+    """Extract pallet IDs from CFP rows that begin with any requested prefix."""
     if not html_text:
         return []
 
+    prefixes = (prefix,) if isinstance(prefix, str) else prefix
     if BeautifulSoup is not None:
         soup = BeautifulSoup(html_text, "html.parser")
         table = soup.find("table")
@@ -78,7 +81,7 @@ def extract_prefix_pallets(html_text: str, prefix: str = "910") -> list[dict[str
 
             for idx, location in ((pallet1_idx, "pallet_1"), (pallet2_idx, "pallet_2")):
                 value = cells[idx].strip()
-                if value and value.startswith(prefix):
+                if value and value.startswith(prefixes):
                     matches.append({
                         "pallet": value,
                         "location": location,
@@ -188,7 +191,7 @@ def _build_pallet_workbook(
 
 
 async def _download_cfp_pallet_workbook(
-    prefix: str,
+    prefix: str | tuple[str, ...],
     *,
     title_text: str,
     sheet_title: str,
@@ -477,7 +480,7 @@ _PALLET_EXPORTS = {
         "filename_slug": "color_rolls_scrap_in_cma",
     },
     "sheet-81-3313-080": {
-        "prefix": "980200",
+        "prefix": ("9802A", "980200"),
         "title_text": "Sheet 81-3313-080",
         "sheet_title": "Sheet 81-3313-080",
         "filename_slug": "sheet_81-3313-080",
@@ -507,8 +510,12 @@ async def export_warehouse_pallet_excel(export_key: str) -> StreamingResponse:
     return await _download_cfp_pallet_workbook(**export)
 
 
-async def _fixed_cfp_prefix_pallet_count(prefix: str) -> JSONResponse:
-    """Fetch CFP cells and return pallet items for one configured prefix."""
+async def _fixed_cfp_prefix_pallet_count(
+    prefix: str | tuple[str, ...]
+) -> JSONResponse:
+    """Fetch CFP cells and return pallet items for configured prefix(es)."""
+    response_prefix = list(prefix) if isinstance(prefix, tuple) else prefix
+    response_key = "prefixes" if isinstance(prefix, tuple) else "prefix"
     try:
         async with httpx.AsyncClient(timeout=20.0) as client:
             response = await client.get("https://ash123.azurewebsites.net/cfpwh/cells/all_cells")
@@ -516,20 +523,23 @@ async def _fixed_cfp_prefix_pallet_count(prefix: str) -> JSONResponse:
             html_text = response.text
     except Exception as exc:
         logger.warning("Unable to fetch CFP cells data: %s", exc)
-        return JSONResponse(status_code=502, content={"error": str(exc), "prefix": prefix, "count": 0})
+        return JSONResponse(
+            status_code=502,
+            content={"error": str(exc), response_key: response_prefix, "count": 0},
+        )
 
     matches = extract_prefix_pallets(html_text, prefix=prefix)
-    return JSONResponse(content={"prefix": prefix, "count": len(matches), "items": matches})
+    return JSONResponse(content={response_key: response_prefix, "count": len(matches), "items": matches})
 
 
 @router.get(
     "/api/warehouse/sheet-81-3313-080",
     summary="Sheet 81-3313-080 pallets",
-    description="Returns CFP pallet values beginning with 980200 for Sheet 81-3313-080.",
+    description="Returns CFP pallet values beginning with 9802A or 980200 for Sheet 81-3313-080.",
 )
 async def sheet_81_3313_080_pallets() -> JSONResponse:
     """Return CFP pallets assigned to Sheet 81-3313-080."""
-    return await _fixed_cfp_prefix_pallet_count("980200")
+    return await _fixed_cfp_prefix_pallet_count(("9802A", "980200"))
 
 
 @router.get(

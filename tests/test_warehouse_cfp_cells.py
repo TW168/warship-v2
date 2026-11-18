@@ -68,6 +68,25 @@ def test_count_prefix_pallets_counts_910_values():
     assert count_prefix_pallets(html, prefix="910") == 3
 
 
+def test_extract_prefix_pallets_accepts_multiple_prefixes():
+    """A card can select both numeric and alphanumeric pallet families."""
+    html = """
+    <table>
+      <thead><tr><th>Cell ID</th><th>Stacker</th><th>Cell</th><th>Height</th><th>Status</th><th>Pallet 1</th><th>Pallet 2</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>2</td><td>30</td><td>52</td><td>Active</td><td>9802A12345</td><td>9802012345</td></tr>
+        <tr><td>2</td><td>1</td><td>8</td><td>52</td><td>Active</td><td>9802001234</td><td>1234567890</td></tr>
+      </tbody>
+    </table>
+    """
+
+    matches = extract_prefix_pallets(html, prefix=("9802A", "980200"))
+    assert [item["pallet"] for item in matches] == [
+        "9802A12345",
+        "9802001234",
+    ]
+
+
 def test_reclaim_boxes_excel_download_has_filter_and_numeric_pallet_sort(client, monkeypatch):
     """Printer export returns a titled workbook with filterable, ascending pallet rows."""
     html = """
@@ -145,7 +164,7 @@ def test_reclaim_boxes_excel_download_has_filter_and_numeric_pallet_sort(client,
             "sheet-81-3313-080",
             "Sheet 81-3313-080",
             "Sheet 81-3313-080",
-            "980200",
+            ("9802A", "980200"),
             "sheet_81-3313-080",
         ),
         (
@@ -161,12 +180,19 @@ def test_warehouse_pallet_excel_exports_use_the_configured_card_data(
     client, monkeypatch, export_key, title, sheet_name, prefix, filename_slug
 ):
     """Each Warehouse printer card produces a titled workbook for its own prefix."""
+    if isinstance(prefix, tuple):
+        pallet_ids = (f"{prefix[0]}00100", "9802000002")
+        expected_pallet_ids = ["9802000002", pallet_ids[0]]
+    else:
+        pallet_ids = (f"{prefix}100", f"{prefix}2")
+        expected_pallet_ids = [f"{prefix}2", f"{prefix}100"]
+
     html = f"""
     <table>
       <thead><tr><th>Cell ID</th><th>Stacker</th><th>Cell</th><th>Height</th><th>Status</th><th>Pallet 1</th><th>Pallet 2</th></tr></thead>
       <tbody>
-        <tr><td>1</td><td>2</td><td>30</td><td>52</td><td>Active</td><td>{prefix}100</td><td></td></tr>
-        <tr><td>2</td><td>1</td><td>8</td><td>52</td><td>Active</td><td>{prefix}2</td><td></td></tr>
+        <tr><td>1</td><td>2</td><td>30</td><td>52</td><td>Active</td><td>{pallet_ids[0]}</td><td></td></tr>
+        <tr><td>2</td><td>1</td><td>8</td><td>52</td><td>Active</td><td>{pallet_ids[1]}</td><td></td></tr>
       </tbody>
     </table>
     """
@@ -199,7 +225,7 @@ def test_warehouse_pallet_excel_exports_use_the_configured_card_data(
     workbook = load_workbook(BytesIO(response.content), data_only=True)
     sheet = workbook[sheet_name]
     assert sheet["A1"].value == title
-    assert [sheet.cell(row, 2).value for row in (3, 4)] == [f"{prefix}2", f"{prefix}100"]
+    assert [sheet.cell(row, 2).value for row in (3, 4)] == expected_pallet_ids
     assert sheet.auto_filter.ref == "A2:F4"
     assert sheet.freeze_panes == "A3"
     workbook.close()

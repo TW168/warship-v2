@@ -34,6 +34,7 @@ from . import (
     in_cma_not_in_as400,
     lmi,
     not_in_xfcma,
+    openrouter,
     saia_ltl,
     sales_summary,
     shipment_scan,
@@ -54,6 +55,7 @@ router.include_router(shipment_size_impact.router)
 router.include_router(freight_driver.router)
 router.include_router(in_cma_not_in_as400.router)
 router.include_router(lmi.router)
+router.include_router(openrouter.router)
 router.include_router(not_in_xfcma.router)
 router.include_router(shipment_scan.router)
 router.include_router(sales_summary.router)

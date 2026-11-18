@@ -1,0 +1,314 @@
+{% extends "base.html" %}
+{% block title %}OpenRouter Model{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item text-muted">Maintenance</li>
+      <li class="breadcrumb-item active" aria-current="page">OpenRouter Model</li>
+    </ol>
+  </nav>
+
+  <h1 class="page-header h3 mb-4">
+    <i class="bi bi-robot me-2" aria-hidden="true"></i>OpenRouter Model Playground
+  </h1>
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-header card-header-primary">
+      <i class="bi bi-cpu me-2" aria-hidden="true"></i>Configured model
+    </div>
+    <div class="card-body">
+      <div class="fw-semibold">
+        {% if model_id == "openrouter/auto" %}OpenRouter Auto{% else %}Configured model{% endif %}
+      </div>
+      <code>{{ model_id }}</code>
+      <p class="small text-muted mt-2 mb-0">
+        OpenRouter Auto chooses a model for each request. The response card shows
+        every model ID returned by OpenRouter during a multi-part summary.
+        Summaries retry once without reasoning if the model returns no text
+        after reaching its output-token limit, using a larger token budget and
+        OpenRouter Auto's low-cost routing tier.
+      </p>
+      <div class="mt-3 d-flex flex-wrap align-items-center gap-2" role="status" aria-live="polite">
+        <span class="small fw-semibold">Last model used:</span>
+        <code id="modelIndicator">Not called yet</code>
+        <span id="modelUseStatus" class="badge text-bg-secondary">Ready</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="alert alert-info" role="note">
+    Prompts and selected report text are sent to OpenRouter. Scanned PDFs use
+    local OCR first. No MySQL data is queried; avoid submitting sensitive information.
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-header card-header-primary">
+      <i class="bi bi-chat-left-text me-2" aria-hidden="true"></i>Test a prompt
+    </div>
+    <div class="card-body">
+      <form id="openrouterForm">
+        <label for="openrouterPrompt" class="form-label fw-semibold">Prompt</label>
+        <textarea id="openrouterPrompt" class="form-control" rows="5"
+                  maxlength="4000" required
+                  aria-describedby="promptHelp"></textarea>
+        <div id="promptHelp" class="form-text">Maximum 4,000 characters.</div>
+        <button id="submitPrompt" type="submit" class="btn btn-primary mt-3">
+          <span id="promptSpinner" class="spinner-border spinner-border-sm me-1 d-none"
+                role="status" aria-hidden="true"></span>
+          <i id="promptIcon" class="bi bi-send me-1" aria-hidden="true"></i>
+          Send prompt
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card shadow-sm mt-4">
+    <div class="card-header card-header-primary">
+      <i class="bi bi-file-earmark-text me-2" aria-hidden="true"></i>Summarize one LMI report
+    </div>
+    <div class="card-body">
+      <p class="mb-3">
+        Choose a PDF, TXT, or CSV report from <code>raw_data/lmi</code>. All
+        extracted text is summarized in chunks; scanned PDFs use local Tesseract
+        OCR, limited to 50 pages. OpenRouter Auto may select different models
+        for individual chunks. A saved summary is reused without another model
+        call, and its source report is removed from this selector until the file
+        changes.
+      </p>
+      <label for="lmiDocument" class="form-label fw-semibold">LMI report</label>
+      <select id="lmiDocument" class="form-select mb-3"
+              {% if not lmi_documents %}disabled{% endif %}>
+        <option value="">Select a report…</option>
+        {% for filename in lmi_documents %}
+        <option value="{{ filename }}">{{ filename }}</option>
+        {% endfor %}
+      </select>
+      {% if not lmi_documents %}
+      <div class="alert alert-warning mb-3" role="status">
+        No unsummarized PDF, TXT, or CSV reports are available in <code>raw_data/lmi</code>.
+      </div>
+      {% endif %}
+      <button id="summarizeLmi" type="button" class="btn btn-outline-primary"
+              {% if not lmi_documents %}disabled{% endif %}>
+        <span id="lmiSpinner" class="spinner-border spinner-border-sm me-1 d-none"
+              role="status" aria-hidden="true"></span>
+        <i id="lmiIcon" class="bi bi-file-earmark-bar-graph me-1" aria-hidden="true"></i>
+        Summarize selected report
+      </button>
+    </div>
+  </div>
+
+  <div class="card shadow-sm mt-4">
+    <div class="card-header card-header-primary">
+      <i class="bi bi-archive me-2" aria-hidden="true"></i>Saved LMI summaries
+    </div>
+    <div class="card-body">
+      <ul id="savedSummaryList" class="list-group list-group-flush">
+        {% for summary in saved_summaries %}
+        <li class="list-group-item px-0" data-summary-id="{{ summary.summary_id }}">
+          <a href="/maintenance/api/openrouter/lmi-summaries/{{ summary.summary_id }}/download">
+            {{ summary.document }} summary
+          </a>
+          <div class="small text-muted">
+            Models: {{ summary.models | join(", ") }}
+            {% if summary.created_at %} · Saved {{ summary.created_at }}{% endif %}
+          </div>
+        </li>
+        {% else %}
+        <li class="list-group-item px-0 text-muted" id="noSavedSummaries">
+          No summaries saved yet.
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <div id="answerCard" class="card shadow-sm mt-4 d-none">
+    <div class="card-header card-header-primary">
+      <i class="bi bi-chat-square-text me-2" aria-hidden="true"></i>
+      Actual model: <code id="answerModel">{{ model_id }}</code>
+    </div>
+    <div id="answerSources" class="card-body border-bottom d-none">
+      <div class="small fw-semibold">LMI source file</div>
+      <div id="sourceFile" class="small text-muted"></div>
+      <a id="downloadSummary" class="btn btn-sm btn-outline-primary mt-2 d-none"
+         href="#" download>Download saved summary (.txt)</a>
+      <div id="summaryCacheStatus" class="small text-muted mt-2"></div>
+    </div>
+    <div id="answerText" class="card-body" role="status" aria-live="polite"
+         style="white-space: pre-wrap;"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.getElementById('openrouterForm').addEventListener('submit', async function (event) {
+    event.preventDefault();
+
+    const button = document.getElementById('submitPrompt');
+    const spinner = document.getElementById('promptSpinner');
+    const icon = document.getElementById('promptIcon');
+    const answerCard = document.getElementById('answerCard');
+    const answerText = document.getElementById('answerText');
+    const prompt = document.getElementById('openrouterPrompt').value;
+
+    setModelStatus('Waiting for model response…', 'Request in progress', 'info');
+    button.disabled = true;
+    spinner.classList.remove('d-none');
+    icon.classList.add('d-none');
+
+    try {
+      const response = await fetch('/maintenance/api/openrouter/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: prompt })
+      });
+      const result = await response.json().catch(function () {
+        return { detail: 'The server returned an unreadable response.' };
+      });
+      if (!response.ok) {
+        setModelStatus(
+          'Not called',
+          response.status < 500 ? 'Rejected before model call' : 'No model response',
+          'warning'
+        );
+        throw new Error(result.detail || 'OpenRouter request failed.');
+      }
+
+      setModelStatus(result.model, 'Used for last response', 'success');
+      document.getElementById('answerModel').textContent = result.model;
+      answerText.textContent = result.answer;
+      answerCard.classList.remove('d-none');
+      document.getElementById('answerSources').classList.add('d-none');
+      showToast('OpenRouter response received.', 'success');
+    } catch (error) {
+      if (document.getElementById('modelUseStatus').textContent === 'Request in progress') {
+        setModelStatus('Not available', 'No model response', 'warning');
+      }
+      showToast(error.message || 'Could not reach OpenRouter.', 'danger');
+    } finally {
+      button.disabled = false;
+      spinner.classList.add('d-none');
+      icon.classList.remove('d-none');
+    }
+  });
+
+  document.getElementById('summarizeLmi').addEventListener('click', async function () {
+    const button = document.getElementById('summarizeLmi');
+    const spinner = document.getElementById('lmiSpinner');
+    const icon = document.getElementById('lmiIcon');
+    const answerCard = document.getElementById('answerCard');
+    const sourcesCard = document.getElementById('answerSources');
+    const filename = document.getElementById('lmiDocument').value;
+
+    if (!filename) {
+      showToast('Select an LMI report first.', 'warning');
+      return;
+    }
+
+    setModelStatus('Waiting for model response…', 'Reading selected report', 'info');
+    button.disabled = true;
+    spinner.classList.remove('d-none');
+    icon.classList.add('d-none');
+
+    try {
+      const response = await fetch('/maintenance/api/openrouter/lmi-summary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename: filename })
+      });
+      const result = await response.json().catch(function () {
+        return { detail: 'The server returned an unreadable response.' };
+      });
+      if (!response.ok) {
+        const failedModel = response.headers.get('X-OpenRouter-Model');
+        setModelStatus(
+          failedModel || 'Not called',
+          failedModel
+            ? 'Model returned no summary text'
+            : (response.status < 500 ? 'Rejected before model call' : 'No model response'),
+          'warning'
+        );
+        throw new Error(result.detail || 'LMI summary request failed.');
+      }
+
+      const modelsUsed = result.models.join(', ');
+      setModelStatus(
+        modelsUsed,
+        result.cached ? 'Loaded saved summary' : 'Used for last response',
+        result.cached ? 'info' : 'success'
+      );
+      document.getElementById('answerModel').textContent = modelsUsed;
+      document.getElementById('answerText').textContent = result.answer;
+      document.getElementById('sourceFile').textContent = result.document;
+      const downloadLink = document.getElementById('downloadSummary');
+      const cacheStatus = document.getElementById('summaryCacheStatus');
+      const reportSelect = document.getElementById('lmiDocument');
+      if (result.summary_id) {
+        downloadLink.href =
+          '/maintenance/api/openrouter/lmi-summaries/' +
+          encodeURIComponent(result.summary_id) +
+          '/download';
+        downloadLink.classList.remove('d-none');
+        Array.from(reportSelect.options)
+          .find(function (option) { return option.value === result.document; })
+          ?.remove();
+        reportSelect.value = '';
+        const savedSummaryList = document.getElementById('savedSummaryList');
+        const existingEntry = savedSummaryList.querySelector(
+          '[data-summary-id="' + result.summary_id + '"]'
+        );
+        if (!existingEntry) {
+          document.getElementById('noSavedSummaries')?.remove();
+          const entry = document.createElement('li');
+          entry.className = 'list-group-item px-0';
+          entry.dataset.summaryId = result.summary_id;
+          const link = document.createElement('a');
+          link.href = downloadLink.href;
+          link.textContent = result.document + ' summary';
+          const modelLabel = document.createElement('div');
+          modelLabel.className = 'small text-muted';
+          modelLabel.textContent = 'Models: ' + modelsUsed;
+          entry.append(link, modelLabel);
+          savedSummaryList.prepend(entry);
+        }
+      } else {
+        downloadLink.classList.add('d-none');
+      }
+      cacheStatus.textContent = result.cache_warning || (
+        result.cached
+          ? 'Loaded from the local cache; no OpenRouter request was made.'
+          : 'Saved locally and removed from the report selector. Use the saved summaries list to open it again.'
+      );
+      sourcesCard.classList.remove('d-none');
+      answerCard.classList.remove('d-none');
+      showToast(
+        result.cache_warning ||
+          (result.cached
+            ? 'Loaded the saved summary without using OpenRouter tokens.'
+            : 'LMI summary saved locally.'),
+        result.cache_warning ? 'warning' : (result.cached ? 'info' : 'success')
+      );
+    } catch (error) {
+      if (document.getElementById('modelUseStatus').textContent === 'Reading selected report') {
+        setModelStatus('Not available', 'No model response', 'warning');
+      }
+      showToast(error.message || 'Could not summarize LMI reports.', 'danger');
+    } finally {
+      button.disabled = false;
+      spinner.classList.add('d-none');
+      icon.classList.remove('d-none');
+    }
+  });
+
+  function setModelStatus(model, status, color) {
+    document.getElementById('modelIndicator').textContent = model;
+    const statusBadge = document.getElementById('modelUseStatus');
+    statusBadge.textContent = status;
+    statusBadge.className = 'badge text-bg-' + color;
+  }
+</script>
+{% endblock %}
