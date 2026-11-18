@@ -74,6 +74,7 @@ warship-v2/
 │   │   ├── shipment_size_impact.py # Volume decomposition and shipment-size workload analysis
 │   │   ├── lmi.py               # LMI document analysis via Ollama deepseek-r1:8b
 │   │   ├── not_in_xfcma.py      # Not-in-XFCMA PDF upload + CRUD
+│   │   ├── amin_daily_shipment_summary.py # AMIN daily shipment report PDF upload
 │   │   ├── in_cma_not_in_as400.py # In-CMA/not-in-AS400 report extraction and upload
 │   │   ├── shipment_scan.py     # Shipment scan Excel/CSV upload + management
 │   │   ├── sales_summary.py     # MKORSHDK daily sales summary PDF upload + list
@@ -107,6 +108,7 @@ warship-v2/
 │   ├── closed_complaints.py
 │   ├── meeting_report.py
 │   ├── not_in_xfcma.py
+│   ├── amin_daily_shipment_summary.py # AMIN shipment summary upload response
 │   ├── in_cma_not_in_as400.py
 │   ├── sales_summary.py
 │   ├── shipment_scan.py
@@ -239,6 +241,11 @@ logger = get_util_logger("pdf_parser")
 | Upload not in XFCMA | `GET /maintenance/not-in-xfcma` | Maintenance page for PDF upload with success/failure indication only. |
 | Upload not in XFCMA API | `GET/POST/PUT/DELETE /maintenance/api/not-in-xfcma...` | JSON CRUD endpoints for `not_in_xfcma` (`id`, `report_datetime`, `product_code`, `manu_order`, `item`, `pallet`, `location`, `rolls`, `length`, `weight`, `grade`, `last_in_date`, `created_at_utc`, `source_file`). List supports optional filters: `product_code`, `date_from`, `date_to`. |
 | Upload not in XFCMA PDF API | `POST /maintenance/api/not-in-xfcma/upload` | Multipart PDF upload endpoint. Parses QPQUPRFIL report rows and bulk inserts mapped records into `not_in_xfcma`; re-uploading the same filename replaces that file's prior rows. |
+| AMIN Daily Shipment Summary | `GET /maintenance/amin-daily-shipment-summary` | Maintenance page for PDF upload plus a report year/month selector and a table of the latest report's detail and aggregate lines. The table shows Qty Shipped (lbs) and Freight Total ($), omitting Shipped Avg; a separate chart shows monthly aggregate Qty Shipped and average freight across all report months, independent of the selectors. |
+| AMIN Daily Shipment Summary Upload API | `POST /maintenance/api/amin-daily-shipment-summary/upload` | Multipart single-PDF upload. Stores printed generation date/time, report name, page number, actual PDF page count, each shipment date and its printed quantity/freight/¢-per-lb/shipped-average values, and the report aggregate row. Re-uploading the same report timestamp replaces its prior rows. The PDF does not label quantity units or freight currency; Qty Shipped is labeled in lbs per user confirmation. Report generation time is stored as printed (without an inferred timezone). |
+| AMIN Shipment Report Months API | `GET /maintenance/api/amin-daily-shipment-summary/periods` | JSON — available report-generation year/month pairs, newest first; powers the page selectors. |
+| AMIN Shipment Monthly Data API | `GET /maintenance/api/amin-daily-shipment-summary/data` | JSON — required `year` and `month`; returns the latest generated report snapshot in that report month, with detail and aggregate rows. |
+| AMIN Shipment Monthly Trend API | `GET /maintenance/api/amin-daily-shipment-summary/monthly-trend` | JSON — one point per year/month from the aggregate row of the latest generated report for that month; powers the independent Qty Shipped (lbs) / average freight chart. |
 | Pallet in CMA not in AS400 | `GET /maintenance/in-cma-not-in-as400` | Maintenance upload page and snapshot dashboard, including a full-width historical line chart of all, regular, and special pallet counts from the earliest through latest loaded report date. Defaults to the latest `report_datetime` date; shows special-ID series, regular-only age/family, cell occupancy and over-capacity/mixed-order cells, stackers, order types/orders, and sortable/filterable regular/special pallet tables. |
 | XFCMA Summary API | `GET /api/xfcma/summary` | JSON — optional `report_date` (`YYYY-MM-DD`); groups one load snapshot into all/regular/special totals, all four special series, regular-only age/family, all-pallet stacker/order groups, occupancy, over-capacity cells, and mixed-order cells. Python performs grouping. |
 | XFCMA Report Dates API | `GET /api/xfcma/report-dates` | JSON — available report calendar dates derived from `report_datetime`, newest first, with latest load timestamp and row count per date. Powers the In CMA dashboard date selector; a successful upload refreshes the list and selects the uploaded report date. |
@@ -410,6 +417,7 @@ When completing any task, update CLAUDE.md if any of the following changed:
 - A new sub-page or feature area was built → add it to Project Structure
 
 ### Change Notes
+- 2026-11-18: Added the AMIN daily shipment summary PDF upload page, `amin_daily_shipment_summary` table, report-month selectors, latest-snapshot table, and an independent monthly dual-axis Qty Shipped (lbs) / average freight chart.
 - 2026-10-22: Removed the Truck Load Map maintenance page, route registration, navigation entry, associated specification, and page assets.
 - 2026-10-22: Updated the XFCMA analysis workbook so each printed sheet includes the requested report title and a dynamic print date; the Notes sheet also displays the title.
 - 2026-10-21: Added the Vision Learning page and its first module, picture barcode detection. Images are limited to 10 MiB and 30 megapixels, decoded by the Warship server for the request, and not retained in application storage. Missed scans retry at 2x and then automatically scan up to 120 edge-ranked regions; interactive crop-and-rescan remains a fallback. Verified the provided second warehouse photo's label crop returns Code 128 value `0900187194`; the first photo did not decode in tested regions.

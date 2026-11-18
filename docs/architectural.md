@@ -137,6 +137,23 @@ Plotly.js loaded from CDN. Data is fetched from JSON API endpoints via `fetch()`
 | price | DECIMAL(5,3) | Price per gallon in USD |
 | scraped_at | DATETIME | Timestamp of scrape (inserted by cron, never deleted) |
 
+**`amin_daily_shipment_summary`** — Parsed AMIN daily shipment report lines
+
+| Column | Type | Description |
+|--------|------|-------------|
+| report_generated_at | DATETIME | Printed report date and time; timezone is not identified in the PDF |
+| report_name | VARCHAR(255) | Report title as printed in the PDF header |
+| page_number, pdf_page_count | INT | Printed page number and actual PDF page count |
+| line_number | INT | Row order within a printed page |
+| row_type | VARCHAR(10) | `detail` for shipment-date rows; `total` for the printed aggregate |
+| ship_date | DATE | Shipment date; null for the aggregate row |
+| qty_shipped | BIGINT | Quantity shipped in pounds (unit confirmed by the user for display) |
+| shipped_avg | BIGINT | Value as printed; the PDF does not identify its unit |
+| freight_total | DECIMAL(15,2) | Freight total as printed; currency is not identified in the PDF |
+| avg_frt_cent_lb | DECIMAL(12,4) | Average freight in cents per pound, matching the printed column heading |
+| source_file | VARCHAR(255) | Uploaded PDF filename |
+| uploaded_at_utc | DATETIME | Upload time recorded in UTC |
+
 **`frt_cost_breakdown_mei`** — Monthly freight cost breakdown (Mei plant)
 
 | Column | Type | Description |
@@ -252,6 +269,7 @@ warship-v2/
 | GET | `/shipping` | `shipping/index.html` | Carrier cost analysis + shipped-weight charts |
 | GET | `/tsr-prep` | `tsr_prep/index.html` | Truck Service Request prep dashboard |
 | GET | `/maintenance/input` | `maintenance/input.html` | Data entry form |
+| GET | `/maintenance/amin-daily-shipment-summary` | `maintenance/amin_daily_shipment_summary.html` | Upload PDFs; select a report year/month to view the latest snapshot's table; monthly chart spans all report months independently |
 | GET | `/about` | `about/index.html` | About page |
 
 ### JSON API
@@ -267,6 +285,10 @@ warship-v2/
 | GET | `/api/carrier-cost-analysis` | `date_from`, `date_to`, `site`, `product_group` | Calls `sp_carrier_cost_per_pound`; returns carrier_id, bl_count, total_weight, total_pallets, total_freight_cost, cost_per_pound |
 | GET | `/api/shipping/shipped-products` | `site`, `product_group`, `date_from`, `date_to` | Calls `sp_get_all_shipped_product`; drives boxplot + top-weight charts |
 | GET | `/api/warehouse/*` | — | Proxied from warehouse service at `172.17.15.228:8000` via httpx |
+| POST | `/maintenance/api/amin-daily-shipment-summary/upload` | Multipart `file` | Parses and stores AMIN shipment details and aggregate; replaces existing lines with the same printed report timestamp |
+| GET | `/maintenance/api/amin-daily-shipment-summary/periods` | — | Available report-generation year/month selector values, newest first |
+| GET | `/maintenance/api/amin-daily-shipment-summary/data` | `year`, `month` | Latest generated report snapshot for the selected report month, including details and aggregate |
+| GET | `/maintenance/api/amin-daily-shipment-summary/monthly-trend` | — | One Qty Shipped (lbs) / average freight point per report year/month, using that month's latest report aggregate |
 | GET | `/weather/maxt1` | — | Serves `MaxT1_conus.png` with no-cache headers |
 | GET | `/weather/national` | — | Serves `national_forecast.jpg` with no-cache headers |
 

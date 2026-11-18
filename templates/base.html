@@ -111,7 +111,7 @@
 
           <!-- Maintenance (dropdown) -->
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle {% if active_page in ['maintenance', 'frt_validation', 'freight_audit', 'freight_driver', 'shipment_size_impact', 'lmi', 'shipping_status', 'not_in_xfcma', 'shipment_scan', 'sales_summary', 'closed_complaints', 'work_order_upload', 'saia_ltl'] %}active{% endif %}"
+            <a class="nav-link dropdown-toggle {% if active_page in ['maintenance', 'frt_validation', 'freight_audit', 'freight_driver', 'shipment_size_impact', 'lmi', 'shipping_status', 'not_in_xfcma', 'shipment_scan', 'sales_summary', 'closed_complaints', 'work_order_upload', 'saia_ltl', 'amin_daily_shipment_summary'] %}active{% endif %}"
                href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
               <i class="bi bi-tools me-1" aria-hidden="true"></i>Maintenance
             </a>
@@ -149,6 +149,11 @@
               <li>
                 <a class="dropdown-item {% if active_page == 'not_in_xfcma' %}active{% endif %}" href="/maintenance/not-in-xfcma">
                   <i class="bi bi-cloud-arrow-up me-2" aria-hidden="true"></i>Upload not in XFCMA
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item {% if active_page == 'amin_daily_shipment_summary' %}active{% endif %}" href="/maintenance/amin-daily-shipment-summary">
+                  <i class="bi bi-file-earmark-arrow-up me-2" aria-hidden="true"></i>AMIN Daily Shipment Summary
                 </a>
               </li>
               <li>

@@ -9,6 +9,7 @@ Domain → module mapping
 -----------------------
 Shipping Status CRUD    →  shipping_status.py
 Freight Audit           →  freight_audit.py
+AMIN Shipment Summary   →  amin_daily_shipment_summary.py
 Closed Complaints       →  closed_complaints.py
 Shipment Size Impact    →  shipment_size_impact.py
 LMI Document Analysis   →  lmi.py
@@ -26,6 +27,7 @@ Usage in main.py (unchanged from pre-refactor):
 from fastapi import APIRouter
 
 from . import (
+    amin_daily_shipment_summary,
     closed_complaints,
     freight_audit,
     freight_driver,
@@ -46,6 +48,7 @@ router = APIRouter(prefix="/maintenance", tags=["Maintenance"])
 
 router.include_router(shipping_status.router)
 router.include_router(freight_audit.router)
+router.include_router(amin_daily_shipment_summary.router)
 router.include_router(closed_complaints.router)
 router.include_router(shipment_size_impact.router)
 router.include_router(freight_driver.router)

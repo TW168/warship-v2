@@ -1,0 +1,407 @@
+{% extends "base.html" %}
+
+{% block title %}AMIN Daily Shipment Summary{% endblock %}
+
+{% block head %}
+{{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="row mb-3">
+    <div class="col">
+      <h1 class="fw-bold" style="color: #154e9a;">
+        <i class="bi bi-file-earmark-arrow-up me-2" aria-hidden="true"></i>AMIN Daily Shipment Summary
+      </h1>
+      <p class="text-muted mb-0">Upload the daily PDF to save report metadata, shipment lines, and the printed total in MySQL.</p>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-6 col-xl-5">
+      <div class="card shadow-sm">
+        <div class="card-header bg-light border-bottom">
+          <h2 class="h5 mb-0"><i class="bi bi-cloud-arrow-up me-2" aria-hidden="true"></i>Upload report</h2>
+        </div>
+        <div class="card-body">
+          <form id="uploadForm">
+            <label for="reportFile" class="form-label fw-semibold">AMIN daily shipment summary PDF</label>
+            <input type="file" class="form-control mb-3" id="reportFile" name="file" accept=".pdf,application/pdf" required>
+            <button type="submit" class="btn btn-primary w-100" id="uploadBtn">
+              <i class="bi bi-cloud-upload me-2" aria-hidden="true"></i>Upload and Save to MySQL
+            </button>
+          </form>
+        </div>
+      </div>
+      <p class="small text-muted mt-3 mb-0">
+        Re-uploading a report with the same generated date and time replaces its previous rows.
+        The report's printed page number and the PDF's actual page count are both stored.
+      </p>
+    </div>
+  </div>
+
+  <section class="card shadow-sm mt-4" aria-labelledby="monthlyDataHeading">
+    <div class="card-header card-header-soft d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <h2 id="monthlyDataHeading" class="h5 mb-0">Shipment data by report month</h2>
+      <span class="small text-muted" id="monthlyDataStatus" role="status" aria-live="polite">Loading available months…</span>
+    </div>
+    <div class="card-body">
+      <div class="row g-3 align-items-end mb-3">
+        <div class="col-6 col-md-3">
+          <label for="reportYearSelect" class="form-label">Year</label>
+          <select id="reportYearSelect" class="form-select" disabled aria-label="Select report year">
+            <option value="">Loading…</option>
+          </select>
+        </div>
+        <div class="col-6 col-md-3">
+          <label for="reportMonthSelect" class="form-label">Month</label>
+          <select id="reportMonthSelect" class="form-select" disabled aria-label="Select report month">
+            <option value="">Loading…</option>
+          </select>
+        </div>
+        <div class="col-12 col-md">
+          <div class="small text-muted" id="selectedReportMetadata" aria-live="polite"></div>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-striped table-hover table-sm align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th scope="col">Row</th>
+              <th scope="col">Ship date</th>
+              <th scope="col" class="text-end">Qty Shipped (lbs)</th>
+              <th scope="col" class="text-end">Freight Total ($)</th>
+              <th scope="col" class="text-end">AVG Frt (¢/lb)</th>
+            </tr>
+          </thead>
+          <tbody id="shipmentTableBody">
+            <tr><td colspan="5" class="text-center text-muted py-3">Loading report data…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="card shadow-sm mt-4" aria-labelledby="shipmentChartHeading">
+    <div class="card-header card-header-soft">
+      <h2 id="shipmentChartHeading" class="h5 mb-0">Monthly Qty Shipped (lbs) and Average Freight</h2>
+    </div>
+    <div class="card-body">
+      <p class="small text-muted">Each point uses the aggregate row from the latest generated report in that year/month. Bars show Qty Shipped (lbs) on the left axis; the line shows average freight in cents per pound on the right axis. This chart always shows all available months and is independent of the table selectors.</p>
+      <div class="position-relative w-100" style="height: 360px;">
+        <canvas id="shipmentChart" role="img" aria-label="Combined bar and line chart of monthly quantity shipped in pounds and average freight in cents per pound"></canvas>
+      </div>
+      <div id="shipmentChartStatus" class="small text-muted mt-2" role="status" aria-live="polite"></div>
+    </div>
+  </section>
+</div>
+
+<script>
+const reportYearSelect = document.getElementById('reportYearSelect');
+const reportMonthSelect = document.getElementById('reportMonthSelect');
+const shipmentTableBody = document.getElementById('shipmentTableBody');
+const monthlyDataStatus = document.getElementById('monthlyDataStatus');
+const selectedReportMetadata = document.getElementById('selectedReportMetadata');
+const shipmentChartStatus = document.getElementById('shipmentChartStatus');
+const numberFormat = new Intl.NumberFormat();
+let availablePeriods = [];
+let shipmentChart = null;
+let monthRequestId = 0;
+let monthlyTrendRequestId = 0;
+
+function formatValue(value, minimumFractionDigits = 0, maximumFractionDigits = minimumFractionDigits) {
+  const numericValue = Number(value);
+  return Number.isFinite(numericValue)
+    ? numericValue.toLocaleString(undefined, { minimumFractionDigits, maximumFractionDigits })
+    : '—';
+}
+
+function showTableMessage(message) {
+  shipmentTableBody.replaceChildren();
+  const row = document.createElement('tr');
+  const cell = document.createElement('td');
+  cell.colSpan = 5;
+  cell.className = 'text-center text-muted py-3';
+  cell.textContent = message;
+  row.appendChild(cell);
+  shipmentTableBody.appendChild(row);
+}
+
+function renderShipmentTable(records) {
+  shipmentTableBody.replaceChildren();
+  for (const record of records) {
+    const row = document.createElement('tr');
+    if (record.row_type === 'total') row.className = 'table-primary fw-semibold';
+    const values = [
+      record.row_type === 'total' ? 'Report total' : 'Shipment',
+      record.ship_date || '—',
+      formatValue(record.qty_shipped),
+      formatDollarValue(record.freight_total),
+      formatValue(record.avg_frt_cent_lb, 4, 4),
+    ];
+    for (const [index, value] of values.entries()) {
+      const cell = document.createElement('td');
+      cell.textContent = value;
+      if (index >= 2) cell.className = 'text-end';
+      row.appendChild(cell);
+    }
+    shipmentTableBody.appendChild(row);
+  }
+}
+
+function formatDollarValue(value) {
+  const formatted = formatValue(value, 2, 2);
+  return formatted === '—' ? formatted : `$${formatted}`;
+}
+
+function renderShipmentChart(points) {
+  const canvas = document.getElementById('shipmentChart');
+  if (shipmentChart) {
+    shipmentChart.destroy();
+    shipmentChart = null;
+  }
+  if (typeof Chart === 'undefined') {
+    shipmentChartStatus.textContent = 'Chart.js could not be loaded.';
+    return;
+  }
+  if (!points.length) {
+    shipmentChartStatus.textContent = 'No monthly report totals are available yet.';
+    return;
+  }
+
+  const monthLabels = points.map((point) => (
+    new Intl.DateTimeFormat(undefined, { year: 'numeric', month: 'short' })
+      .format(new Date(point.year, point.month - 1, 1))
+  ));
+  shipmentChartStatus.textContent = '';
+  shipmentChart = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: monthLabels,
+      datasets: [
+        {
+          type: 'bar',
+          label: 'Qty Shipped (lbs)',
+          data: points.map((point) => Number(point.qty_shipped)),
+          yAxisID: 'yQuantity',
+          backgroundColor: 'rgba(21, 78, 154, 0.3)',
+          borderColor: '#154e9a',
+          borderWidth: 1,
+        },
+        {
+          type: 'line',
+          label: 'AVG Frt (¢/lb)',
+          data: points.map((point) => Number(point.avg_frt_cent_lb)),
+          yAxisID: 'yFreight',
+          borderColor: '#d47b00',
+          backgroundColor: '#d47b00',
+          pointRadius: 3,
+          pointHoverRadius: 5,
+          borderWidth: 2,
+          tension: 0.2,
+        },
+      ],
+    },
+    options: {
+      maintainAspectRatio: false,
+      responsive: true,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'top' },
+        tooltip: {
+          callbacks: {
+            label(context) {
+              const digits = context.dataset.yAxisID === 'yFreight' ? 4 : 0;
+              return `${context.dataset.label}: ${formatValue(context.parsed.y, digits, digits)}`;
+            },
+          },
+        },
+      },
+      scales: {
+        x: { title: { display: true, text: 'Report year and month' } },
+        yQuantity: {
+          type: 'linear',
+          position: 'left',
+          beginAtZero: true,
+          title: { display: true, text: 'Qty Shipped (lbs)' },
+          ticks: { callback: (value) => numberFormat.format(value) },
+        },
+        yFreight: {
+          type: 'linear',
+          position: 'right',
+          beginAtZero: true,
+          grid: { drawOnChartArea: false },
+          title: { display: true, text: 'AVG Frt (¢/lb)' },
+          ticks: { callback: (value) => formatValue(value, 2, 2) },
+        },
+      },
+    },
+  });
+}
+
+async function loadMonthlyTrend() {
+  const requestId = ++monthlyTrendRequestId;
+  shipmentChartStatus.textContent = 'Loading monthly trend…';
+  try {
+    const response = await fetch(
+      '/maintenance/api/amin-daily-shipment-summary/monthly-trend',
+      { cache: 'no-store' }
+    );
+    const points = await response.json();
+    if (!response.ok) throw new Error(points.detail || `HTTP ${response.status}`);
+    if (requestId !== monthlyTrendRequestId) return;
+    renderShipmentChart(points);
+  } catch (error) {
+    if (requestId !== monthlyTrendRequestId) return;
+    if (shipmentChart) {
+      shipmentChart.destroy();
+      shipmentChart = null;
+    }
+    shipmentChartStatus.textContent = error.message || 'Unable to load monthly trend.';
+    showToast(shipmentChartStatus.textContent, 'danger');
+  }
+}
+
+function populateMonths(year, selectedMonth = null) {
+  const months = availablePeriods
+    .filter((period) => period.year === Number(year))
+    .map((period) => period.month);
+  reportMonthSelect.replaceChildren();
+  for (const month of months) {
+    const option = document.createElement('option');
+    option.value = String(month);
+    option.textContent = new Intl.DateTimeFormat(undefined, { month: 'long' })
+      .format(new Date(2020, month - 1, 1));
+    reportMonthSelect.appendChild(option);
+  }
+  reportMonthSelect.disabled = months.length === 0;
+  if (months.length) {
+    reportMonthSelect.value = String(
+      selectedMonth && months.includes(Number(selectedMonth)) ? selectedMonth : months[0]
+    );
+  }
+}
+
+async function loadSelectedMonth() {
+  const year = Number(reportYearSelect.value);
+  const month = Number(reportMonthSelect.value);
+  if (!year || !month) return;
+
+  const requestId = ++monthRequestId;
+  monthlyDataStatus.innerHTML = '<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Loading report…';
+  showTableMessage('Loading report data…');
+  try {
+    const response = await fetch(
+      `/maintenance/api/amin-daily-shipment-summary/data?year=${year}&month=${month}`,
+      { cache: 'no-store' }
+    );
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.detail || `HTTP ${response.status}`);
+    if (requestId !== monthRequestId) return;
+
+    renderShipmentTable(payload.records);
+    const generatedAt = payload.report_generated_at.replace('T', ' ');
+    selectedReportMetadata.textContent = `${payload.report_name} · generated ${generatedAt} · ${payload.pdf_page_count} PDF page(s)`;
+    monthlyDataStatus.textContent = `${payload.records.length} rows from the latest report in ${year}-${String(month).padStart(2, '0')}`;
+  } catch (error) {
+    if (requestId !== monthRequestId) return;
+    selectedReportMetadata.textContent = '';
+    monthlyDataStatus.textContent = error.message || 'Unable to load report data.';
+    showTableMessage('Report data could not be loaded.');
+    showToast(monthlyDataStatus.textContent, 'danger');
+  }
+}
+
+async function loadAvailablePeriods(preferred = null) {
+  monthlyDataStatus.textContent = 'Loading available months…';
+  try {
+    const response = await fetch('/maintenance/api/amin-daily-shipment-summary/periods', { cache: 'no-store' });
+    const periods = await response.json();
+    if (!response.ok) throw new Error(periods.detail || `HTTP ${response.status}`);
+    availablePeriods = periods;
+    reportYearSelect.replaceChildren();
+
+    if (!periods.length) {
+      reportYearSelect.disabled = true;
+      reportMonthSelect.disabled = true;
+      reportYearSelect.innerHTML = '<option value="">No reports</option>';
+      reportMonthSelect.innerHTML = '<option value="">No reports</option>';
+      monthlyDataStatus.textContent = 'Upload a report to view monthly data.';
+      selectedReportMetadata.textContent = '';
+      showTableMessage('No report data has been uploaded yet.');
+      return;
+    }
+
+    const years = [...new Set(periods.map((period) => period.year))];
+    for (const year of years) {
+      const option = document.createElement('option');
+      option.value = String(year);
+      option.textContent = String(year);
+      reportYearSelect.appendChild(option);
+    }
+    reportYearSelect.disabled = false;
+    const preferredYear = preferred && years.includes(Number(preferred.year))
+      ? Number(preferred.year)
+      : years[0];
+    reportYearSelect.value = String(preferredYear);
+    populateMonths(preferredYear, preferred && preferred.year === preferredYear ? preferred.month : null);
+    await loadSelectedMonth();
+  } catch (error) {
+    monthlyDataStatus.textContent = error.message || 'Unable to load available report months.';
+    selectedReportMetadata.textContent = '';
+    showTableMessage('Available report months could not be loaded.');
+    showToast(monthlyDataStatus.textContent, 'danger');
+  }
+}
+
+reportYearSelect.addEventListener('change', () => {
+  populateMonths(reportYearSelect.value);
+  loadSelectedMonth();
+});
+reportMonthSelect.addEventListener('change', loadSelectedMonth);
+
+document.getElementById('uploadForm').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const fileInput = document.getElementById('reportFile');
+  const button = document.getElementById('uploadBtn');
+
+  if (!fileInput.files || fileInput.files.length !== 1) {
+    showToast('Please select one PDF file.', 'warning');
+    return;
+  }
+
+  button.disabled = true;
+  button.innerHTML = '<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Uploading…';
+  try {
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+    const response = await fetch('/maintenance/api/amin-daily-shipment-summary/upload', {
+      method: 'POST',
+      body: formData
+    });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.detail || `HTTP ${response.status}`);
+
+    showToast(`${payload.message} ${payload.detail_rows} shipment rows and ${payload.total_rows} total rows.`, 'success');
+    fileInput.value = '';
+    const generatedAt = payload.report_generated_at;
+    await Promise.all([
+      loadAvailablePeriods({
+        year: Number(generatedAt.slice(0, 4)),
+        month: Number(generatedAt.slice(5, 7)),
+      }),
+      loadMonthlyTrend(),
+    ]);
+  } catch (error) {
+    showToast(error.message || 'The report could not be uploaded.', 'danger');
+  } finally {
+    button.disabled = false;
+    button.innerHTML = '<i class="bi bi-cloud-upload me-2" aria-hidden="true"></i>Upload and Save to MySQL';
+  }
+});
+
+loadAvailablePeriods();
+loadMonthlyTrend();
+</script>
+{% endblock %}
